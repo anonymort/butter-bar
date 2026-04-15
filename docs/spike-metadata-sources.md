@@ -90,18 +90,11 @@ ButterBar is a distributed desktop binary. Any key embedded in the binary is ext
 | **Proxy server (relay)** | Key never leaves server; can rate-limit/monitor per user | Requires running infrastructure; adds latency; operational cost |
 | **Embed + rotate via remote config** | Low friction; can rotate without app update | Still extractable; needs a server for config delivery |
 
-### Recommendation
+### Decision (2026-04-15)
 
-For v1 (pre-App Store, closed beta): **embed the key**, obfuscated, with a warning in SECURITY.md. This is what Seren, Kodi addons, and virtually every comparable open-source player does.
+**Embed keys directly.** ButterBar is personal-use only — no relay, no server infrastructure. Store TMDB access token and Trakt client ID/secret in the binary. This is the simplest architecture and appropriate for a single-user desktop app.
 
-For App Store / public release: **proxy relay** is the cleanest architecture. A lightweight serverless function (Cloudflare Worker or equivalent) signs requests server-side. The app authenticates to the relay (e.g., with an app-specific token tied to the user's ButterBar account), and the relay forwards to TMDB/Trakt with its own keys. This also enables:
-- Per-user rate limiting
-- Analytics on which endpoints are called
-- Key rotation without app updates
-
-This decision should be made before the product-surface work begins in earnest, since it affects whether a ButterBar account/backend is required.
-
-**Trakt specifically:** Trakt's OAuth flow means the `client_id`/`client_secret` must be in the binary or relay. The `client_secret` is effectively the higher-risk item — if someone extracts it and registers a fake app, they could phish users. The relay pattern avoids this entirely.
+If the app is ever distributed publicly, revisit the relay pattern described above.
 
 ---
 
@@ -154,13 +147,21 @@ If TVDB is ever needed for supplemental data (alternate episode ordering, etc.):
 
 ---
 
-## 6. Open Questions
+## 6. Open Questions — Resolved
 
-| # | Question | Who decides | Priority |
-|---|---|---|---|
-| OQ-1 | Does ButterBar plan to charge users (App Store paid app, subscription, or IAP)? This determines whether TMDB's commercial license is required before launch. | Product / Opus | High |
-| OQ-2 | Is a ButterBar backend/relay in scope for v1 or v2? The API key strategy recommendation diverges significantly depending on the answer. | Opus | High |
-| OQ-3 | Should TMDB commercial licensing be negotiated proactively now, or deferred until the app is closer to launch? Given TMDB's ~$149/month disclosed price, early contact de-risks last-minute surprises. | Opus | Medium |
-| OQ-4 | Is Trakt Module 5 scope for v1 or a later milestone? If v2+, the OAuth infrastructure design can be deferred. | Opus | Medium |
-| OQ-5 | Should ButterBar surface Trakt-powered social features (friends' ratings, community trending) or restrict Trakt to private sync only? Affects product UX and data-sharing stance. | Product / Opus | Low |
-| OQ-6 | Is Fanart.tv worth adding for supplemental logo/banner artwork (clearart, disc art, etc.)? It provides content TMDB doesn't carry. Free tier: 100 req/day; $3.50/month for higher volume. | Opus | Low |
+Decisions made 2026-04-15:
+
+| # | Question | Decision |
+|---|---|---|
+| OQ-1 | Revenue model? | **Personal use only.** TMDB free tier applies — no commercial license needed. |
+| OQ-2 | Backend/relay? | **Not needed.** Local use only. Embed API keys directly in the binary. |
+| OQ-3 | TMDB commercial license? | **N/A.** Free tier covers personal/non-commercial use. |
+| OQ-4 | Trakt sync milestone? | **v1 scope.** Watch-state sync (Module 5) ships in v1. |
+| OQ-5 | Trakt social features? | **No.** Private sync only — no friends' ratings, community trending, or social features. |
+| OQ-6 | Fanart.tv? | **No.** Not worth the dependency for personal use. |
+
+### Implications
+
+- **API key strategy simplified:** embed TMDB and Trakt keys directly. No proxy relay, no server infrastructure.
+- **Trakt integration in v1:** OAuth via `ASWebAuthenticationSession`, tokens in Keychain, private history/ratings sync.
+- **Architecture:** no ButterBar backend required for v1. The app is fully self-contained.
