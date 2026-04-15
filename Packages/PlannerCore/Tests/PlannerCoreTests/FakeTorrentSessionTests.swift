@@ -57,28 +57,28 @@ final class FakeTorrentSessionTests: XCTestCase {
     func testAtT200_pieces0And1Appear() {
         let session = makeSession()
         session.step(to: 200)
-        XCTAssertEqual(session.havePieces(), IndexSet([0, 1]))
+        XCTAssertEqual(session.havePieces(), BitSet([0, 1]))
     }
 
     func testBetweenEntries_previousPiecesRetained() {
         // At t=400 (between the 200 and 600 entries), only pieces 0 and 1 exist.
         let session = makeSession()
         session.step(to: 400)
-        XCTAssertEqual(session.havePieces(), IndexSet([0, 1]))
+        XCTAssertEqual(session.havePieces(), BitSet([0, 1]))
     }
 
     func testAtT600_pieces0Through4Present() {
         // Cumulative: pieces from t=200 plus pieces from t=600.
         let session = makeSession()
         session.step(to: 600)
-        XCTAssertEqual(session.havePieces(), IndexSet([0, 1, 2, 3, 4]))
+        XCTAssertEqual(session.havePieces(), BitSet([0, 1, 2, 3, 4]))
     }
 
     func testBeyondLastEntry_allPiecesRetained() {
         // Stepping past all schedule entries should not drop pieces.
         let session = makeSession()
         session.step(to: 9_999)
-        XCTAssertEqual(session.havePieces(), IndexSet([0, 1, 2, 3, 4]))
+        XCTAssertEqual(session.havePieces(), BitSet([0, 1, 2, 3, 4]))
     }
 
     func testStepMultipleTimes_accumulatesCorrectly() {
@@ -87,7 +87,7 @@ final class FakeTorrentSessionTests: XCTestCase {
         session.step(to: 100)
         session.step(to: 300)
         session.step(to: 600)
-        XCTAssertEqual(session.havePieces(), IndexSet([0, 1, 2, 3, 4]))
+        XCTAssertEqual(session.havePieces(), BitSet([0, 1, 2, 3, 4]))
     }
 
     func testStepBackwardIsNoOp() {
@@ -155,7 +155,7 @@ final class FakeTorrentSessionTests: XCTestCase {
         // At t=600: all five pieces present, rate = 2.5 MB/s, peers = 12.
         let session = makeSession()
         session.step(to: 600)
-        XCTAssertEqual(session.havePieces(), IndexSet([0, 1, 2, 3, 4]))
+        XCTAssertEqual(session.havePieces(), BitSet([0, 1, 2, 3, 4]))
         XCTAssertEqual(session.downloadRateBytesPerSec(), 2_500_000)
         XCTAssertEqual(session.peerCount(), 12)
     }
@@ -164,7 +164,7 @@ final class FakeTorrentSessionTests: XCTestCase {
         // At t=250: pieces 0 & 1 available, rate = 0 (still before 500 ms entry), peers = 0 (before 300 ms entry).
         let session = makeSession()
         session.step(to: 250)
-        XCTAssertEqual(session.havePieces(), IndexSet([0, 1]))
+        XCTAssertEqual(session.havePieces(), BitSet([0, 1]))
         XCTAssertEqual(session.downloadRateBytesPerSec(), 0)
         XCTAssertEqual(session.peerCount(), 0)
     }
@@ -173,7 +173,7 @@ final class FakeTorrentSessionTests: XCTestCase {
         // At t=350: pieces 0 & 1 available, rate = 0 (before 500 ms), peers = 12 (after 300 ms).
         let session = makeSession()
         session.step(to: 350)
-        XCTAssertEqual(session.havePieces(), IndexSet([0, 1]))
+        XCTAssertEqual(session.havePieces(), BitSet([0, 1]))
         XCTAssertEqual(session.downloadRateBytesPerSec(), 0)
         XCTAssertEqual(session.peerCount(), 12)
     }

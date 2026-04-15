@@ -43,7 +43,7 @@ Read all specs (addendum + 01–09) end-to-end once the repo exists. Verify that
 
 **Phase gate:** Phase 0 must be DONE. No Phase 1 task starts until `T-REPO-INIT` and `T-SPEC-LINT` are both DONE.
 
-### T-PLANNER-TYPES `[sonnet]` · TODO
+### T-PLANNER-TYPES `[sonnet]` · DONE — One file per type/protocol: `ByteRange`, `PlayerEvent`, `StreamHealth`, `PieceDeadline`, `FailReason`, `PlannerAction`, `TorrentSessionView`, `PiecePlanner`. Plus `PlannerTypes.swift` for `Instant` (typealias `Int64`, milliseconds, no real-clock dependency) and `BitSet` (typealias `Set<Int>`, stdlib-only). `swift build` passes. All types carry `Sendable` and `Codable` conformances for actor-boundary safety and trace replay.
 Implement the type declarations from `04-piece-planner.md`: `PlayerEvent`, `ByteRange`, `PlannerAction`, `PieceDeadline`, `FailReason`, `TorrentSessionView` protocol, `PiecePlanner` protocol. No implementations. No tests yet (types only).
 
 **Spec:** `04-piece-planner.md` § Inputs, Outputs.
@@ -56,7 +56,7 @@ Implement `FakeTorrentSession: TorrentSessionView` in `PlannerCore`'s test suppo
 **Acceptance:** Unit test demonstrating that `havePieces()` returns the correct set at each scheduled time point.
 **Blocks:** `T-PLANNER-TRACE-LOADER`, `T-PLANNER-CORE`.
 
-**Summary:** Added `ByteRange`, `TorrentSessionView` protocol, `FakeTorrentSession` (with `AvailabilityEntry` and `ScalarEntry` schedule types) to `Sources/PlannerCore/`. 21 unit tests in `FakeTorrentSessionTests` all pass. `havePieces()` uses `IndexSet` as a stand-in for `BitSet` pending T-PLANNER-TYPES. Follow-up: T-PLANNER-TYPES should replace `TorrentSessionView.swift` with the canonical type declarations (BitSet, PlayerEvent, PlannerAction, etc.) and this file should be adjusted accordingly.
+**Summary:** Added `FakeTorrentSession` (with `AvailabilityEntry` and `ScalarEntry` schedule types) to `Sources/PlannerCore/`. Uses `BitSet` (= `Set<Int>`) from T-PLANNER-TYPES for `havePieces()`. `TorrentSessionView` protocol and `ByteRange` provided by T-PLANNER-TYPES; `TorrentSessionView.swift` contains only the protocol definition. 21 unit tests in `FakeTorrentSessionTests` all pass.
 
 ### T-PLANNER-TRACE-LOADER `[sonnet]` · TODO
 Implement JSON decoding for the trace format and the expected-actions format. Both as Swift `Codable` structs in `TestFixtures`. Decoding errors must point at the offending field.

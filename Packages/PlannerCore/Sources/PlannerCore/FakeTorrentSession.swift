@@ -5,10 +5,8 @@
 // values from the most recent schedule entry at or before the current time.
 //
 // Availability schedule semantics: each entry's have_pieces list is a cumulative
-// addition. Pieces, once present, are never lost. The returned IndexSet is the
+// addition. Pieces, once present, are never lost. The returned BitSet is the
 // union of all entries up to and including the current time.
-
-import Foundation
 
 // MARK: - Schedule entry types
 
@@ -40,10 +38,10 @@ public struct ScalarEntry: Sendable {
 
 // MARK: - FakeTorrentSession
 
-/// A fake `TorrentSessionView` driven by recorded schedules.
+/// A fake TorrentSessionView driven by recorded schedules.
 ///
-/// All schedules must be sorted ascending by `tMs` before passing to the initialiser.
-/// `step(to:)` only moves time forward — passing a time earlier than the current
+/// All schedules must be sorted ascending by tMs before passing to the initialiser.
+/// step(to:) only moves time forward; passing a time earlier than the current
 /// time is a no-op (not a fatal error, so callers do not need to guard against it).
 public final class FakeTorrentSession: TorrentSessionView {
 
@@ -64,21 +62,13 @@ public final class FakeTorrentSession: TorrentSessionView {
     private var currentTimeMs: Int = 0
 
     /// Pieces available at or before currentTimeMs, accumulated incrementally.
-    private var accumulatedPieces: IndexSet = IndexSet()
+    private var accumulatedPieces: BitSet = BitSet()
 
     /// Index of the last availability entry that has been applied.
     private var lastAppliedAvailabilityIndex: Int = -1
 
     // MARK: - Init
 
-    /// Creates a `FakeTorrentSession` with the given static metadata and schedules.
-    ///
-    /// - Parameters:
-    ///   - pieceLength: Length of a single torrent piece in bytes.
-    ///   - fileByteRange: The byte range within the sparse file for the selected file.
-    ///   - availabilitySchedule: Ordered availability entries (cumulative piece additions).
-    ///   - downloadRateSchedule: Ordered download rate entries in bytes/sec.
-    ///   - peerCountSchedule: Ordered peer count entries.
     public init(
         pieceLength: Int64,
         fileByteRange: ByteRange,
@@ -98,7 +88,7 @@ public final class FakeTorrentSession: TorrentSessionView {
 
     // MARK: - Time advancement
 
-    /// Advances the virtual clock to `timeMs`. No-op if `timeMs` ≤ current time.
+    /// Advances the virtual clock to timeMs. No-op if timeMs <= current time.
     public func step(to timeMs: Int) {
         guard timeMs > currentTimeMs else { return }
         currentTimeMs = timeMs
@@ -107,7 +97,7 @@ public final class FakeTorrentSession: TorrentSessionView {
 
     // MARK: - TorrentSessionView queries
 
-    public func havePieces() -> IndexSet {
+    public func havePieces() -> BitSet {
         accumulatedPieces
     }
 
@@ -121,7 +111,7 @@ public final class FakeTorrentSession: TorrentSessionView {
 
     // MARK: - Private helpers
 
-    /// Applies all availability entries with tMs ≤ timeMs that have not yet been applied.
+    /// Applies all availability entries with tMs <= timeMs that have not yet been applied.
     private func applyAvailabilityUpTo(timeMs: Int) {
         let startIndex = lastAppliedAvailabilityIndex + 1
         for i in startIndex..<availabilitySchedule.count {
@@ -134,8 +124,8 @@ public final class FakeTorrentSession: TorrentSessionView {
         }
     }
 
-    /// Returns the value from the most recent entry at or before `timeMs`.
-    /// Returns 0 if no entry has tMs ≤ timeMs (safe default for both rate and count).
+    /// Returns the value from the most recent entry at or before timeMs.
+    /// Returns 0 if no entry has tMs <= timeMs (safe default for both rate and count).
     private func latestValue(in schedule: [ScalarEntry], at timeMs: Int) -> Int64 {
         var result: Int64 = 0
         for entry in schedule {
