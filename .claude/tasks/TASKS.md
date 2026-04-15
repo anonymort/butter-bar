@@ -108,7 +108,7 @@ Implement all DTO classes from `03-xpc-contract.md` in `EngineInterface` package
 **Spec:** `03-xpc-contract.md` § DTO definitions.
 **Acceptance:** Round-trip secure-coding tests for every DTO, including nil-permitted fields.
 
-### T-XPC-PROTOCOLS `[sonnet]` · TODO
+### T-XPC-PROTOCOLS `[sonnet]` · DONE — `EngineXPCProtocol.swift`, `EngineEventsProtocol.swift`, and `XPCInterfaceFactory.swift` in EngineInterface. Factory registers all DTO types via `setClasses` and wires `subscribe` arg 0 via `setInterface`. 13 XPC registration tests pass (32 total). Key finding: Swift 6 `setClasses` takes `Set<AnyHashable>`; class metatypes must be boxed via `cls as AnyObject as! AnyHashable`.
 Declare `EngineXPC` and `EngineEvents` `@objc` protocols in `EngineInterface`. Wire up a minimal `NSXPCInterface` factory that registers allowed classes for each method.
 
 **Spec:** `03-xpc-contract.md` § Protocols.
