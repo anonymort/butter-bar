@@ -304,11 +304,41 @@ Separately, while writing the workflow into spec 06 rev 2 (per A18), two things 
 
 **Provenance:** the layer-model and `.icon`-placement corrections are based on Apple's developer documentation and WWDC 2025 session "Create icons with Icon Composer" (session 361), plus widely-circulated developer commentary confirming the same workflow. The "background + up to 4 foreground groups" layer count comes directly from Apple's documentation. The placement correction comes from Apple's documented Xcode integration path: `.icon` files are dragged into the project navigator alongside `Assets.xcassets`, not into it.
 
+---
+
+### A20 — Clarify "most recently served byte" tracking (spec 04)
+
+**Context:** During Phase 1 implementation, the mkv-cues-001 fixture exposed an ambiguity in spec 04. The spec uses the phrase "most-recently-served bytes" when describing seek detection, but does not define whether this tracks the range.end of every GET event processed, or only bytes actually delivered to the player.
+
+**Decision:** "Most recently served byte" means the `range.end` of the most recent GET event the planner processed, regardless of whether data was actually delivered before a cancel. This is the correct behavior because:
+- After a seek sets deadlines for a new region, the next GET must clear those deadlines if it targets a different region.
+- If the planner only tracked delivered bytes, a cancelled request would leave stale deadlines competing for peer slots.
+
+**Affected spec:** `04-piece-planner.md` § Seek (internally detected). The sentence "whose range starts more than pieceLength * 4 away from the most recent served byte" should be read as "most recent GET's range.end".
+
+### A21 — Document pieceLength gap between sequential and seek thresholds (spec 04)
+
+**Context:** Spec 04 defines mid-play as "within pieceLength * 2" and seek as "more than pieceLength * 4". The gap (2x to 4x) is not addressed.
+
+**Decision:** GETs in the gap are treated as mid-play (sequential). This is the conservative choice — it avoids unnecessary deadline clearing for distances that are close but not clearly a seek.
+
+**Affected spec:** `04-piece-planner.md` § Mid-play GET, § Seek.
+
+### A22 — Document secondsBufferedAhead when bitrate is unknown (specs 02, 04)
+
+**Context:** In v1, `requiredBitrateBytesPerSec` is nil for the first 60 seconds of playback (spec 02 § Required bitrate inference). The specs do not define what `secondsBufferedAhead` should be when bitrate is nil.
+
+**Decision:** `secondsBufferedAhead` is `0.0` when `requiredBitrateBytesPerSec` is nil. The tier computation falls through to `outstandingCriticalPieces` as the primary health signal during this period. This means every stream starts in the `starving` tier until all critical pieces are downloaded, which is the correct user-facing behavior (you ARE starving until the buffer forms).
+
+**Known limitation:** The `.healthy` and `.marginal` tiers via the buffer path are unreachable in v1 until 60 seconds of continuous playback. This is acceptable for v1 — the critical-pieces path provides adequate tier transitions during the early buffer-building phase.
+
+**Affected specs:** `02-stream-health.md` § Tier semantics, `04-piece-planner.md` § Tick.
+
 ## Summary of file changes in this revision
 
 (extends earlier summaries)
 
-- `00-addendum.md` — A16, A17, A18, and A19 appended.
+- `00-addendum.md` — A16–A19 appended in earlier revision; A20–A22 appended from Phase 1 review.
 - `06-brand.md` — rev 3: § Asset specifications and § Tahoe icon workflow rewritten around the Liquid Glass prep package. Layer model corrected (background + up to 4 foreground groups). `.icon` placement corrected to `App/AppIcon.icon` (sibling of Assets.xcassets, not nested). Step-by-step Icon Composer workflow added. (A19.) Rev 2 introduced Tahoe targeting (A18); rev 1 was the initial brand spec.
 - `07-product-surface.md` — authoritative product surface spec for catalogue, sync, providers, etc. (A17.)
 - `08-issue-workflow.md` — GitHub issue/branch/PR conventions. (A17.)
