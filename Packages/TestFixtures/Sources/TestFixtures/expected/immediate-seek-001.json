@@ -30,15 +30,13 @@
     {
       "t_ms": 10,
       "kind": "emit_health",
-      "health": {
-        "seconds_buffered_ahead": 0.0,
-        "download_rate_bytes_per_sec": 0,
-        "required_bitrate_bytes_per_sec": null,
-        "peer_count": 0,
-        "outstanding_critical_pieces": 4,
-        "recent_stall_count": 0,
-        "tier": "starving"
-      }
+      "seconds_buffered_ahead": 0.0,
+      "download_rate_bytes_per_sec": 0,
+      "required_bitrate_bytes_per_sec": null,
+      "peer_count": 0,
+      "outstanding_critical_pieces": 4,
+      "recent_stall_count": 0,
+      "tier": "starving"
     },
     {
       "t_ms": 450,

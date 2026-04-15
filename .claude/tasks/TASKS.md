@@ -63,7 +63,7 @@ Implement JSON decoding for the trace format and the expected-actions format. Bo
 **Acceptance:** Round-trip test: encode a trace, decode it, assert equality. One passing test per format.
 **Blocks:** `T-PLANNER-FIXTURES`.
 
-### T-PLANNER-FIXTURES `[opus]` · TODO
+### T-PLANNER-FIXTURES `[opus]` · DONE — Four trace+expected pairs authored. Traces designed by Opus, expected actions derived by Sonnet agents, Opus-reviewed with two corrections (emit_health format flattened, clearDeadlinesExcept scope narrowed to critical window per spec).
 Hand-author the four v1 fixtures and their expected-actions files:
 1. `front-moov-mp4-001`
 2. `back-moov-mp4-001`

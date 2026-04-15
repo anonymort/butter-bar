@@ -33,6 +33,7 @@
       "kind": "emit_health",
       "seconds_buffered_ahead": 0.0,
       "download_rate_bytes_per_sec": 0,
+      "required_bitrate_bytes_per_sec": null,
       "peer_count": 0,
       "outstanding_critical_pieces": 4,
       "recent_stall_count": 0,
@@ -55,7 +56,7 @@
     {
       "t_ms": 1450,
       "kind": "clear_deadlines_except",
-      "pieces": [350, 351, 352, 353, 354, 355, 356, 357, 358, 359, 360, 361, 362, 363, 364, 365, 366, 367]
+      "pieces": [350, 351, 352, 353]
     },
     {
       "t_ms": 1450,
@@ -92,6 +93,7 @@
       "kind": "emit_health",
       "seconds_buffered_ahead": 0.0,
       "download_rate_bytes_per_sec": 2500000,
+      "required_bitrate_bytes_per_sec": null,
       "peer_count": 12,
       "outstanding_critical_pieces": 4,
       "recent_stall_count": 0,

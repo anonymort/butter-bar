@@ -21,20 +21,18 @@
     {
       "t_ms": 10,
       "kind": "emit_health",
-      "health": {
-        "seconds_buffered_ahead": 0.0,
-        "download_rate_bytes_per_sec": 0,
-        "required_bitrate_bytes_per_sec": null,
-        "peer_count": 0,
-        "outstanding_critical_pieces": 4,
-        "recent_stall_count": 0,
-        "tier": "starving"
-      }
+      "seconds_buffered_ahead": 0.0,
+      "download_rate_bytes_per_sec": 0,
+      "required_bitrate_bytes_per_sec": null,
+      "peer_count": 0,
+      "outstanding_critical_pieces": 4,
+      "recent_stall_count": 0,
+      "tier": "starving"
     },
     {
       "t_ms": 500,
       "kind": "clear_deadlines_except",
-      "pieces": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+      "pieces": [0, 1, 2, 3]
     },
     {
       "t_ms": 500,
@@ -72,15 +70,13 @@
     {
       "t_ms": 800,
       "kind": "emit_health",
-      "health": {
-        "seconds_buffered_ahead": 0.0,
-        "download_rate_bytes_per_sec": 3000000,
-        "required_bitrate_bytes_per_sec": null,
-        "peer_count": 8,
-        "outstanding_critical_pieces": 0,
-        "recent_stall_count": 0,
-        "tier": "starving"
-      }
+      "seconds_buffered_ahead": 0.0,
+      "download_rate_bytes_per_sec": 3000000,
+      "required_bitrate_bytes_per_sec": null,
+      "peer_count": 8,
+      "outstanding_critical_pieces": 0,
+      "recent_stall_count": 0,
+      "tier": "starving"
     }
   ]
 }
