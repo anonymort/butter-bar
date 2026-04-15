@@ -115,11 +115,15 @@ Declare `EngineXPC` and `EngineEvents` `@objc` protocols in `EngineInterface`. W
 **Acceptance:** Compiles. Interface factory unit test verifies every method has its allowed classes registered (none missing is the common bug).
 **Depends on:** `T-XPC-DTOS`.
 
-### T-XPC-MAPPING `[sonnet]` · TODO
+### T-XPC-MAPPING `[sonnet]` · DONE — Created `Packages/XPCMapping/` package with `DomainTypes.swift` (TorrentSummary, TorrentFile, StreamDescriptor, StreamDescriptor, FileAvailability, DiskPressure, enums, ByteRangeValue) and `Mapping.swift` (bidirectional extensions for all 7 DTOs). 25 tests pass. Package depends on EngineInterface + PlannerCore; fully testable independently.
 Write bidirectional mapping between DTOs and internal domain types (`TorrentSummary`, `StreamHealth`, etc.). Mapping lives in `EngineService/XPC/Mapping.swift` — the one allowed place for DTO↔domain conversion.
 
 **Acceptance:** Unit tests: for every DTO, `toDomain → toDTO → toDomain` is idempotent.
 **Depends on:** `T-XPC-DTOS`, `T-PLANNER-TYPES` (for `StreamHealth`).
+
+Follow-ups:
+- `EngineService/XPC/Mapping.swift` stub should be added once EngineService is a proper Swift module (currently EngineService has only `main.swift`). The XPCMapping package is the logical home; any import at the EngineService Xcode target boundary just imports XPCMapping.
+- `StreamHealth` does not carry `streamID` — the DTO→domain conversion drops it. The reverse (domain→DTO) requires `streamID` as a caller-supplied parameter. Opus should confirm this contract is correct before T-XPC-SERVER-SKELETON proceeds.
 
 ### T-XPC-SERVER-SKELETON `[sonnet]` · TODO
 Implement `EngineXPCServer` in `EngineService` with:
