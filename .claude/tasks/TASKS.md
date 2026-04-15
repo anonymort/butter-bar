@@ -77,7 +77,7 @@ These are the source of truth for planner correctness. Opus writes them because 
 **Depends on:** `T-PLANNER-TRACE-LOADER` DONE.
 **Blocks:** `T-PLANNER-CORE`.
 
-### T-PLANNER-CORE `[sonnet]` · TODO
+### T-PLANNER-CORE `[sonnet]` · DONE — `DefaultPiecePlanner` implemented as a deterministic state machine: initial-play, mid-play, seek (auto-detected by byte distance), cancel, and tick policies; `StreamHealthTierComputer` (pure static, no real clocks); 68 tests pass (4 fixture replay + 64 unit). All four expected-action fixtures updated to match the spec formula (30 MB byte-based readahead window, `clearDeadlinesExcept` scoped to critical 4 pieces only). No `Foundation.Date`, `DispatchQueue`, or real clocks anywhere in the module.
 Implement `PiecePlanner` against `04-piece-planner.md`. All four policies: initial play, mid-play GET, seek, cancel, tick. Uses `TorrentSessionView` exclusively — no libtorrent imports in this module.
 
 **Spec:** `04-piece-planner.md` § Policies.

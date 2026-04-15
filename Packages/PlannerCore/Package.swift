@@ -9,6 +9,9 @@ let package = Package(
     products: [
         .library(name: "PlannerCore", targets: ["PlannerCore"])
     ],
+    dependencies: [
+        .package(path: "../TestFixtures")
+    ],
     targets: [
         .target(
             name: "PlannerCore",
@@ -16,8 +19,9 @@ let package = Package(
         ),
         .testTarget(
             name: "PlannerCoreTests",
-            dependencies: ["PlannerCore"],
-            path: "Tests/PlannerCoreTests"
+            dependencies: ["PlannerCore", "TestFixtures"],
+            path: "Tests/PlannerCoreTests",
+            resources: []
         )
     ]
 )

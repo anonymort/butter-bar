@@ -18,7 +18,9 @@
         { "piece": 10, "deadline_ms": 2500, "priority": "readahead" },
         { "piece": 11, "deadline_ms": 3000, "priority": "readahead" },
         { "piece": 12, "deadline_ms": 4000, "priority": "readahead" },
-        { "piece": 13, "deadline_ms": 5000, "priority": "readahead" }
+        { "piece": 13, "deadline_ms": 5000, "priority": "readahead" },
+        { "piece": 14, "deadline_ms": 6000, "priority": "readahead" },
+        { "piece": 15, "deadline_ms": 7000, "priority": "readahead" }
       ]
     },
     {
@@ -32,7 +34,6 @@
       "kind": "emit_health",
       "seconds_buffered_ahead": 0.0,
       "download_rate_bytes_per_sec": 0,
-      "required_bitrate_bytes_per_sec": null,
       "peer_count": 0,
       "outstanding_critical_pieces": 4,
       "recent_stall_count": 0,
@@ -60,7 +61,9 @@
         { "piece": 709, "deadline_ms": 9786,  "priority": "readahead" },
         { "piece": 710, "deadline_ms": 11184, "priority": "readahead" },
         { "piece": 711, "deadline_ms": 12582, "priority": "readahead" },
-        { "piece": 712, "deadline_ms": 13980, "priority": "readahead" }
+        { "piece": 712, "deadline_ms": 13980, "priority": "readahead" },
+        { "piece": 713, "deadline_ms": 15378, "priority": "readahead" },
+        { "piece": 714, "deadline_ms": 16776, "priority": "readahead" }
       ]
     },
     {

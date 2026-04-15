@@ -33,7 +33,6 @@
       "kind": "emit_health",
       "seconds_buffered_ahead": 0.0,
       "download_rate_bytes_per_sec": 0,
-      "required_bitrate_bytes_per_sec": null,
       "peer_count": 0,
       "outstanding_critical_pieces": 4,
       "recent_stall_count": 0,
@@ -78,8 +77,7 @@
         { "piece": 363, "deadline_ms": 8390,  "priority": "readahead" },
         { "piece": 364, "deadline_ms": 9229,  "priority": "readahead" },
         { "piece": 365, "deadline_ms": 10068, "priority": "readahead" },
-        { "piece": 366, "deadline_ms": 10907, "priority": "readahead" },
-        { "piece": 367, "deadline_ms": 11746, "priority": "readahead" }
+        { "piece": 366, "deadline_ms": 10907, "priority": "readahead" }
       ]
     },
     {
@@ -93,7 +91,6 @@
       "kind": "emit_health",
       "seconds_buffered_ahead": 0.0,
       "download_rate_bytes_per_sec": 2500000,
-      "required_bitrate_bytes_per_sec": null,
       "peer_count": 12,
       "outstanding_critical_pieces": 4,
       "recent_stall_count": 0,
