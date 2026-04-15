@@ -203,24 +203,24 @@ Wire libtorrent's alert stream into the engine's event system. Alert → typed S
 
 **Phase gate:** Phase 3 `T-BRIDGE-REAL-SESSION` must be DONE.
 
-### T-GATEWAY-LISTENER `[sonnet]` · TODO
+### T-GATEWAY-LISTENER `[sonnet]` · DONE — `GatewayListener.swift` in `EngineService/Gateway/`. NWListener on 127.0.0.1:0 (ephemeral), exposes port via `onReady` callback, accepts connections, incremental HTTP read loop, `requestHandler` callback for dispatch. `@unchecked Sendable` for Swift 6 concurrency. Build clean.
 Implement `NWListener` on `127.0.0.1` with an ephemeral port. Accept one connection, log the request, close. Proves the Network.framework setup works before any HTTP parsing.
 
 **Acceptance:** Manual curl against the port returns an empty response and closes cleanly.
 
-### T-GATEWAY-HTTP `[sonnet]` · TODO
+### T-GATEWAY-HTTP `[sonnet]` · DONE — `HTTPTypes.swift` (request/response value types with 5 response factories), `HTTPParser.swift` (RFC 7233 byte-range parsing, incomplete-data handling), `HTTPSerializer.swift` (deterministic header serialization). `HTTPSelfTest.swift` with 11 tests covering GET+range, HEAD, open-ended range, malformed ranges, 416/200/206 serialization. GatewayListener updated with incremental read loop and requestHandler dispatch. Build clean.
 Implement HTTP/1.1 request parsing for HEAD and GET with `Range:` header. Response builder for 200, 206, 416. Zero framework dependencies beyond Foundation + Network.
 
 **Acceptance:** Unit tests with hand-crafted byte streams: valid HEAD, valid GET with range, malformed range, range beyond length. All handled.
 **Depends on:** `T-GATEWAY-LISTENER`.
 
-### T-GATEWAY-PLANNER-WIRING `[sonnet]` · TODO
+### T-GATEWAY-PLANNER-WIRING `[sonnet]` · DONE — `PlaybackSession.swift` (gateway ↔ planner coordinator) and `StreamRegistry.swift` (stream routing) created in `EngineService/Gateway/`. `GatewayPlannerSelfTest.swift` added (`--gateway-planner-self-test` launch arg) covering 7 direct session tests and 2 live HTTP round-trip tests via a real `GatewayListener`. Both Xcode schemes build clean. Dispatch wired in `main.swift`.
 Connect the gateway to `PiecePlanner`. Every incoming request becomes a `PlayerEvent`. Planner actions drive `TorrentBridge` calls (via a mapper, not directly from the gateway). Gateway waits for bytes per the planner's `waitForRange` action.
 
 **Acceptance:** Integration test: fake `TorrentSession` + real gateway + real planner + hand-crafted HTTP client. Plays through a 10 MB synthetic file.
 **Depends on:** `T-GATEWAY-HTTP`, `T-BRIDGE-REAL-SESSION`.
 
-### T-GATEWAY-BYTE-READER `[sonnet]` · TODO
+### T-GATEWAY-BYTE-READER `[sonnet]` · DONE — `ByteReader.swift` in `EngineService/Gateway/`. Maps byte ranges to torrent pieces, walks contiguous available run via `havePieces`, throws `bytesNotAvailable` if first piece missing, returns partial `ReadResult` if tail pieces unavailable. Enforces issue #91 (no silent zero-reads from sparse file). Build clean.
 Implement sparse-file reader that pulls bytes from the libtorrent-managed file via `TorrentBridge.readBytes(...)`. Handles partial reads (asked for N bytes, got M).
 
 **Acceptance:** Unit tests with a pre-populated sparse file.
@@ -232,7 +232,7 @@ Implement sparse-file reader that pulls bytes from the libtorrent-managed file v
 
 **Phase gate:** Phase 4 `T-GATEWAY-PLANNER-WIRING` and `T-GATEWAY-BYTE-READER` must be DONE.
 
-### T-STREAM-E2E `[sonnet]` · TODO
+### T-STREAM-E2E `[sonnet]` · REVIEW — `StreamE2ESelfTest.swift` exercises full path: TorrentBridge → createTestTorrent → addTorrent → wait for metadata/pieces → StreamRegistry.createStream → GatewayListener → URLSession HTTP round-trips (HEAD→200, GET range→206 with byte verification, GET full file). `docs/test-content.md` documents test approach. Activated via `--stream-e2e-self-test`. Build clean. Awaiting Opus review — first real proof the architecture works end-to-end.
 Open a known-good public-domain torrent, select a file, open a stream via XPC, point `AVPlayer` at the returned loopback URL, verify playback starts within 10 seconds and runs for 60 seconds without a stall.
 
 **Acceptance:** Manual test with a named public-domain torrent (Internet Archive, documented in `docs/test-content.md`). Recorded video of successful playback committed to the repo.

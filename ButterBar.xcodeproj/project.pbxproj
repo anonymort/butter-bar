@@ -28,6 +28,16 @@
 		F3A4B5C6D7E8F3A4B5C6D7E8 /* RealTorrentSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E9F0A1B2C3D8E9F0A1B2C3 /* RealTorrentSession.swift */; };
 		A2B3C4D5E6F7A2B3C4D5E6F7 /* TorrentAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3C4D5E6F7A8B3C4D5E6F7A8 /* TorrentAlert.swift */; };
 		C4D5E6F7A8B9C4D5E6F7A8B9 /* AlertDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E6F7A8B9C0D5E6F7A8B9C0 /* AlertDispatcher.swift */; };
+		D6E7F8A9B0C1D6E7F8A9B0C1 /* GatewayListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5D6E7F8A9B0C5D6E7F8A9B0 /* GatewayListener.swift */; };
+		F2A3B4C5D6E7F2A3B4C5D6E7 /* ByteReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F2A3B4C5D6E1F2A3B4C5D6 /* ByteReader.swift */; };
+		AA11223344556677AABB1122 /* HTTPTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB22334455667788BBCC2233 /* HTTPTypes.swift */; };
+		CC33445566778899CCDD3344 /* HTTPParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD4455667788990ADDEEE445 /* HTTPParser.swift */; };
+		EE5566778899AABBEE5566FF /* HTTPSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF66778899AABBCC0011FF66 /* HTTPSerializer.swift */; };
+		AA77889900BBCCDD11AA7788 /* HTTPSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8899AA00CCDDEE22BB8899 /* HTTPSelfTest.swift */; };
+		C3A4B5D6E7F8C3A4B5D6E7F8 /* PlaybackSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1E2F3B4C5D6A1E2F3B4C5D6 /* PlaybackSession.swift */; };
+		D4B5C6E7F8A9D4B5C6E7F8A9 /* StreamRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F3A4C5D6E7B2F3A4C5D6E7 /* StreamRegistry.swift */; };
+		E5F6A7B8C9D0E5F6A7B8C9D0 /* GatewayPlannerSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6A7B8C9D0E1F6A7B8C9D0E1 /* GatewayPlannerSelfTest.swift */; };
+		A7B8C9D1E2F3A7B8C9D1E2F3 /* StreamE2ESelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8C9D0E1F2A3B8C9D0E1F2A3 /* StreamE2ESelfTest.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -71,8 +81,18 @@
 		F5A6B7C8D9E0F5A6B7C8D9E0 /* BridgeSelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeSelfTest.swift; sourceTree = "<group>"; };
 		B3C4D5E6F7A8B3C4D5E6F7A8 /* TorrentAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TorrentAlert.swift; sourceTree = "<group>"; };
 		D5E6F7A8B9C0D5E6F7A8B9C0 /* AlertDispatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertDispatcher.swift; sourceTree = "<group>"; };
+		C5D6E7F8A9B0C5D6E7F8A9B0 /* GatewayListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GatewayListener.swift; sourceTree = "<group>"; };
+		E1F2A3B4C5D6E1F2A3B4C5D6 /* ByteReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ByteReader.swift; sourceTree = "<group>"; };
+		BB22334455667788BBCC2233 /* HTTPTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPTypes.swift; sourceTree = "<group>"; };
+		DD4455667788990ADDEEE445 /* HTTPParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPParser.swift; sourceTree = "<group>"; };
+		FF66778899AABBCC0011FF66 /* HTTPSerializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPSerializer.swift; sourceTree = "<group>"; };
+		BB8899AA00CCDDEE22BB8899 /* HTTPSelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPSelfTest.swift; sourceTree = "<group>"; };
 		A4B6C8D0E2F1934756A8B9C0 /* EngineService-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "EngineService-Bridging-Header.h"; sourceTree = "<group>"; };
 		D8E9F0A1B2C3D8E9F0A1B2C3 /* RealTorrentSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealTorrentSession.swift; sourceTree = "<group>"; };
+		A1E2F3B4C5D6A1E2F3B4C5D6 /* PlaybackSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackSession.swift; sourceTree = "<group>"; };
+		B2F3A4C5D6E7B2F3A4C5D6E7 /* StreamRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamRegistry.swift; sourceTree = "<group>"; };
+		F6A7B8C9D0E1F6A7B8C9D0E1 /* GatewayPlannerSelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GatewayPlannerSelfTest.swift; sourceTree = "<group>"; };
+		B8C9D0E1F2A3B8C9D0E1F2A3 /* StreamE2ESelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamE2ESelfTest.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -189,6 +209,16 @@
 		59B4567A9F6BDDBABF21005C /* Gateway */ = {
 			isa = PBXGroup;
 			children = (
+				C5D6E7F8A9B0C5D6E7F8A9B0 /* GatewayListener.swift */,
+				E1F2A3B4C5D6E1F2A3B4C5D6 /* ByteReader.swift */,
+				BB22334455667788BBCC2233 /* HTTPTypes.swift */,
+				DD4455667788990ADDEEE445 /* HTTPParser.swift */,
+				FF66778899AABBCC0011FF66 /* HTTPSerializer.swift */,
+				BB8899AA00CCDDEE22BB8899 /* HTTPSelfTest.swift */,
+				A1E2F3B4C5D6A1E2F3B4C5D6 /* PlaybackSession.swift */,
+				B2F3A4C5D6E7B2F3A4C5D6E7 /* StreamRegistry.swift */,
+				F6A7B8C9D0E1F6A7B8C9D0E1 /* GatewayPlannerSelfTest.swift */,
+				B8C9D0E1F2A3B8C9D0E1F2A3 /* StreamE2ESelfTest.swift */,
 			);
 			path = Gateway;
 			sourceTree = "<group>";
@@ -378,6 +408,16 @@
 				F3A4B5C6D7E8F3A4B5C6D7E8 /* RealTorrentSession.swift in Sources */,
 				A2B3C4D5E6F7A2B3C4D5E6F7 /* TorrentAlert.swift in Sources */,
 				C4D5E6F7A8B9C4D5E6F7A8B9 /* AlertDispatcher.swift in Sources */,
+				D6E7F8A9B0C1D6E7F8A9B0C1 /* GatewayListener.swift in Sources */,
+				F2A3B4C5D6E7F2A3B4C5D6E7 /* ByteReader.swift in Sources */,
+				AA11223344556677AABB1122 /* HTTPTypes.swift in Sources */,
+				CC33445566778899CCDD3344 /* HTTPParser.swift in Sources */,
+				EE5566778899AABBEE5566FF /* HTTPSerializer.swift in Sources */,
+				AA77889900BBCCDD11AA7788 /* HTTPSelfTest.swift in Sources */,
+				C3A4B5D6E7F8C3A4B5D6E7F8 /* PlaybackSession.swift in Sources */,
+				D4B5C6E7F8A9D4B5C6E7F8A9 /* StreamRegistry.swift in Sources */,
+				E5F6A7B8C9D0E5F6A7B8C9D0 /* GatewayPlannerSelfTest.swift in Sources */,
+				A7B8C9D1E2F3A7B8C9D1E2F3 /* StreamE2ESelfTest.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

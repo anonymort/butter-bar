@@ -10,6 +10,15 @@ import EngineInterface
 if CommandLine.arguments.contains("--bridge-self-test") {
     runBridgeSelfTestAndExit()
 }
+if CommandLine.arguments.contains("--http-self-test") {
+    runHTTPSelfTestAndExit()
+}
+if CommandLine.arguments.contains("--gateway-planner-self-test") {
+    runGatewayPlannerSelfTestAndExit()
+}
+if CommandLine.arguments.contains("--stream-e2e-self-test") {
+    runStreamE2ESelfTestAndExit()
+}
 #endif
 
 final class XPCDelegate: NSObject, NSXPCListenerDelegate {
