@@ -32,7 +32,7 @@ Create the target Xcode project structure described in `CLAUDE.md` → Project l
 
 **Blocks:** everything downstream.
 
-### T-SPEC-LINT `[opus]` · TODO
+### T-SPEC-LINT `[opus]` · DONE — Opus pre-flight review verified A11–A19 applied correctly across all specs; no contradictions found. Two editorial findings (duplicate A17/A18 text in addendum, stale T-SPEC-LINT scope) fixed in PR #81. Both agent role files confirmed to reference 00-addendum.md.
 Read all specs (addendum + 01–09) end-to-end once the repo exists. Verify that the revision blocks in each numbered spec match the addendum items they reference, and that no contradictions remain between the addendum and the numbered specs. If new contradictions are found, append a new addendum item (A20+) rather than editing existing ones.
 
 **Acceptance:** Either no new contradictions, or new addendum items appended at the bottom of `00-addendum.md`. Additionally: verify both `.claude/agents/opus-designer.md` and `.claude/agents/sonnet-implementer.md` reference `00-addendum.md` in their reading order — this defends against the most subtle drift mode (agents skipping the precedence layer because their role file doesn't mention it).
