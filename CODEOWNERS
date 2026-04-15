@@ -1,0 +1,31 @@
+# CODEOWNERS for butter-bar
+#
+# This file assigns reviewers by path. CODEOWNERS does not block merges
+# automatically; it just adds reviewers to PRs.
+#
+# "Opus reviewer" is conceptual — in practice, paths marked for Opus require
+# an explicit Claude Opus invocation per .claude/agents/opus-designer.md
+# before merge.
+
+# Default reviewer for everything not matched below
+*                                       @anonymort
+
+# Spec changes always require Opus review
+.claude/specs/**                        @anonymort
+
+# Planner is review-gated per 01-architecture.md
+EngineService/Planner/**                @anonymort
+Packages/PlannerCore/**                 @anonymort
+
+# XPC contract is review-gated per 01-architecture.md
+EngineService/XPC/**                    @anonymort
+Packages/EngineInterface/**             @anonymort
+
+# Brand assets require Opus review for visual consistency
+App/AppIcon.icon/                       @anonymort
+icons/                                  @anonymort
+App/Brand/                              @anonymort
+
+# CI and workflow changes
+.github/                                @anonymort
+scripts/                                @anonymort
