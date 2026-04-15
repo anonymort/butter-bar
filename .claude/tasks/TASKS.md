@@ -56,9 +56,7 @@ Implement `FakeTorrentSession: TorrentSessionView` in `PlannerCore`'s test suppo
 **Acceptance:** Unit test demonstrating that `havePieces()` returns the correct set at each scheduled time point.
 **Blocks:** `T-PLANNER-TRACE-LOADER`, `T-PLANNER-CORE`.
 
-**Summary:** Added `FakeTorrentSession` (with `AvailabilityEntry` and `ScalarEntry` schedule types) to `Sources/PlannerCore/`. Uses `BitSet` (= `Set<Int>`) from T-PLANNER-TYPES for `havePieces()`. `TorrentSessionView` protocol and `ByteRange` provided by T-PLANNER-TYPES; `TorrentSessionView.swift` contains only the protocol definition. 21 unit tests in `FakeTorrentSessionTests` all pass.
-
-### T-PLANNER-TRACE-LOADER `[sonnet]` · TODO
+### T-PLANNER-TRACE-LOADER `[sonnet]` · DONE — `Trace` and `ExpectedActions` Codable structs in TestFixtures. Discriminated unions with custom Codable for snake_case. 7 tests pass.
 Implement JSON decoding for the trace format and the expected-actions format. Both as Swift `Codable` structs in `TestFixtures`. Decoding errors must point at the offending field.
 
 **Spec:** `04-piece-planner.md` § Trace format, Expected action format.
