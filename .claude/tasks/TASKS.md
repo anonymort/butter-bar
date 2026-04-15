@@ -125,7 +125,7 @@ Follow-ups:
 - `EngineService/XPC/Mapping.swift` stub should be added once EngineService is a proper Swift module (currently EngineService has only `main.swift`). The XPCMapping package is the logical home; any import at the EngineService Xcode target boundary just imports XPCMapping.
 - `StreamHealth` does not carry `streamID` — the DTO→domain conversion drops it. The reverse (domain→DTO) requires `streamID` as a caller-supplied parameter. Opus should confirm this contract is correct before T-XPC-SERVER-SKELETON proceeds.
 
-### T-XPC-SERVER-SKELETON `[sonnet]` · TODO
+### T-XPC-SERVER-SKELETON `[sonnet]` · DONE — `EngineService/XPC/EngineXPCServer.swift` created: `@objc final class EngineXPCServer: NSObject, EngineXPC` with `listTorrents` returning `[]`, `subscribe` retaining client proxy weakly and returning nil, all other methods returning `EngineErrorCode.notImplemented`. `main.swift` updated to use `NSXPCListener.service()` with `XPCDelegate`. EngineInterface package linked to EngineService Xcode target. `xcodebuild -scheme EngineService` succeeds.
 Implement `EngineXPCServer` in `EngineService` with:
 - `listTorrents(_:)` returning `[]`.
 - `subscribe(_:reply:)` succeeding with `nil` error and retaining the client proxy weakly (no events emitted yet).
