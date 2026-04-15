@@ -43,7 +43,7 @@ Read all specs (addendum + 01–09) end-to-end once the repo exists. Verify that
 
 **Phase gate:** Phase 0 must be DONE. No Phase 1 task starts until `T-REPO-INIT` and `T-SPEC-LINT` are both DONE.
 
-### T-PLANNER-TYPES `[sonnet]` · TODO
+### T-PLANNER-TYPES `[sonnet]` · DONE — One file per type/protocol: `ByteRange`, `PlayerEvent`, `StreamHealth`, `PieceDeadline`, `FailReason`, `PlannerAction`, `TorrentSessionView`, `PiecePlanner`. Plus `PlannerTypes.swift` for `Instant` (typealias `Int64`, milliseconds, no real-clock dependency) and `BitSet` (typealias `Set<Int>`, stdlib-only). `swift build` passes. All types carry `Sendable` and `Codable` conformances for actor-boundary safety and trace replay.
 Implement the type declarations from `04-piece-planner.md`: `PlayerEvent`, `ByteRange`, `PlannerAction`, `PieceDeadline`, `FailReason`, `TorrentSessionView` protocol, `PiecePlanner` protocol. No implementations. No tests yet (types only).
 
 **Spec:** `04-piece-planner.md` § Inputs, Outputs.
