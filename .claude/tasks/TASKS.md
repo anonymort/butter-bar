@@ -143,8 +143,15 @@ Implement app-side `EngineClient` actor that owns the `NSXPCConnection`, handles
 **Acceptance:** Integration test: start service, connect, kill service, reconnect, verify subscription restored.
 **Depends on:** `T-XPC-SERVER-SKELETON`.
 
-### T-XPC-INTEGRATION `[sonnet]` · TODO
+### T-XPC-INTEGRATION `[sonnet]` · REVIEW
 Replace stubs with a fake engine backend (no libtorrent yet) that returns synthetic torrents and emits synthetic events on a timer. End-to-end flow: app adds a fake magnet, sees it appear in `listTorrents`, receives `torrentUpdated` events.
+
+Built: `EngineService/XPC/FakeEngineBackend.swift` — in-memory store with a `DispatchSourceTimer` that fires every 2 s, increments `progressQ16` by 1000 per torrent, transitions state to "seeding" at 65536, and calls `clientProxy?.torrentUpdated`. `EngineXPCServer` is now a thin delegation wrapper over `FakeEngineBackend`. All 8 EngineXPC methods implemented; `listFiles` returns `notFound` for unknown torrentID; `setWantedFiles` and `closeStream` are documented no-ops. Integration tests in `Packages/EngineInterface/Tests/EngineInterfaceTests/XPCIntegrationTests.swift` cover the full happy path (9 tests) without an NSXPCConnection — the fake server is called directly in-process via `MockEngineServer`, a local replica typed to the `EngineXPC` protocol. All 41 EngineInterface tests pass; both Xcode schemes build.
+
+Follow-ups noticed (for Opus to triage):
+- `FakeEngineBackend` and the test-only `MockEngineServer` have duplicated logic. Once `EngineService` is a Swift package (or a testable module), the integration test could import `FakeEngineBackend` directly and remove the replica.
+- The timer currently never cleans up if the EngineService process is torn down without `closeStream` being called — not a problem for the fake, but the real backend will need explicit teardown.
+- `openStream` ignores `fileIndex` — a known limitation until the gateway is wired.
 
 **Acceptance:** Integration test walks the full happy path.
 **Depends on:** `T-XPC-CLIENT-CONNECTION`.

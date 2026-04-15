@@ -2,50 +2,54 @@ import Foundation
 import EngineInterface
 
 /// Engine-side XPC server. Conforms to `EngineXPC` and is exported on every
-/// incoming connection. All unimplemented methods return `.notImplemented`.
-/// `listTorrents` returns an empty array per addendum A2.
-/// `subscribe` retains the client proxy weakly; the engine survives client death.
+/// incoming connection. Delegates to `FakeEngineBackend` which holds all in-memory
+/// state and drives synthetic event emission.
 @objc final class EngineXPCServer: NSObject, EngineXPC {
 
-    // Weak so the engine does not keep the remote client alive.
-    // Re-validated on every emission attempt.
-    private weak var clientProxy: (EngineEvents & NSObjectProtocol)?
+    private let backend = FakeEngineBackend()
 
     // MARK: - Torrent lifecycle
 
     func addMagnet(_ magnet: String,
                    reply: @escaping (TorrentSummaryDTO?, NSError?) -> Void) {
-        reply(nil, notImplementedError("addMagnet"))
+        let dto = backend.addMagnet(magnet)
+        reply(dto, nil)
     }
 
     func addTorrentFile(_ bookmarkData: NSData,
                         reply: @escaping (TorrentSummaryDTO?, NSError?) -> Void) {
-        reply(nil, notImplementedError("addTorrentFile"))
+        let dto = backend.addTorrentFile(bookmarkData)
+        reply(dto, nil)
     }
 
-    /// Per addendum A2: returns a valid empty array rather than an error,
-    /// so the app can safely use this as the initial state before any torrents exist.
+    /// Returns the in-memory list of all added torrents.
     func listTorrents(_ reply: @escaping ([TorrentSummaryDTO]) -> Void) {
-        reply([])
+        reply(backend.listTorrents())
     }
 
     func removeTorrent(_ torrentID: NSString,
                        deleteData: Bool,
                        reply: @escaping (NSError?) -> Void) {
-        reply(notImplementedError("removeTorrent"))
+        backend.removeTorrent(torrentID as String)
+        reply(nil)
     }
 
     // MARK: - File selection
 
     func listFiles(_ torrentID: NSString,
                    reply: @escaping ([TorrentFileDTO], NSError?) -> Void) {
-        reply([], notImplementedError("listFiles"))
+        if let fileDTOs = backend.listFiles(for: torrentID as String) {
+            reply(fileDTOs, nil)
+        } else {
+            reply([], notFoundError("torrent \(torrentID)"))
+        }
     }
 
     func setWantedFiles(_ torrentID: NSString,
                         fileIndexes: [NSNumber],
                         reply: @escaping (NSError?) -> Void) {
-        reply(notImplementedError("setWantedFiles"))
+        // No-op: fake backend downloads everything.
+        reply(nil)
     }
 
     // MARK: - Stream lifecycle
@@ -53,32 +57,38 @@ import EngineInterface
     func openStream(_ torrentID: NSString,
                     fileIndex: NSNumber,
                     reply: @escaping (StreamDescriptorDTO?, NSError?) -> Void) {
-        reply(nil, notImplementedError("openStream"))
+        if let descriptor = backend.openStream(torrentID: torrentID as String,
+                                               fileIndex: fileIndex.intValue) {
+            reply(descriptor, nil)
+        } else {
+            reply(nil, notFoundError("torrent \(torrentID)"))
+        }
     }
 
     func closeStream(_ streamID: NSString,
                      reply: @escaping () -> Void) {
+        backend.closeStream(streamID as String)
         reply()
     }
 
     // MARK: - Event subscription
 
-    /// Retains the client proxy weakly and returns nil error (success).
-    /// No events are emitted in the skeleton — the proxy is stored for future use.
+    /// Retains the client proxy weakly via the backend. Starts the 2-second progress timer.
     func subscribe(_ client: EngineEvents,
                    reply: @escaping (NSError?) -> Void) {
-        // NSXPCConnection delivers the proxy as an NSObject subclass at runtime.
-        clientProxy = client as? EngineEvents & NSObjectProtocol
+        if let proxy = client as? EngineEvents & NSObjectProtocol {
+            backend.subscribe(client: proxy)
+        }
         reply(nil)
     }
 
     // MARK: - Private
 
-    private func notImplementedError(_ method: String) -> NSError {
+    private func notFoundError(_ what: String) -> NSError {
         NSError(
             domain: EngineErrorDomain,
-            code: EngineErrorCode.notImplemented.rawValue,
-            userInfo: [NSLocalizedDescriptionKey: "\(method) is not implemented"]
+            code: EngineErrorCode.torrentNotFound.rawValue,
+            userInfo: [NSLocalizedDescriptionKey: "\(what) not found"]
         )
     }
 }

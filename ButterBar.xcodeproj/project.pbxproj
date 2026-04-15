@@ -14,6 +14,7 @@
 		8BE818E590240FD88380781A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9788A1872451B15183194D45 /* Assets.xcassets */; };
 		E5956BD8BE3AB57C532630C3 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D64D5A568E80007ADCD6078 /* main.swift */; };
 		A1B2C3D4E5F6A1B2C3D4E5F6 /* EngineXPCServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A6B1C2D3E4F5A6 /* EngineXPCServer.swift */; };
+		F1E2D3C4B5A6F1E2D3C4B5A6 /* FakeEngineBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6B5C4D3E2F1A6B5C4D3E2F1 /* FakeEngineBackend.swift */; };
 		C1D2E3F4A5B6C1D2E3F4A5B6 /* EngineInterface in Frameworks */ = {isa = PBXBuildFile; productRef = D1E2F3A4B5C6D1E2F3A4B5C6 /* EngineInterface */; };
 		5449C4D2390E0AAD7914583D /* EngineInterface in Frameworks */ = {isa = PBXBuildFile; productRef = 29ED0EA0014C4BEC558549BB /* EngineInterface */; };
 		97D6C5379559B125DE089050 /* PlannerCore in Frameworks */ = {isa = PBXBuildFile; productRef = BDA7E17795E9B0C29D6E029A /* PlannerCore */; };
@@ -49,6 +50,7 @@
 		B0C16DCCF9DCCA2ABBE33990 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1081C8A3D05554F25364C74A /* EngineService.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = EngineService.entitlements; sourceTree = "<group>"; };
 		B1C2D3E4F5A6B1C2D3E4F5A6 /* EngineXPCServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineXPCServer.swift; sourceTree = "<group>"; };
+		A6B5C4D3E2F1A6B5C4D3E2F1 /* FakeEngineBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeEngineBackend.swift; sourceTree = "<group>"; };
 		39AB853C8253F0485E14495A /* EngineInterface */ = {isa = PBXFileReference; lastKnownFileType = folder; name = EngineInterface; path = Packages/EngineInterface; sourceTree = "<group>"; };
 		74D04F9622615D771356B70A /* PlannerCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = PlannerCore; path = Packages/PlannerCore; sourceTree = "<group>"; };
 		1785E418002BEE10CA7FEDC0 /* TestFixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TestFixtures; path = Packages/TestFixtures; sourceTree = "<group>"; };
@@ -183,6 +185,7 @@
 			isa = PBXGroup;
 			children = (
 				B1C2D3E4F5A6B1C2D3E4F5A6 /* EngineXPCServer.swift */,
+				A6B5C4D3E2F1A6B5C4D3E2F1 /* FakeEngineBackend.swift */,
 			);
 			path = XPC;
 			sourceTree = "<group>";
@@ -341,6 +344,7 @@
 			files = (
 				E5956BD8BE3AB57C532630C3 /* main.swift in Sources */,
 				A1B2C3D4E5F6A1B2C3D4E5F6 /* EngineXPCServer.swift in Sources */,
+				F1E2D3C4B5A6F1E2D3C4B5A6 /* FakeEngineBackend.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
