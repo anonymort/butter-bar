@@ -17,6 +17,9 @@
 		C1D2E3F4A5B6C1D2E3F4A5B6 /* EngineInterface in Frameworks */ = {isa = PBXBuildFile; productRef = D1E2F3A4B5C6D1E2F3A4B5C6 /* EngineInterface */; };
 		5449C4D2390E0AAD7914583D /* EngineInterface in Frameworks */ = {isa = PBXBuildFile; productRef = 29ED0EA0014C4BEC558549BB /* EngineInterface */; };
 		97D6C5379559B125DE089050 /* PlannerCore in Frameworks */ = {isa = PBXBuildFile; productRef = BDA7E17795E9B0C29D6E029A /* PlannerCore */; };
+		AA11BB22CC33DD44EE55FF66 /* EngineClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF66EE55DD44CC33BB22AA11 /* EngineClient.swift */; };
+		BB22CC33DD44EE55FF6677AA /* EngineEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7766FF55EE44DD33CC22BB /* EngineEventHandler.swift */; };
+		CC33DD44EE55FF6677AA88BB /* DTOSendable.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD44EE55FF6677AA88BB99CC /* DTOSendable.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -49,6 +52,9 @@
 		39AB853C8253F0485E14495A /* EngineInterface */ = {isa = PBXFileReference; lastKnownFileType = folder; name = EngineInterface; path = Packages/EngineInterface; sourceTree = "<group>"; };
 		74D04F9622615D771356B70A /* PlannerCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = PlannerCore; path = Packages/PlannerCore; sourceTree = "<group>"; };
 		1785E418002BEE10CA7FEDC0 /* TestFixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TestFixtures; path = Packages/TestFixtures; sourceTree = "<group>"; };
+		FF66EE55DD44CC33BB22AA11 /* EngineClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineClient.swift; sourceTree = "<group>"; };
+		AA7766FF55EE44DD33CC22BB /* EngineEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineEventHandler.swift; sourceTree = "<group>"; };
+		DD44EE55FF6677AA88BB99CC /* DTOSendable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTOSendable.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,6 +121,9 @@
 		A6AB9F900515E6EB3A7A72A7 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				FF66EE55DD44CC33BB22AA11 /* EngineClient.swift */,
+				AA7766FF55EE44DD33CC22BB /* EngineEventHandler.swift */,
+				DD44EE55FF6677AA88BB99CC /* DTOSendable.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -320,6 +329,9 @@
 				6AE4D8E712B992B57139800A /* ContentView.swift in Sources */,
 				3B57A8B70A08652E82BED14C /* BrandColors.swift in Sources */,
 				F4249ADDF3CC568FD40A915F /* BrandTypography.swift in Sources */,
+				AA11BB22CC33DD44EE55FF66 /* EngineClient.swift in Sources */,
+				BB22CC33DD44EE55FF6677AA /* EngineEventHandler.swift in Sources */,
+				CC33DD44EE55FF6677AA88BB /* DTOSendable.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -136,7 +136,7 @@ Wire up `NSXPCListener` using `NSXPCListener.service()`. See `00-addendum.md` A2
 **Acceptance:** App can establish a connection, call `listTorrents` and receive an empty array, call `subscribe` and get a nil error, call any other method and receive `.notImplemented`. Engine survives client death.
 **Depends on:** `T-XPC-PROTOCOLS`, `T-XPC-MAPPING`.
 
-### T-XPC-CLIENT-CONNECTION `[sonnet]` · TODO
+### T-XPC-CLIENT-CONNECTION `[sonnet]` · DONE — `App/Shared/EngineClient.swift` (public actor) and `App/Shared/EngineEventHandler.swift` (NSObject + EngineEvents) created. All 8 EngineXPC methods wrapped as `async throws`. Invalidation triggers reconnect after 500 ms back-off; interruption re-subscribes without recreating the connection. `EngineEventHandler` forwards events via Combine `PassthroughSubject` publishers. `App/Shared/DTOSendable.swift` adds `@unchecked Sendable` conformances to the 7 DTO types (NSObject subclasses are not Sendable in SDK; all fields are immutable `let`). `xcodebuild -scheme ButterBar build CODE_SIGN_IDENTITY=-` succeeds. Note: true integration test (connect, kill service, reconnect) deferred to `T-XPC-INTEGRATION` per task spec.
 Implement app-side `EngineClient` actor that owns the `NSXPCConnection`, handles invalidation, and re-subscribes on reconnect. All reply blocks bridged to `async` methods.
 
 **Spec:** `03-xpc-contract.md` § Connection model.
