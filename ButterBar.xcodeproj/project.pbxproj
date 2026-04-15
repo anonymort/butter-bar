@@ -41,6 +41,8 @@
 		AA11BB33CC55DD77EE99FF11 /* EngineStore in Frameworks */ = {isa = PBXBuildFile; productRef = FF66AA88BB00CC22DD44EE66 /* EngineStore */; };
 		BB22CC44DD66EE88FF00AA22 /* CacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA77BB99CC11DD33EE55FF77 /* CacheManager.swift */; };
 		CC33DD55EE77FF99AA11BB33 /* CacheManagerSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB88CC00DD22EE44FF66AA88 /* CacheManagerSelfTest.swift */; };
+		DD44EE66FF88AABB11223344 /* ResumeTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE55FF7788990011AABB2233 /* ResumeTracker.swift */; };
+		AA33BB55CC77DD99EE11FF33 /* ResumeTrackerSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF6600889900AABB11CC2233 /* ResumeTrackerSelfTest.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -77,6 +79,8 @@
 		DD44EE66FF88AA00BB22CC44 /* EngineStore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = EngineStore; path = Packages/EngineStore; sourceTree = "<group>"; };
 		AA77BB99CC11DD33EE55FF77 /* CacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheManager.swift; sourceTree = "<group>"; };
 		BB88CC00DD22EE44FF66AA88 /* CacheManagerSelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheManagerSelfTest.swift; sourceTree = "<group>"; };
+		EE55FF7788990011AABB2233 /* ResumeTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeTracker.swift; sourceTree = "<group>"; };
+		FF6600889900AABB11CC2233 /* ResumeTrackerSelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeTrackerSelfTest.swift; sourceTree = "<group>"; };
 		FF66EE55DD44CC33BB22AA11 /* EngineClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineClient.swift; sourceTree = "<group>"; };
 		AA7766FF55EE44DD33CC22BB /* EngineEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineEventHandler.swift; sourceTree = "<group>"; };
 		DD44EE55FF6677AA88BB99CC /* DTOSendable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTOSendable.swift; sourceTree = "<group>"; };
@@ -235,6 +239,8 @@
 			children = (
 				AA77BB99CC11DD33EE55FF77 /* CacheManager.swift */,
 				BB88CC00DD22EE44FF66AA88 /* CacheManagerSelfTest.swift */,
+				EE55FF7788990011AABB2233 /* ResumeTracker.swift */,
+				FF6600889900AABB11CC2233 /* ResumeTrackerSelfTest.swift */,
 			);
 			path = Cache;
 			sourceTree = "<group>";
@@ -432,6 +438,8 @@
 				A7B8C9D1E2F3A7B8C9D1E2F3 /* StreamE2ESelfTest.swift in Sources */,
 				BB22CC44DD66EE88FF00AA22 /* CacheManager.swift in Sources */,
 				CC33DD55EE77FF99AA11BB33 /* CacheManagerSelfTest.swift in Sources */,
+				DD44EE66FF88AABB11223344 /* ResumeTracker.swift in Sources */,
+				AA33BB55CC77DD99EE11FF33 /* ResumeTrackerSelfTest.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

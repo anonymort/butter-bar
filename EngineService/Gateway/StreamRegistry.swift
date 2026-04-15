@@ -10,7 +10,15 @@ import PlannerCore
 /// itself does no internal locking; serialisation is guaranteed by the caller.
 final class StreamRegistry {
 
+    /// Optional CacheManager for resume-offset persistence. When nil, no
+    /// history is recorded and no resume position is offered.
+    private let cacheManager: CacheManager?
+
     private var sessions: [String: PlaybackSession] = [:]
+
+    init(cacheManager: CacheManager? = nil) {
+        self.cacheManager = cacheManager
+    }
 
     // MARK: - Stream lifecycle
 
@@ -37,7 +45,23 @@ final class StreamRegistry {
                       onHealthUpdate: ((StreamHealth) -> Void)? = nil) throws -> PlaybackSession {
         let realSession = try RealTorrentSession(bridge: bridge, torrentID: torrentID, fileIndex: fileIndex)
         let planner     = DefaultPiecePlanner()
-        let session     = try PlaybackSession(
+
+        // Build a ResumeTracker if we have a CacheManager.
+        let tracker: ResumeTracker? = cacheManager.map {
+            ResumeTracker(cacheManager: $0,
+                          torrentId: torrentID,
+                          fileIndex: fileIndex,
+                          fileSize: contentLength)
+        }
+
+        // Log any existing resume offset for this file (app reads it at open time via XPC).
+        if let cm = cacheManager,
+           let record = try? cm.fetchHistory(torrentId: torrentID, fileIndex: fileIndex),
+           record.resumeByteOffset > 0 {
+            NSLog("[StreamRegistry] resume offset for stream %@: %lld", streamID, record.resumeByteOffset)
+        }
+
+        let session = try PlaybackSession(
             streamID: streamID,
             contentType: contentType,
             contentLength: contentLength,
@@ -45,7 +69,8 @@ final class StreamRegistry {
             torrentSession: realSession,
             bridge: bridge,
             torrentID: torrentID,
-            fileIndex: fileIndex
+            fileIndex: fileIndex,
+            resumeTracker: tracker
         )
         session.onHealthUpdate = onHealthUpdate
         session.start()

@@ -22,6 +22,10 @@ final class PlaybackSession: @unchecked Sendable {
     private let torrentID: String
     private let byteReader: ByteReader
 
+    /// Optional resume tracker. When non-nil, serves the high-water-mark byte
+    /// to DB on the tick path and on stream close.
+    private let resumeTracker: ResumeTracker?
+
     /// Called when the planner emits a StreamHealth update. Always invoked on
     /// `plannerQueue`.
     var onHealthUpdate: ((StreamHealth) -> Void)?
@@ -41,7 +45,8 @@ final class PlaybackSession: @unchecked Sendable {
          torrentSession: TorrentSessionView,
          bridge: TorrentBridge,
          torrentID: String,
-         fileIndex: Int) throws {
+         fileIndex: Int,
+         resumeTracker: ResumeTracker? = nil) throws {
         self.streamID = streamID
         self.contentType = contentType
         self.contentLength = contentLength
@@ -49,6 +54,7 @@ final class PlaybackSession: @unchecked Sendable {
         self.torrentSession = torrentSession
         self.bridge = bridge
         self.torrentID = torrentID
+        self.resumeTracker = resumeTracker
         self.byteReader = try ByteReader(bridge: bridge, torrentID: torrentID, fileIndex: fileIndex)
     }
 
@@ -61,10 +67,17 @@ final class PlaybackSession: @unchecked Sendable {
         tickTimer = timer
     }
 
-    /// Cancel the tick timer and release resources. Safe to call multiple times.
+    /// Cancel the tick timer, flush the resume offset, and release resources.
+    /// Safe to call multiple times.
     func stop() {
         tickTimer?.cancel()
         tickTimer = nil
+        // Drain any in-flight tick handler on plannerQueue before flushing.
+        // This ensures `flush()` and `flushIfNeeded()` cannot run concurrently,
+        // which matters because CacheManager requires single-queue access.
+        if let tracker = resumeTracker {
+            plannerQueue.sync { tracker.flush() }
+        }
     }
 
     /// Synchronously handle an HTTP request for this stream and return the response.
@@ -108,6 +121,9 @@ final class PlaybackSession: @unchecked Sendable {
             switch waitAndRead(offset: rangeStart, length: length, maxWaitMs: maxWaitMs) {
             case .success(let result):
                 let actualEnd = rangeStart + result.bytesRead - 1
+                // Update high-water mark with the last byte successfully served.
+                // `updateServedByte` is lock-protected and safe to call here on the gateway queue.
+                resumeTracker?.updateServedByte(actualEnd)
                 return HTTPRangeResponse.partialContent(
                     contentType: contentType,
                     rangeStart: rangeStart,
@@ -224,6 +240,8 @@ final class PlaybackSession: @unchecked Sendable {
         let now     = currentTimeMs()
         let actions = planner.tick(at: now, session: torrentSession)
         processActions(actions)
+        // Throttled DB write: only writes if 15 s have elapsed.
+        resumeTracker?.flushIfNeeded()
     }
 
     // MARK: - Helpers

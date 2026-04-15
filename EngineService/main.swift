@@ -22,6 +22,9 @@ if CommandLine.arguments.contains("--stream-e2e-self-test") {
 if CommandLine.arguments.contains("--cache-manager-self-test") {
     runCacheManagerSelfTestAndExit()
 }
+if CommandLine.arguments.contains("--resume-tracker-self-test") {
+    runResumeTrackerSelfTestAndExit()
+}
 #endif
 
 final class XPCDelegate: NSObject, NSXPCListenerDelegate {
