@@ -1,0 +1,119 @@
+{
+  "trace_id": "mkv-cues-001",
+  "actions": [
+    {
+      "t_ms": 15,
+      "kind": "set_deadlines",
+      "pieces": [
+        { "piece": 0,  "deadline_ms": 0,    "priority": "critical" },
+        { "piece": 1,  "deadline_ms": 100,  "priority": "critical" },
+        { "piece": 2,  "deadline_ms": 200,  "priority": "critical" },
+        { "piece": 3,  "deadline_ms": 300,  "priority": "critical" },
+        { "piece": 4,  "deadline_ms": 250,  "priority": "readahead" },
+        { "piece": 5,  "deadline_ms": 500,  "priority": "readahead" },
+        { "piece": 6,  "deadline_ms": 750,  "priority": "readahead" },
+        { "piece": 7,  "deadline_ms": 1000, "priority": "readahead" },
+        { "piece": 8,  "deadline_ms": 1500, "priority": "readahead" },
+        { "piece": 9,  "deadline_ms": 2000, "priority": "readahead" },
+        { "piece": 10, "deadline_ms": 2500, "priority": "readahead" },
+        { "piece": 11, "deadline_ms": 3000, "priority": "readahead" },
+        { "piece": 12, "deadline_ms": 4000, "priority": "readahead" },
+        { "piece": 13, "deadline_ms": 5000, "priority": "readahead" }
+      ]
+    },
+    {
+      "t_ms": 15,
+      "kind": "wait_for_range",
+      "request_id": "r1",
+      "max_wait_ms": 1500
+    },
+    {
+      "t_ms": 15,
+      "kind": "emit_health",
+      "health": {
+        "seconds_buffered_ahead": 0.0,
+        "download_rate_bytes_per_sec": 0,
+        "required_bitrate_bytes_per_sec": null,
+        "peer_count": 0,
+        "outstanding_critical_pieces": 4,
+        "recent_stall_count": 0,
+        "tier": "starving"
+      }
+    },
+    {
+      "t_ms": 200,
+      "kind": "clear_deadlines_except",
+      "pieces": [437, 438, 439, 440]
+    },
+    {
+      "t_ms": 200,
+      "kind": "set_deadlines",
+      "pieces": [
+        { "piece": 437, "deadline_ms": 0,     "priority": "critical" },
+        { "piece": 438, "deadline_ms": 100,   "priority": "critical" },
+        { "piece": 439, "deadline_ms": 200,   "priority": "critical" },
+        { "piece": 440, "deadline_ms": 300,   "priority": "critical" },
+        { "piece": 441, "deadline_ms": 1049,  "priority": "readahead" },
+        { "piece": 442, "deadline_ms": 2098,  "priority": "readahead" },
+        { "piece": 443, "deadline_ms": 3147,  "priority": "readahead" },
+        { "piece": 444, "deadline_ms": 4196,  "priority": "readahead" },
+        { "piece": 445, "deadline_ms": 5245,  "priority": "readahead" },
+        { "piece": 446, "deadline_ms": 6294,  "priority": "readahead" },
+        { "piece": 447, "deadline_ms": 7343,  "priority": "readahead" },
+        { "piece": 448, "deadline_ms": 8392,  "priority": "readahead" },
+        { "piece": 449, "deadline_ms": 9441,  "priority": "readahead" },
+        { "piece": 450, "deadline_ms": 10490, "priority": "readahead" }
+      ]
+    },
+    {
+      "t_ms": 200,
+      "kind": "wait_for_range",
+      "request_id": "r2",
+      "max_wait_ms": 1200
+    },
+    {
+      "t_ms": 550,
+      "kind": "clear_deadlines_except",
+      "pieces": [0, 1, 2, 3]
+    },
+    {
+      "t_ms": 550,
+      "kind": "set_deadlines",
+      "pieces": [
+        { "piece": 0,  "deadline_ms": 0,     "priority": "critical" },
+        { "piece": 1,  "deadline_ms": 100,   "priority": "critical" },
+        { "piece": 2,  "deadline_ms": 200,   "priority": "critical" },
+        { "piece": 3,  "deadline_ms": 300,   "priority": "critical" },
+        { "piece": 4,  "deadline_ms": 1049,  "priority": "readahead" },
+        { "piece": 5,  "deadline_ms": 2098,  "priority": "readahead" },
+        { "piece": 6,  "deadline_ms": 3147,  "priority": "readahead" },
+        { "piece": 7,  "deadline_ms": 4196,  "priority": "readahead" },
+        { "piece": 8,  "deadline_ms": 5245,  "priority": "readahead" },
+        { "piece": 9,  "deadline_ms": 6294,  "priority": "readahead" },
+        { "piece": 10, "deadline_ms": 7343,  "priority": "readahead" },
+        { "piece": 11, "deadline_ms": 8392,  "priority": "readahead" },
+        { "piece": 12, "deadline_ms": 9441,  "priority": "readahead" },
+        { "piece": 13, "deadline_ms": 10490, "priority": "readahead" }
+      ]
+    },
+    {
+      "t_ms": 550,
+      "kind": "wait_for_range",
+      "request_id": "r3",
+      "max_wait_ms": 1200
+    },
+    {
+      "t_ms": 550,
+      "kind": "emit_health",
+      "health": {
+        "seconds_buffered_ahead": 0.0,
+        "download_rate_bytes_per_sec": 2000000,
+        "required_bitrate_bytes_per_sec": null,
+        "peer_count": 6,
+        "outstanding_critical_pieces": 1,
+        "recent_stall_count": 0,
+        "tier": "starving"
+      }
+    }
+  ]
+}
