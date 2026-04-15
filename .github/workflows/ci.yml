@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  swift-build-test:
+    name: Swift packages — build & test
+    # macOS 26 (Tahoe) runner. If GitHub hasn't promoted macos-26 to general
+    # availability yet, fall back to macos-latest and select Xcode 26 explicitly
+    # via xcversion or the maxim-lobanov/setup-xcode action.
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show Swift version
+        run: swift --version
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      # Phase 0 of the engine plan: only the test fixtures and shared interfaces
+      # exist. As the planner / engine / interfaces packages come into being,
+      # this matrix expands to build each package in turn.
+      #
+      # Once Packages/PlannerCore exists (T-PLANNER-TYPES onward), uncomment:
+      # - name: Build PlannerCore
+      #   working-directory: Packages/PlannerCore
+      #   run: swift build
+      # - name: Test PlannerCore
+      #   working-directory: Packages/PlannerCore
+      #   run: swift test
+
+      - name: Placeholder
+        run: echo "CI scaffolded; actual build steps come online with T-REPO-INIT."
+
+  link-check:
+    name: PR must link an issue
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Check PR body for issue link
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if echo "$PR_BODY" | grep -Eq 'Closes #[0-9]+|Refs #[0-9]+|closes #[0-9]+|refs #[0-9]+'; then
+            echo "PR links an issue. OK."
+          else
+            echo "::error::PR body must contain 'Closes #N' or 'Refs #N'. See CONTRIBUTING.md."
+            exit 1
+          fi

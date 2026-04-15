@@ -1,0 +1,63 @@
+name: Spike
+description: A time-boxed investigation with a written outcome but no shipped code.
+title: "spike: <short description>"
+labels: ["type:spike"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Spikes are time-boxed investigations. They produce a written outcome (notes, decision,
+        recommendation) but not shipped product code. Their output usually feeds new Feature issues.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: The question
+      description: What are we trying to learn or decide?
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Why now
+      description: What downstream work is blocked or made riskier by not knowing the answer?
+    validations:
+      required: true
+
+  - type: input
+    id: timebox
+    attributes:
+      label: Time box
+      placeholder: "1 day, 3 days, 1 week, etc."
+    validations:
+      required: true
+
+  - type: textarea
+    id: deliverable
+    attributes:
+      label: Deliverable
+      description: |
+        What artefact closes this spike? Usually a markdown file in `docs/` plus a recommendation
+        in this issue's comments.
+      placeholder: "docs/metadata-source-evaluation.md plus a recommendation comment on this issue"
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      placeholder: "- Blocked by #__"
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - "p0 (blocks v1 work)"
+        - "p1 (blocks credible v1 work)"
+        - "p2 (post-v1 prep)"
+        - "p3 (research)"
+    validations:
+      required: true

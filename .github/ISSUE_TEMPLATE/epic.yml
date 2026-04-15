@@ -1,0 +1,82 @@
+name: Epic
+description: A high-level scope tracker, one per module from spec 07.
+title: "Epic: <module name>"
+labels: ["type:epic"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Epics are one per product-surface module. They link child Feature issues and hold the milestone.
+        See `.claude/specs/08-issue-workflow.md` for the issue conventions.
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: One paragraph describing what this epic covers. Quote from spec 07 if helpful.
+      placeholder: "This epic covers the discovery and metadata module from spec 07 § 1..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: required-features
+    attributes:
+      label: Required features (v1)
+      description: Bulleted list of P0/P1 features this epic must deliver.
+    validations:
+      required: true
+
+  - type: textarea
+    id: optional-features
+    attributes:
+      label: Optional features (v1.5+)
+      description: Features explicitly deferred from v1.
+
+  - type: textarea
+    id: child-issues
+    attributes:
+      label: Child issues
+      description: |
+        Will be populated as Feature issues are opened. Use task list syntax so progress is tracked
+        automatically: `- [ ] #N Title here`.
+      placeholder: |
+        - [ ] #__ Title
+        - [ ] #__ Title
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - "p0 (blocking v1)"
+        - "p1 (required for credible v1)"
+        - "p2 (post-v1)"
+        - "p3 (nice-to-have)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Module
+      options:
+        - "discovery"
+        - "playback"
+        - "subtitles"
+        - "library"
+        - "sync"
+        - "provider"
+        - "settings"
+        - "macos"
+        - "engine"
+        - "brand"
+    validations:
+      required: true
+
+  - type: textarea
+    id: spec-refs
+    attributes:
+      label: Spec references
+      placeholder: ".claude/specs/07-product-surface.md § 1"
+    validations:
+      required: true
