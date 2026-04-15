@@ -1,12 +1,16 @@
-# Butter Bar
+<p align="center">
+  <img src="icons/butter-bar-logo-1024.png" width="128" height="128" alt="ButterBar logo">
+</p>
 
-A buttery-smooth native macOS media client for **macOS Tahoe (26) and later**.
+<h1 align="center">Butter Bar</h1>
+
+<p align="center">A buttery-smooth native macOS media client for <strong>macOS Tahoe (26) and later</strong>.</p>
 
 Butter Bar is a desktop-native streaming application in the general product category of clients like Popcorn Time, Seren, and Umbrella. It pairs a deterministic, well-tested playback engine (libtorrent-backed streaming, AVKit playback, native loopback HTTP gateway) with a polished SwiftUI product surface (catalogue browsing, metadata, account sync, subtitles, watch state) — all built natively against the Liquid Glass design language Apple introduced in macOS Tahoe.
 
 ## Status
 
-**Pre-implementation.** Specs are frozen; engine task graph is defined; product surface issue conversion in progress.
+**Phase 1 — PlannerCore.** Specs frozen; Phase 0 (project scaffold) complete; planner types, fake session, and trace loader landed. Fixture authoring and core planner implementation next.
 
 ## Documentation
 

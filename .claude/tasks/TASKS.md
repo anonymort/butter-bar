@@ -49,7 +49,7 @@ Implement the type declarations from `04-piece-planner.md`: `PlayerEvent`, `Byte
 **Spec:** `04-piece-planner.md` § Inputs, Outputs.
 **Acceptance:** `PlannerCore` package compiles. Types match the spec verbatim.
 
-### T-PLANNER-FAKE-SESSION `[sonnet]` · DONE
+### T-PLANNER-FAKE-SESSION `[sonnet]` · DONE — `FakeTorrentSession` with schedule-driven availability, download rate, and peer count. 21 tests pass.
 Implement `FakeTorrentSession: TorrentSessionView` in `PlannerCore`'s test support module. Driven by a schedule: `(t_ms, havePieces, downloadRate, peerCount)`. Exposes a `step(to: Int)` method that advances the current time.
 
 **Spec:** `04-piece-planner.md` § Trace format.
