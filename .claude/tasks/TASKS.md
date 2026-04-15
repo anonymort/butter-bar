@@ -146,7 +146,7 @@ Replace stubs with a fake engine backend (no libtorrent yet) that returns synthe
 **Depends on:** `T-XPC-CLIENT-CONNECTION`.
 **Review gate:** `[opus]` reviews before marking DONE. First real cross-process boundary.
 
-### T-STORE-SCHEMA `[sonnet]` · TODO
+### T-STORE-SCHEMA `[sonnet]` · DONE — `Packages/EngineStore` package created with GRDB 7.10.0 dependency. `V1Migration` (static enum), three `PersistableRecord`/`FetchableRecord` models (`PlaybackHistoryRecord`, `PinnedFileRecord`, `SettingRecord`), and `EngineDatabase` factory. 14 tests pass: migration clean, idempotent, schema version recorded, round-trips for all three tables including default-value assertions.
 Create the GRDB migration for the v1 database schema: `playback_history`, `pinned_files`, and `settings` tables per `05-cache-policy.md` § Schema. Implement Swift models for each row type. No business logic — just schema, migration, models, and round-trip tests.
 
 **Spec:** `05-cache-policy.md` § Schema, `00-addendum.md` A7.
