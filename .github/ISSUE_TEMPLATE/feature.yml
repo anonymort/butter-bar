@@ -1,0 +1,93 @@
+name: Feature
+description: A single feature, one per outstanding-work checkbox in spec 07.
+title: "<module>: <short description>"
+labels: ["type:feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Features map 1:1 to outstanding-work checkboxes in `.claude/specs/07-product-surface.md`.
+        See `.claude/specs/08-issue-workflow.md` for the issue conventions.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One paragraph. What does this feature do, from the user's perspective.
+    validations:
+      required: true
+
+  - type: textarea
+    id: spec-context
+    attributes:
+      label: Spec context
+      description: Quote the surrounding paragraph from spec 07 so this issue is self-contained.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Bulleted, testable. "User can do X" or "Component Y emits Z given W."
+      placeholder: |
+        - User can do X
+        - Component Y emits Z given W
+        - Snapshot test for the new view in light and dark modes
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: |
+        Other issues that must close first, or engine tasks (`T-...`) that must be DONE.
+        If blocked, also add the `blocked` label.
+      placeholder: |
+        - Blocked by #__
+        - Blocked by engine task T-STREAM-E2E
+
+  - type: textarea
+    id: parent-epic
+    attributes:
+      label: Parent epic
+      placeholder: "#__"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - "p0 (blocking v1)"
+        - "p1 (required for credible v1)"
+        - "p2 (post-v1)"
+        - "p3 (nice-to-have)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Module
+      options:
+        - "discovery"
+        - "playback"
+        - "subtitles"
+        - "library"
+        - "sync"
+        - "provider"
+        - "settings"
+        - "macos"
+        - "engine"
+        - "brand"
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Open questions, design considerations, follow-ups noticed during scoping.

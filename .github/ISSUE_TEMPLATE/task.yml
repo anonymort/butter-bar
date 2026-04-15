@@ -1,0 +1,31 @@
+name: Task
+description: Operational or non-feature work — CI, docs, dependency upgrades, repo hygiene.
+title: "task: <short description>"
+labels: ["type:task"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What needs to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance
+      description: Bulleted, testable. Even operational tasks need a clear "done."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - "p0 (blocking)"
+        - "p1 (important)"
+        - "p2 (when convenient)"
+        - "p3 (nice-to-have)"
+    validations:
+      required: true

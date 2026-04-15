@@ -1,0 +1,74 @@
+name: Bug
+description: A defect against shipped or in-flight code.
+title: "bug: <short description>"
+labels: ["type:bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: Clear, factual description of the defect.
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. Open the app
+        2. ...
+        3. Observe X
+    validations:
+      required: true
+
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      placeholder: "macOS 15.2, Butter Bar build #123, M2 Pro, etc."
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots
+      description: Attach if helpful. Strip any tokens or magnet links before posting.
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - "critical (data loss, crash, blocks v1)"
+        - "high (major feature broken)"
+        - "medium (workaround exists)"
+        - "low (cosmetic, edge case)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Module
+      options:
+        - "discovery"
+        - "playback"
+        - "subtitles"
+        - "library"
+        - "sync"
+        - "provider"
+        - "settings"
+        - "macos"
+        - "engine"
+        - "brand"
+    validations:
+      required: true

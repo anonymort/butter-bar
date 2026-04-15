@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Specs and addendum
+    url: https://github.com/anonymort/butter-bar/tree/main/.claude/specs
+    about: Read the specs before opening an issue. Many questions are answered there.
