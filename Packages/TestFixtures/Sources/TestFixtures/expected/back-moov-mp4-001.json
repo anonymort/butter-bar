@@ -1,0 +1,86 @@
+{
+  "trace_id": "back-moov-mp4-001",
+  "actions": [
+    {
+      "t_ms": 10,
+      "kind": "set_deadlines",
+      "pieces": [
+        { "piece": 870, "deadline_ms": 0,   "priority": "critical" },
+        { "piece": 871, "deadline_ms": 100, "priority": "critical" },
+        { "piece": 872, "deadline_ms": 200, "priority": "critical" },
+        { "piece": 873, "deadline_ms": 300, "priority": "critical" },
+        { "piece": 874, "deadline_ms": 250, "priority": "readahead" }
+      ]
+    },
+    {
+      "t_ms": 10,
+      "kind": "wait_for_range",
+      "request_id": "r1",
+      "max_wait_ms": 1500
+    },
+    {
+      "t_ms": 10,
+      "kind": "emit_health",
+      "health": {
+        "seconds_buffered_ahead": 0.0,
+        "download_rate_bytes_per_sec": 0,
+        "required_bitrate_bytes_per_sec": null,
+        "peer_count": 0,
+        "outstanding_critical_pieces": 4,
+        "recent_stall_count": 0,
+        "tier": "starving"
+      }
+    },
+    {
+      "t_ms": 500,
+      "kind": "clear_deadlines_except",
+      "pieces": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+    },
+    {
+      "t_ms": 500,
+      "kind": "set_deadlines",
+      "pieces": [
+        { "piece": 0,  "deadline_ms": 0,    "priority": "critical" },
+        { "piece": 1,  "deadline_ms": 100,  "priority": "critical" },
+        { "piece": 2,  "deadline_ms": 200,  "priority": "critical" },
+        { "piece": 3,  "deadline_ms": 300,  "priority": "critical" },
+        { "piece": 4,  "deadline_ms": 699,  "priority": "readahead" },
+        { "piece": 5,  "deadline_ms": 1398, "priority": "readahead" },
+        { "piece": 6,  "deadline_ms": 2097, "priority": "readahead" },
+        { "piece": 7,  "deadline_ms": 2796, "priority": "readahead" },
+        { "piece": 8,  "deadline_ms": 3495, "priority": "readahead" },
+        { "piece": 9,  "deadline_ms": 4194, "priority": "readahead" },
+        { "piece": 10, "deadline_ms": 4893, "priority": "readahead" },
+        { "piece": 11, "deadline_ms": 5592, "priority": "readahead" },
+        { "piece": 12, "deadline_ms": 6291, "priority": "readahead" },
+        { "piece": 13, "deadline_ms": 6990, "priority": "readahead" },
+        { "piece": 14, "deadline_ms": 7689, "priority": "readahead" }
+      ]
+    },
+    {
+      "t_ms": 500,
+      "kind": "wait_for_range",
+      "request_id": "r2",
+      "max_wait_ms": 1200
+    },
+    {
+      "t_ms": 800,
+      "kind": "wait_for_range",
+      "request_id": "r3",
+      "max_wait_ms": 800
+    },
+    {
+      "t_ms": 800,
+      "kind": "emit_health",
+      "health": {
+        "seconds_buffered_ahead": 0.0,
+        "download_rate_bytes_per_sec": 3000000,
+        "required_bitrate_bytes_per_sec": null,
+        "peer_count": 8,
+        "outstanding_critical_pieces": 0,
+        "recent_stall_count": 0,
+        "tier": "starving"
+      }
+    }
+  ]
+}
