@@ -19,6 +19,9 @@ if CommandLine.arguments.contains("--gateway-planner-self-test") {
 if CommandLine.arguments.contains("--stream-e2e-self-test") {
     runStreamE2ESelfTestAndExit()
 }
+if CommandLine.arguments.contains("--cache-manager-self-test") {
+    runCacheManagerSelfTestAndExit()
+}
 #endif
 
 final class XPCDelegate: NSObject, NSXPCListenerDelegate {

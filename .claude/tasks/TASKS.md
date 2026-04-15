@@ -252,8 +252,8 @@ Serialize all planner access in `PlaybackSession` onto a single dispatch queue. 
 **Depends on:** `T-STREAM-E2E`.
 **Acceptance:** `PlaybackSession` uses a single serial queue for all planner access. The `@unchecked Sendable` justification is updated to reflect the actual serialization mechanism. No behavioural change in the E2E self-test.
 
-### T-CACHE-SCHEMA `[sonnet]` · TODO
-Wire `CacheManager` to the GRDB models created in `T-STORE-SCHEMA`. This task is now a thin glue layer — read/write helpers for `playback_history` and `pinned_files` from the cache layer's point of view, plus an in-memory view of the pinned set refreshed on startup.
+### T-CACHE-SCHEMA `[sonnet]` · DONE
+Wire `CacheManager` to the GRDB models created in `T-STORE-SCHEMA`. Implemented `CacheManager` (playback history upsert/fetch + pinned-file CRUD + in-memory pinned set) and `PinnedKey` in `EngineService/Cache/CacheManager.swift`. Self-tests (6 cases including restart simulation) in `EngineService/Cache/CacheManagerSelfTest.swift`, wired to `--cache-manager-self-test`. Added `EngineStore` local SPM package dependency to EngineService target in Xcode project.
 
 **Depends on:** `T-STORE-SCHEMA`.
 **Acceptance:** Unit tests that exercise the read/write helpers and verify the in-memory pinned set is rebuilt correctly after a simulated engine restart.

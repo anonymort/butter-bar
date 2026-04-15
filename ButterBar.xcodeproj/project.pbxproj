@@ -38,6 +38,9 @@
 		D4B5C6E7F8A9D4B5C6E7F8A9 /* StreamRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F3A4C5D6E7B2F3A4C5D6E7 /* StreamRegistry.swift */; };
 		E5F6A7B8C9D0E5F6A7B8C9D0 /* GatewayPlannerSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6A7B8C9D0E1F6A7B8C9D0E1 /* GatewayPlannerSelfTest.swift */; };
 		A7B8C9D1E2F3A7B8C9D1E2F3 /* StreamE2ESelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8C9D0E1F2A3B8C9D0E1F2A3 /* StreamE2ESelfTest.swift */; };
+		AA11BB33CC55DD77EE99FF11 /* EngineStore in Frameworks */ = {isa = PBXBuildFile; productRef = FF66AA88BB00CC22DD44EE66 /* EngineStore */; };
+		BB22CC44DD66EE88FF00AA22 /* CacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA77BB99CC11DD33EE55FF77 /* CacheManager.swift */; };
+		CC33DD55EE77FF99AA11BB33 /* CacheManagerSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB88CC00DD22EE44FF66AA88 /* CacheManagerSelfTest.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -71,6 +74,9 @@
 		39AB853C8253F0485E14495A /* EngineInterface */ = {isa = PBXFileReference; lastKnownFileType = folder; name = EngineInterface; path = Packages/EngineInterface; sourceTree = "<group>"; };
 		74D04F9622615D771356B70A /* PlannerCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = PlannerCore; path = Packages/PlannerCore; sourceTree = "<group>"; };
 		1785E418002BEE10CA7FEDC0 /* TestFixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TestFixtures; path = Packages/TestFixtures; sourceTree = "<group>"; };
+		DD44EE66FF88AA00BB22CC44 /* EngineStore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = EngineStore; path = Packages/EngineStore; sourceTree = "<group>"; };
+		AA77BB99CC11DD33EE55FF77 /* CacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheManager.swift; sourceTree = "<group>"; };
+		BB88CC00DD22EE44FF66AA88 /* CacheManagerSelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheManagerSelfTest.swift; sourceTree = "<group>"; };
 		FF66EE55DD44CC33BB22AA11 /* EngineClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineClient.swift; sourceTree = "<group>"; };
 		AA7766FF55EE44DD33CC22BB /* EngineEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineEventHandler.swift; sourceTree = "<group>"; };
 		DD44EE55FF6677AA88BB99CC /* DTOSendable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTOSendable.swift; sourceTree = "<group>"; };
@@ -111,6 +117,7 @@
 			files = (
 				C1D2E3F4A5B6C1D2E3F4A5B6 /* EngineInterface in Frameworks */,
 				A7B8C9D0E1F2A7B8C9D0E1F2 /* PlannerCore in Frameworks */,
+				AA11BB33CC55DD77EE99FF11 /* EngineStore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -226,6 +233,8 @@
 		FA8552DE58C20CD46E3B1D3E /* Cache */ = {
 			isa = PBXGroup;
 			children = (
+				AA77BB99CC11DD33EE55FF77 /* CacheManager.swift */,
+				BB88CC00DD22EE44FF66AA88 /* CacheManagerSelfTest.swift */,
 			);
 			path = Cache;
 			sourceTree = "<group>";
@@ -252,6 +261,7 @@
 				39AB853C8253F0485E14495A /* EngineInterface */,
 				74D04F9622615D771356B70A /* PlannerCore */,
 				1785E418002BEE10CA7FEDC0 /* TestFixtures */,
+				DD44EE66FF88AA00BB22CC44 /* EngineStore */,
 			);
 			name = Packages;
 			sourceTree = "<group>";
@@ -315,6 +325,7 @@
 			packageProductDependencies = (
 				D1E2F3A4B5C6D1E2F3A4B5C6 /* EngineInterface */,
 				E2F3A4B5C6D7E2F3A4B5C6D7 /* PlannerCore */,
+				FF66AA88BB00CC22DD44EE66 /* EngineStore */,
 			);
 			productName = EngineService;
 			productReference = 8B554906D42C3B11AEA5F497 /* EngineService.xpc */;
@@ -351,6 +362,7 @@
 				95C1FA61C738F6E6B17ED526 /* XCLocalSwiftPackageReference "Packages/EngineInterface" */,
 				946BD7824DF48CFD7E1404F6 /* XCLocalSwiftPackageReference "Packages/PlannerCore" */,
 				2E61653CC56FA54DED6A53B7 /* XCLocalSwiftPackageReference "Packages/TestFixtures" */,
+				EE55FF77AA99BB11CC33DD55 /* XCLocalSwiftPackageReference "Packages/EngineStore" */,
 			);
 			productRefGroup = 21A59A6D24B4DEA9DB9C5973 /* Products */;
 			projectDirPath = "";
@@ -418,6 +430,8 @@
 				D4B5C6E7F8A9D4B5C6E7F8A9 /* StreamRegistry.swift in Sources */,
 				E5F6A7B8C9D0E5F6A7B8C9D0 /* GatewayPlannerSelfTest.swift in Sources */,
 				A7B8C9D1E2F3A7B8C9D1E2F3 /* StreamE2ESelfTest.swift in Sources */,
+				BB22CC44DD66EE88FF00AA22 /* CacheManager.swift in Sources */,
+				CC33DD55EE77FF99AA11BB33 /* CacheManagerSelfTest.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -926,6 +940,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/TestFixtures;
 		};
+		EE55FF77AA99BB11CC33DD55 /* XCLocalSwiftPackageReference "Packages/EngineStore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/EngineStore;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -953,6 +971,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 2E61653CC56FA54DED6A53B7 /* XCLocalSwiftPackageReference "Packages/TestFixtures" */;
 			productName = TestFixtures;
+		};
+		FF66AA88BB00CC22DD44EE66 /* EngineStore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EE55FF77AA99BB11CC33DD55 /* XCLocalSwiftPackageReference "Packages/EngineStore" */;
+			productName = EngineStore;
 		};
 /* End XCSwiftPackageProductDependency section */
 
