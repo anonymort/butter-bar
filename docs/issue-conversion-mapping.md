@@ -117,23 +117,22 @@ Issue titles follow the pattern `<Module>: <verb-led description>` so they sort 
 
 These come from the "Open questions" section in spec 07 § Open questions. Each is either a `type:spike` or a `type:task` requiring a documented decision.
 
-| # | Question | Issue title | Type | Pri |
-|---|---|---|---|---|
-| OQ.1 | Which metadata source first? | `Decision: primary metadata source (TMDB/TVDB/Trakt)` | spike | p0 |
-| OQ.2 | External player handoff in v1? | `Decision: external player handoff in v1?` | task | p1 |
-| OQ.3 | Sync optional or required onboarding? | `Decision: account sync optional or required?` | task | p1 |
-| OQ.4 | Built-in vs plugin providers? | `Decision: built-in vs plugin provider model for v1` | task | p1 |
-| OQ.5 | AirPlay in v1? | `Decision: AirPlay in v1?` | task | p1 |
-| OQ.6 | Offline/download scope? | `Decision: offline/download scope for v1` | task | p1 |
-| OQ.7 | Diagnostic tooling exposure? | `Decision: which diagnostics are user-visible?` | task | p1 |
+| # | Question | Issue title | Type | Pri | Module |
+|---|---|---|---|---|---|
+| OQ.2 | External player handoff in v1? | `Decision: external player handoff in v1?` | task | p1 | playback |
+| OQ.3 | Sync optional or required onboarding? | `Decision: account sync optional or required?` | task | p1 | sync |
+| OQ.4 | Built-in vs plugin providers? | `Decision: built-in vs plugin provider model for v1` | task | p1 | provider |
+| OQ.5 | AirPlay in v1? | `Decision: AirPlay in v1?` | task | p1 | playback |
+| OQ.6 | Offline/download scope? | `Decision: offline/download scope for v1` | task | p1 | library |
+| OQ.7 | Diagnostic tooling exposure? | `Decision: which diagnostics are user-visible?` | task | p1 | settings |
 
 ## Counts
 
-- 8 epics
-- 56 features (across modules 1–8)
-- 1 spike (1.2)
-- 7 open-question issues
-- **Total: 72 issues**
+- 8 epics (created by `setup-repo.sh`, not `seed-issues.sh`)
+- 61 features (across modules 1–8)
+- 2 spikes from module tables (1.2, 8.7)
+- 6 open-question issues (OQ.2–OQ.7; OQ.1 removed — duplicate of 1.2)
+- **Total seed issues: 69** (features + spikes + OQ)
 
 ## Process
 
@@ -141,4 +140,4 @@ These come from the "Open questions" section in spec 07 § Open questions. Each 
 2. Run `./scripts/setup-repo.sh` first to create labels, milestones, and the 8 epics.
 3. Run `./scripts/seed-issues.sh` to create the 56+8 child issues.
 4. Manually link each child to its parent epic (or use the script's auto-comment feature).
-5. The spike issues (1.2, 8.7, OQ.1) should be picked up first because they unblock downstream design work.
+5. The spike issues (1.2, 8.7) should be picked up first because they unblock downstream design work.
