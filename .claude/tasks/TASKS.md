@@ -33,7 +33,7 @@ Create the target Xcode project structure described in `CLAUDE.md` → Project l
 **Blocks:** everything downstream.
 
 ### T-SPEC-LINT `[opus]` · TODO
-Read all six specs (addendum + 01–05) end-to-end once the repo exists. Verify that the revision blocks in specs 02–05 match the addendum items they reference, and that no contradictions remain between the addendum and the numbered specs. If new contradictions are found, append a new addendum item (A11+) rather than editing existing ones.
+Read all specs (addendum + 01–09) end-to-end once the repo exists. Verify that the revision blocks in each numbered spec match the addendum items they reference, and that no contradictions remain between the addendum and the numbered specs. If new contradictions are found, append a new addendum item (A20+) rather than editing existing ones.
 
 **Acceptance:** Either no new contradictions, or new addendum items appended at the bottom of `00-addendum.md`. Additionally: verify both `.claude/agents/opus-designer.md` and `.claude/agents/sonnet-implementer.md` reference `00-addendum.md` in their reading order — this defends against the most subtle drift mode (agents skipping the precedence layer because their role file doesn't mention it).
 
