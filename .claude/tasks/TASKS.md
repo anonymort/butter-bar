@@ -108,14 +108,14 @@ Implement all DTO classes from `03-xpc-contract.md` in `EngineInterface` package
 **Spec:** `03-xpc-contract.md` § DTO definitions.
 **Acceptance:** Round-trip secure-coding tests for every DTO, including nil-permitted fields.
 
-### T-XPC-PROTOCOLS `[sonnet]` · DONE — `EngineXPCProtocol.swift`, `EngineEventsProtocol.swift`, and `XPCInterfaceFactory.swift` in EngineInterface. Factory registers all DTO types via `setClasses` and wires `subscribe` arg 0 via `setInterface`. 13 XPC registration tests pass (32 total). Key finding: Swift 6 `setClasses` takes `Set<AnyHashable>`; class metatypes must be boxed via `cls as AnyObject as! AnyHashable`.
+### T-XPC-PROTOCOLS `[sonnet]` · DONE — @objc protocols + `XPCInterfaceFactory` with allowed-class registration. 13 new tests (32 total in EngineInterface).
 Declare `EngineXPC` and `EngineEvents` `@objc` protocols in `EngineInterface`. Wire up a minimal `NSXPCInterface` factory that registers allowed classes for each method.
 
 **Spec:** `03-xpc-contract.md` § Protocols.
 **Acceptance:** Compiles. Interface factory unit test verifies every method has its allowed classes registered (none missing is the common bug).
 **Depends on:** `T-XPC-DTOS`.
 
-### T-XPC-MAPPING `[sonnet]` · DONE — Created `Packages/XPCMapping/` package with `DomainTypes.swift` (TorrentSummary, TorrentFile, StreamDescriptor, StreamDescriptor, FileAvailability, DiskPressure, enums, ByteRangeValue) and `Mapping.swift` (bidirectional extensions for all 7 DTOs). 25 tests pass. Package depends on EngineInterface + PlannerCore; fully testable independently.
+### T-XPC-MAPPING `[sonnet]` · DONE — `Packages/XPCMapping` package with domain types + bidirectional DTO mapping. 25 tests pass.
 Write bidirectional mapping between DTOs and internal domain types (`TorrentSummary`, `StreamHealth`, etc.). Mapping lives in `EngineService/XPC/Mapping.swift` — the one allowed place for DTO↔domain conversion.
 
 **Acceptance:** Unit tests: for every DTO, `toDomain → toDTO → toDomain` is idempotent.
