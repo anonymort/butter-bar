@@ -10,7 +10,7 @@ Butter Bar is a desktop-native streaming application in the general product cate
 
 ## Status
 
-**Phase 1 — PlannerCore.** Specs frozen; Phase 0 (project scaffold) complete; planner types, fake session, and trace loader landed. Fixture authoring and core planner implementation next.
+**Phase 3 — TorrentBridge complete.** Phases 0–3 done (19 tasks, 163 tests across 5 packages). PiecePlanner proven on recorded traces, XPC contract with typed DTOs and secure coding, libtorrent-rasterbar integrated via ObjC++ bridge with full spec 01 method surface. Next: Phase 4 (PlaybackGateway) and Phase 5 (first end-to-end stream).
 
 ## Documentation
 
