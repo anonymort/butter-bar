@@ -102,7 +102,7 @@ Invariants: (1) no negative deadlines, (2) waitForRange always covered by prior 
 
 **Phase gate:** Phase 1 `T-PLANNER-CORE` must be DONE and reviewed.
 
-### T-XPC-DTOS `[sonnet]` · TODO
+### T-XPC-DTOS `[sonnet]` · DONE — All 8 DTO types implemented in EngineInterface: TorrentSummaryDTO, TorrentFileDTO, StreamDescriptorDTO, ByteRangeDTO, FileAvailabilityDTO, StreamHealthDTO, DiskPressureDTO, EngineErrorCode. All NSSecureCoding with explicit encode/decode and allowedClasses throughout. 19 tests pass (round-trip per DTO, nil-field variants, ByteRangeDTO nested in FileAvailabilityDTO array).
 Implement all DTO classes from `03-xpc-contract.md` in `EngineInterface` package. Every class: `NSSecureCoding`, explicit `encode(with:)` and `init?(coder:)`, `schemaVersion` field.
 
 **Spec:** `03-xpc-contract.md` § DTO definitions.
