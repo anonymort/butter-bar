@@ -49,12 +49,14 @@ Implement the type declarations from `04-piece-planner.md`: `PlayerEvent`, `Byte
 **Spec:** `04-piece-planner.md` § Inputs, Outputs.
 **Acceptance:** `PlannerCore` package compiles. Types match the spec verbatim.
 
-### T-PLANNER-FAKE-SESSION `[sonnet]` · TODO
+### T-PLANNER-FAKE-SESSION `[sonnet]` · DONE
 Implement `FakeTorrentSession: TorrentSessionView` in `PlannerCore`'s test support module. Driven by a schedule: `(t_ms, havePieces, downloadRate, peerCount)`. Exposes a `step(to: Int)` method that advances the current time.
 
 **Spec:** `04-piece-planner.md` § Trace format.
 **Acceptance:** Unit test demonstrating that `havePieces()` returns the correct set at each scheduled time point.
 **Blocks:** `T-PLANNER-TRACE-LOADER`, `T-PLANNER-CORE`.
+
+**Summary:** Added `ByteRange`, `TorrentSessionView` protocol, `FakeTorrentSession` (with `AvailabilityEntry` and `ScalarEntry` schedule types) to `Sources/PlannerCore/`. 21 unit tests in `FakeTorrentSessionTests` all pass. `havePieces()` uses `IndexSet` as a stand-in for `BitSet` pending T-PLANNER-TYPES. Follow-up: T-PLANNER-TYPES should replace `TorrentSessionView.swift` with the canonical type declarations (BitSet, PlayerEvent, PlannerAction, etc.) and this file should be adjusted accordingly.
 
 ### T-PLANNER-TRACE-LOADER `[sonnet]` · TODO
 Implement JSON decoding for the trace format and the expected-actions format. Both as Swift `Codable` structs in `TestFixtures`. Decoding errors must point at the offending field.
