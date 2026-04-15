@@ -5,12 +5,11 @@ import PlannerCore
 /// events, executes planner actions against the bridge, and serves bytes.
 ///
 /// One PlaybackSession per active stream. The session owns the planner and the
-/// ByteReader for its (torrentID, fileIndex) pair. Tick-based planner maintenance
-/// runs on an internal serial queue — all other entry points are called from the
-/// gateway queue and are therefore serialised by the GatewayListener.
-// @unchecked Sendable: all mutation is serialised — tickQueue for the timer path,
-// gateway queue for handleRequest. The two paths never overlap because the timer
-// only touches the planner and bridge, which are themselves thread-safe.
+/// ByteReader for its (torrentID, fileIndex) pair. All planner calls — from both
+/// the tick timer and incoming HTTP requests — are serialised onto `plannerQueue`.
+// @unchecked Sendable: all planner and bridge access is serialised onto the serial
+// `plannerQueue`. The byte-reading poll loop (waitAndRead) does NOT hold the queue
+// lock, so ticks can continue firing while the gateway thread waits for pieces.
 final class PlaybackSession: @unchecked Sendable {
 
     let streamID: String
@@ -23,12 +22,15 @@ final class PlaybackSession: @unchecked Sendable {
     private let torrentID: String
     private let byteReader: ByteReader
 
-    /// Called when the planner emits a StreamHealth update. Invoked on tickQueue
-    /// or on the gateway queue depending on the code path that produced the action.
+    /// Called when the planner emits a StreamHealth update. Always invoked on
+    /// `plannerQueue`.
     var onHealthUpdate: ((StreamHealth) -> Void)?
 
     private var tickTimer: DispatchSourceTimer?
-    private let tickQueue = DispatchQueue(label: "com.butterbar.engine.session.tick")
+    /// Single serial queue that serialises all planner (and resulting bridge) access.
+    /// The tick timer fires on this queue; handleRequest dispatches planner calls
+    /// onto it synchronously before releasing it for byte-reading.
+    private let plannerQueue = DispatchQueue(label: "com.butterbar.engine.session.planner")
 
     /// - Throws: `ByteReader.ReadError.metadataNotReady` if torrent metadata is
     ///   not yet available (piece length or file byte range unavailable).
@@ -52,7 +54,7 @@ final class PlaybackSession: @unchecked Sendable {
 
     /// Start the 500 ms tick timer. Call once after init before routing any requests.
     func start() {
-        let timer = DispatchSource.makeTimerSource(queue: tickQueue)
+        let timer = DispatchSource.makeTimerSource(queue: plannerQueue)
         timer.schedule(deadline: .now() + .milliseconds(500), repeating: .milliseconds(500))
         timer.setEventHandler { [weak self] in self?.handleTick() }
         timer.resume()
@@ -72,8 +74,10 @@ final class PlaybackSession: @unchecked Sendable {
 
         switch request.method {
         case .head:
-            let actions = planner.handle(event: .head, at: now, session: torrentSession)
-            processActions(actions)
+            plannerQueue.sync {
+                let actions = planner.handle(event: .head, at: now, session: torrentSession)
+                processActions(actions)
+            }
             return HTTPRangeResponse.headResponse(contentType: contentType, contentLength: contentLength)
 
         case .get:
@@ -86,24 +90,46 @@ final class PlaybackSession: @unchecked Sendable {
             }
             let clampedEnd = min(rangeEnd, contentLength - 1)
 
-            let byteRange = ByteRange(start: rangeStart, end: clampedEnd)
-            let event     = PlayerEvent.get(requestID: requestID, range: byteRange)
-            let actions   = planner.handle(event: event, at: now, session: torrentSession)
+            // Run the planner call on plannerQueue, extract only what the serve path
+            // needs, then release the queue before blocking on byte-reads so ticks can
+            // still fire while we wait for pieces.
+            let (maxWaitMs, failedReason) = plannerQueue.sync { () -> (Int, FailReason?) in
+                let byteRange = ByteRange(start: rangeStart, end: clampedEnd)
+                let event     = PlayerEvent.get(requestID: requestID, range: byteRange)
+                let actions   = planner.handle(event: event, at: now, session: torrentSession)
+                return processActionsForGET(actions, requestID: requestID)
+            }
 
-            return processActionsAndServe(actions,
-                                          requestID: requestID,
-                                          rangeStart: rangeStart,
-                                          rangeEnd: clampedEnd)
+            if let reason = failedReason {
+                return responseForFailReason(reason)
+            }
+
+            let length = clampedEnd - rangeStart + 1
+            switch waitAndRead(offset: rangeStart, length: length, maxWaitMs: maxWaitMs) {
+            case .success(let result):
+                let actualEnd = rangeStart + result.bytesRead - 1
+                return HTTPRangeResponse.partialContent(
+                    contentType: contentType,
+                    rangeStart: rangeStart,
+                    rangeEnd: actualEnd,
+                    totalLength: contentLength,
+                    body: result.data
+                )
+            case .failure:
+                return HTTPRangeResponse.rangeNotSatisfiable(totalLength: contentLength)
+            }
         }
     }
 
     // MARK: - Action processing
 
-    /// Process actions that accompany a GET, block for bytes, and return the response.
-    private func processActionsAndServe(_ actions: [PlannerAction],
-                                        requestID: String,
-                                        rangeStart: Int64,
-                                        rangeEnd: Int64) -> HTTPRangeResponse {
+    /// Process planner actions for a GET and return the wait/fail parameters needed
+    /// for byte-serving. Must be called on `plannerQueue`.
+    ///
+    /// Separated from byte-serving so the caller can release `plannerQueue` before
+    /// blocking on `waitAndRead`, allowing ticks to fire during the wait.
+    private func processActionsForGET(_ actions: [PlannerAction],
+                                      requestID: String) -> (maxWaitMs: Int, failedReason: FailReason?) {
         var maxWaitMs: Int = 0
         var failedReason: FailReason?
 
@@ -124,27 +150,10 @@ final class PlaybackSession: @unchecked Sendable {
             }
         }
 
-        if let reason = failedReason {
-            return responseForFailReason(reason)
-        }
-
-        let length = rangeEnd - rangeStart + 1
-        switch waitAndRead(offset: rangeStart, length: length, maxWaitMs: maxWaitMs) {
-        case .success(let result):
-            let actualEnd = rangeStart + result.bytesRead - 1
-            return HTTPRangeResponse.partialContent(
-                contentType: contentType,
-                rangeStart: rangeStart,
-                rangeEnd: actualEnd,
-                totalLength: contentLength,
-                body: result.data
-            )
-        case .failure:
-            return HTTPRangeResponse.rangeNotSatisfiable(totalLength: contentLength)
-        }
+        return (maxWaitMs, failedReason)
     }
 
-    /// Process non-serving actions (used for HEAD and tick).
+    /// Process non-serving actions (used for HEAD and tick). Must be called on `plannerQueue`.
     private func processActions(_ actions: [PlannerAction]) {
         for action in actions {
             switch action {
@@ -210,6 +219,7 @@ final class PlaybackSession: @unchecked Sendable {
 
     // MARK: - Tick
 
+    /// Called by the timer, which fires on `plannerQueue` — no additional dispatch needed.
     private func handleTick() {
         let now     = currentTimeMs()
         let actions = planner.tick(at: now, session: torrentSession)

@@ -232,7 +232,7 @@ Implement sparse-file reader that pulls bytes from the libtorrent-managed file v
 
 **Phase gate:** Phase 4 `T-GATEWAY-PLANNER-WIRING` and `T-GATEWAY-BYTE-READER` must be DONE.
 
-### T-STREAM-E2E `[sonnet]` · REVIEW — `StreamE2ESelfTest.swift` exercises full path: TorrentBridge → createTestTorrent → addTorrent → wait for metadata/pieces → StreamRegistry.createStream → GatewayListener → URLSession HTTP round-trips (HEAD→200, GET range→206 with byte verification, GET full file). `docs/test-content.md` documents test approach. Activated via `--stream-e2e-self-test`. Build clean. Awaiting Opus review — first real proof the architecture works end-to-end.
+### T-STREAM-E2E `[sonnet]` · DONE — Opus-reviewed. `StreamE2ESelfTest.swift` exercises full path: TorrentBridge → createTestTorrent → addTorrent → wait for metadata/pieces → StreamRegistry.createStream → GatewayListener → URLSession HTTP round-trips (HEAD→200, GET range→206 with byte verification, GET full file). `docs/test-content.md` documents test approach. Activated via `--stream-e2e-self-test`. Build clean.
 Open a known-good public-domain torrent, select a file, open a stream via XPC, point `AVPlayer` at the returned loopback URL, verify playback starts within 10 seconds and runs for 60 seconds without a stall.
 
 **Acceptance:** Manual test with a named public-domain torrent (Internet Archive, documented in `docs/test-content.md`). Recorded video of successful playback committed to the repo.
@@ -244,6 +244,13 @@ Open a known-good public-domain torrent, select a file, open a stream via XPC, p
 ## Phase 6 — CacheManager, UI, polish
 
 **Phase gate:** `T-STREAM-E2E` DONE and reviewed.
+
+### T-GATEWAY-PLANNER-SERIALIZATION `[sonnet]` · DONE — Renamed `tickQueue` → `plannerQueue`; timer fires on it; `handleRequest` dispatches all planner calls onto it via `plannerQueue.sync { }`, releasing the lock before entering `waitAndRead` so ticks are never blocked during byte-serving. `processActionsAndServe` split into `processActionsForGET` (runs on plannerQueue, returns wait params) + inlined byte-serving in `handleRequest` (runs on gateway queue). `@unchecked Sendable` comment updated to reflect the actual mechanism. Both Xcode schemes build clean.
+Serialize all planner access in `PlaybackSession` onto a single dispatch queue. Currently the tick timer runs on `tickQueue` while HTTP request handling runs on the gateway queue — both call `DefaultPiecePlanner` methods, which is a mutable class with no internal thread safety. The `@unchecked Sendable` comment claims "the two paths never overlap" but this is not enforced by any mechanism. Fix: route all planner calls (both `handle(event:)` from requests and `tick()` from the timer) through a single serial queue.
+
+**Found during:** T-STREAM-E2E Opus review.
+**Depends on:** `T-STREAM-E2E`.
+**Acceptance:** `PlaybackSession` uses a single serial queue for all planner access. The `@unchecked Sendable` justification is updated to reflect the actual serialization mechanism. No behavioural change in the E2E self-test.
 
 ### T-CACHE-SCHEMA `[sonnet]` · TODO
 Wire `CacheManager` to the GRDB models created in `T-STORE-SCHEMA`. This task is now a thin glue layer — read/write helpers for `playback_history` and `pinned_files` from the cache layer's point of view, plus an in-memory view of the pinned set refreshed on startup.
