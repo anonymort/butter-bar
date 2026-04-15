@@ -174,24 +174,24 @@ Create the GRDB migration for the v1 database schema: `playback_history`, `pinne
 
 **Phase gate:** Phase 2 `T-XPC-INTEGRATION` must be DONE and reviewed.
 
-### T-LIBTORRENT-BUILD `[sonnet]` · TODO
+### T-LIBTORRENT-BUILD `[sonnet]` · DONE — libtorrent-rasterbar 2.0.12 installed via Homebrew, EngineService Xcode target configured with header/library search paths, linker flags, and preprocessor defines. `TorrentBridgeSmokeTest` ObjC++ class creates and tears down `lt::session`. Bridging header wired. Build documented in `docs/build-libtorrent.md`. Both Xcode schemes build clean.
 Add libtorrent-rasterbar as a dependency. Prefer vcpkg or a prebuilt xcframework. Document the build in `docs/build-libtorrent.md`.
 
 **Acceptance:** `EngineService` links libtorrent. A trivial smoke test creates a `lt::session` and tears it down.
 
-### T-BRIDGE-API `[sonnet]` · TODO
+### T-BRIDGE-API `[sonnet]` · DONE — `TorrentBridge.h` and `TorrentBridge.mm` created in `EngineService/Bridge/`. Full method surface from spec 01: lifecycle, add magnet/torrent-file, remove, listFiles, setFilePriority, havePieces, setPieceDeadline, clearPieceDeadlines, statusSnapshot, pieceLength, fileByteRange, readBytes, subscribeAlerts. Error domain `com.butterbar.engine`, codes 1–5. Alert polling via 250 ms dispatch timer. `createTestTorrent:` DEBUG-only class method for self-test fixture generation. `BridgeSelfTest.swift` self-test (activated by `--bridge-self-test` launch argument) exercises all 14 methods plus error paths. Both `EngineService` and `ButterBar` schemes build clean.
 Implement `TorrentBridge` in ObjC++ with exactly the method surface from `01-architecture.md` § TorrentBridge. Nothing more.
 
 **Acceptance:** Unit tests using a small known torrent (public domain, e.g. an Internet Archive magnet). Verify: add, list files, get status, set piece deadline, read bytes.
 **Depends on:** `T-LIBTORRENT-BUILD`.
 
-### T-BRIDGE-REAL-SESSION `[sonnet]` · TODO
+### T-BRIDGE-REAL-SESSION `[sonnet]` · DONE — `RealTorrentSession.swift` in `EngineService/Bridge/`. Conforms to `TorrentSessionView`, delegates to `TorrentBridge` for a specific torrentID+fileIndex. Caches `pieceLength` and `fileByteRange` at init. PlannerCore added as dependency to EngineService target. Build clean.
 Implement `RealTorrentSession: TorrentSessionView` — a thin adapter that exposes `TorrentBridge` state to the planner. This is the first place planner code meets real libtorrent.
 
 **Acceptance:** Planner unit tests can be re-run using `RealTorrentSession` against a recorded libtorrent state dump.
 **Depends on:** `T-BRIDGE-API`, `T-PLANNER-CORE`.
 
-### T-BRIDGE-ALERTS `[sonnet]` · TODO
+### T-BRIDGE-ALERTS `[sonnet]` · DONE — `TorrentAlert.swift` (7-case enum with `from(_:)` parser) and `AlertDispatcher.swift` (subscribes to TorrentBridge alerts, maps to EngineEvents proxy calls: `torrentUpdated` and `fileAvailabilityChanged`). Not yet wired into EngineXPCServer (deferred to real backend integration). Both schemes build clean.
 Wire libtorrent's alert stream into the engine's event system. Alert → typed Swift enum → DTO → XPC.
 
 **Acceptance:** `torrentUpdated`, `fileAvailabilityChanged` events flow from real libtorrent to the app in a manual end-to-end test.

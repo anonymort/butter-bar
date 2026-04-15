@@ -1,0 +1,53 @@
+import Foundation
+
+/// Typed representation of libtorrent alerts relevant to the engine.
+enum TorrentAlert {
+    /// Torrent state changed (downloading, seeding, etc.)
+    case stateChanged(torrentID: String, newState: String)
+    /// Torrent stats updated (periodic from libtorrent)
+    case statsUpdated(torrentID: String)
+    /// A piece finished downloading
+    case pieceFinished(torrentID: String, pieceIndex: Int)
+    /// Torrent metadata received (magnet resolved)
+    case metadataReceived(torrentID: String)
+    /// Torrent finished downloading all pieces
+    case torrentFinished(torrentID: String)
+    /// An error occurred
+    case error(torrentID: String?, message: String)
+    /// Unknown/unhandled alert type
+    case unknown(type: String, message: String)
+
+    /// Parse from the NSDictionary delivered by TorrentBridge.subscribeAlerts.
+    static func from(_ dict: NSDictionary) -> TorrentAlert {
+        let type = dict["type"] as? String ?? "unknown"
+        let torrentID = dict["torrentID"] as? String
+        let message = dict["message"] as? String ?? ""
+
+        switch type {
+        case "state_changed_alert":
+            return .stateChanged(torrentID: torrentID ?? "", newState: message)
+        case "stats_alert", "status_notification_alert":
+            return .statsUpdated(torrentID: torrentID ?? "")
+        case "piece_finished_alert":
+            return .pieceFinished(torrentID: torrentID ?? "", pieceIndex: extractPieceIndex(from: message))
+        case "metadata_received_alert":
+            return .metadataReceived(torrentID: torrentID ?? "")
+        case "torrent_finished_alert":
+            return .torrentFinished(torrentID: torrentID ?? "")
+        case _ where type.contains("error"):
+            return .error(torrentID: torrentID, message: message)
+        default:
+            return .unknown(type: type, message: message)
+        }
+    }
+
+    // libtorrent piece_finished_alert message contains the piece index as a decimal number.
+    // Returns -1 if no integer can be parsed.
+    private static func extractPieceIndex(from message: String) -> Int {
+        let components = message.components(separatedBy: CharacterSet.decimalDigits.inverted)
+        for component in components where !component.isEmpty {
+            if let index = Int(component) { return index }
+        }
+        return -1
+    }
+}

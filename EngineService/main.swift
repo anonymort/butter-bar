@@ -1,7 +1,16 @@
 // EngineService XPC service entry point.
 // Sets up NSXPCListener and exports EngineXPCServer on every incoming connection.
+//
+// Pass --bridge-self-test as a launch argument (DEBUG builds only) to run
+// TorrentBridge self-tests and exit with 0/1.
 import Foundation
 import EngineInterface
+
+#if DEBUG
+if CommandLine.arguments.contains("--bridge-self-test") {
+    runBridgeSelfTestAndExit()
+}
+#endif
 
 final class XPCDelegate: NSObject, NSXPCListenerDelegate {
     func listener(
