@@ -17,7 +17,7 @@ Engine build queue for ButterBar v1. Tasks are picked top-down within an unblock
 
 ## Phase 0 — Foundation (no blockers)
 
-### T-REPO-INIT `[sonnet]` · TODO
+### T-REPO-INIT `[sonnet]` · DONE — Xcode project with ButterBar app + EngineService XPC targets, three Swift packages (EngineInterface, PlannerCore, TestFixtures), full directory layout. Both targets build. Opus-reviewed, PR #85.
 Create the target Xcode project structure described in `CLAUDE.md` → Project layout. Two targets: `ButterBar` (app) and `EngineService` (XPC service). Swift packages: `EngineInterface`, `PlannerCore`, `TestFixtures`. Empty test targets for each. Top-level `icons/` directory containing the supplied logo source material — both the flat asset package (SVG, PNGs, `.iconset`, `.icns`) AND the `ButterBar-LiquidGlass-prep/` subfolder (layered PNGs, revised SVG, size exports, README). `App/Brand/` folder for `BrandColors.swift` and related token files (empty placeholders are fine). No logic yet.
 
 **Note on `AppIcon.icon`:** do NOT create the `.icon` bundle in this task. It's a separate task (`T-BRAND-ASSETS`) that requires running Apple's Icon Composer GUI and tuning Liquid Glass properties per-layer. T-REPO-INIT only places the source material; T-BRAND-ASSETS produces the `.icon` bundle.
