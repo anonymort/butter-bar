@@ -94,6 +94,24 @@ Opus reviews at these points:
 - After `T-XPC-INTEGRATION` completes — first real cross-process boundary.
 - After `T-STREAM-E2E` completes — first end-to-end playback of a known-good test torrent.
 
+## PR lifecycle hooks
+
+Claude Code hooks in `.claude/settings.json` fire after every `gh pr create` and `gh pr merge` command. The script (`scripts/pr-lifecycle-hook.sh`) enforces spec 08 conventions automatically:
+
+**On PR create:**
+- Warns if the PR body lacks an issue reference (`Closes #N` / `Refs #N`).
+- For `engine/T-*` branches, reminds to update TASKS.md status.
+
+**On PR merge (engine branches only):**
+- Parses the task ID from the branch name (e.g. `engine/T-PLANNER-CORE` → `T-PLANNER-CORE`).
+- Instructs the agent to mark the task in TASKS.md:
+  - **REVIEW** for review-gated tasks: `T-PLANNER-CORE`, `T-XPC-INTEGRATION`, `T-STREAM-E2E`.
+  - **DONE** for all other engine tasks.
+
+Non-engine branches rely on GitHub's built-in `Closes #N` auto-close. The hook only validates the reference is present.
+
+Agents **must act on hook output** — these are not optional suggestions.
+
 ## Project layout (target)
 
 ```
