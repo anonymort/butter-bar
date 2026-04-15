@@ -1,0 +1,29 @@
+{
+  "asset_id": "front-moov-mp4-001",
+  "description": "MP4 with moov at front. Linear play for ~10s, then seek to ~40%. Baseline case.",
+  "content_length": 1834521190,
+  "piece_length": 2097152,
+  "file_byte_range": { "start": 0, "end": 1834521189 },
+  "events": [
+    { "t_ms": 0,    "kind": "head" },
+    { "t_ms": 12,   "kind": "get", "request_id": "r1", "range_start": 0,         "range_end": 1048575 },
+    { "t_ms": 80,   "kind": "get", "request_id": "r2", "range_start": 1048576,   "range_end": 4194303 },
+    { "t_ms": 1400, "kind": "cancel", "request_id": "r2" },
+    { "t_ms": 1450, "kind": "get", "request_id": "r3", "range_start": 734003200, "range_end": 738197503 }
+  ],
+  "availability_schedule": [
+    { "t_ms": 0,    "have_pieces": [] },
+    { "t_ms": 200,  "have_pieces": [0, 1] },
+    { "t_ms": 600,  "have_pieces": [2, 3, 4] },
+    { "t_ms": 1600, "have_pieces": [350, 351, 352] }
+  ],
+  "download_rate_schedule": [
+    { "t_ms": 0,    "bytes_per_sec": 0 },
+    { "t_ms": 500,  "bytes_per_sec": 2500000 },
+    { "t_ms": 2000, "bytes_per_sec": 4000000 }
+  ],
+  "peer_count_schedule": [
+    { "t_ms": 0,   "count": 0 },
+    { "t_ms": 300, "count": 12 }
+  ]
+}

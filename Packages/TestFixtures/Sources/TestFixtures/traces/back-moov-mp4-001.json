@@ -1,0 +1,27 @@
+{
+  "asset_id": "back-moov-mp4-001",
+  "description": "MP4 with moov at end. AVPlayer issues a tail read to find moov, then plays sequentially from the start. Planner must survive non-linear early reads.",
+  "content_length": 1834521190,
+  "piece_length": 2097152,
+  "file_byte_range": { "start": 0, "end": 1834521189 },
+  "events": [
+    { "t_ms": 0,    "kind": "head" },
+    { "t_ms": 10,   "kind": "get", "request_id": "r1", "range_start": 1826000000, "range_end": 1834521189 },
+    { "t_ms": 500,  "kind": "get", "request_id": "r2", "range_start": 0,          "range_end": 2097151 },
+    { "t_ms": 800,  "kind": "get", "request_id": "r3", "range_start": 2097152,    "range_end": 6291455 }
+  ],
+  "availability_schedule": [
+    { "t_ms": 0,    "have_pieces": [] },
+    { "t_ms": 150,  "have_pieces": [870, 871, 872, 873, 874] },
+    { "t_ms": 400,  "have_pieces": [0, 1, 2] },
+    { "t_ms": 700,  "have_pieces": [3, 4, 5] }
+  ],
+  "download_rate_schedule": [
+    { "t_ms": 0,   "bytes_per_sec": 0 },
+    { "t_ms": 100, "bytes_per_sec": 3000000 }
+  ],
+  "peer_count_schedule": [
+    { "t_ms": 0,  "count": 0 },
+    { "t_ms": 50, "count": 8 }
+  ]
+}

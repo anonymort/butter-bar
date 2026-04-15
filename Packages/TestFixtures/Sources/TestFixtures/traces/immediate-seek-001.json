@@ -1,0 +1,26 @@
+{
+  "asset_id": "immediate-seek-001",
+  "description": "User scrubs within 500ms of opening playback, before initial buffer has formed. Planner must abandon initial deadlines cleanly.",
+  "content_length": 1834521190,
+  "piece_length": 2097152,
+  "file_byte_range": { "start": 0, "end": 1834521189 },
+  "events": [
+    { "t_ms": 0,    "kind": "head" },
+    { "t_ms": 10,   "kind": "get", "request_id": "r1", "range_start": 0,          "range_end": 2097151 },
+    { "t_ms": 400,  "kind": "cancel", "request_id": "r1" },
+    { "t_ms": 450,  "kind": "get", "request_id": "r2", "range_start": 1467006976, "range_end": 1469104127 }
+  ],
+  "availability_schedule": [
+    { "t_ms": 0,    "have_pieces": [] },
+    { "t_ms": 200,  "have_pieces": [0] },
+    { "t_ms": 600,  "have_pieces": [699, 700, 701] }
+  ],
+  "download_rate_schedule": [
+    { "t_ms": 0,   "bytes_per_sec": 0 },
+    { "t_ms": 300, "bytes_per_sec": 1500000 }
+  ],
+  "peer_count_schedule": [
+    { "t_ms": 0,   "count": 0 },
+    { "t_ms": 200, "count": 5 }
+  ]
+}
