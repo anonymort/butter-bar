@@ -94,8 +94,7 @@ public final class DefaultPiecePlanner: PiecePlanner {
         if isFirstGet {
             // Initial play policy.
             actions += initialPlay(requestID: requestID, range: range, at: time, session: session)
-        } else {
-            let lastByte = lastServedByteEnd!
+        } else if let lastByte = lastServedByteEnd {
             let distance = abs(range.start - (lastByte + 1))
             let seekThreshold = session.pieceLength * 4
 
@@ -393,19 +392,21 @@ public final class DefaultPiecePlanner: PiecePlanner {
     private func maybeEmitHealth(_ health: StreamHealth, at time: Instant) -> PlannerAction? {
         let shouldEmit: Bool
 
-        if lastEmittedHealth == nil {
+        if let previous = lastEmittedHealth {
+            if health.tier != previous.tier {
+                // Tier transition — emit immediately regardless of throttle.
+                shouldEmit = true
+            } else if let lastAt = lastEmittedAt,
+                      (time - lastAt) >= StreamHealthThresholds.emitThrottleMs,
+                      health != previous {
+                // Throttled field change.
+                shouldEmit = true
+            } else {
+                shouldEmit = false
+            }
+        } else {
             // First emission.
             shouldEmit = true
-        } else if health.tier != lastEmittedHealth!.tier {
-            // Tier transition — emit immediately regardless of throttle.
-            shouldEmit = true
-        } else if let lastAt = lastEmittedAt,
-                  (time - lastAt) >= StreamHealthThresholds.emitThrottleMs,
-                  health != lastEmittedHealth {
-            // Throttled field change.
-            shouldEmit = true
-        } else {
-            shouldEmit = false
         }
 
         if shouldEmit {
