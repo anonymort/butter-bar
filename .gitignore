@@ -1,1 +1,16 @@
 .DS_Store
+
+# Xcode derived data and build artefacts
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.moved-aside
+*.pbxuser
+
+# Swift package build artefacts
+.build/
+*.resolved
+
+# macOS metadata
+.AppleDouble
+.LSOverride
