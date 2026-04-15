@@ -1,0 +1,101 @@
+{
+  "trace_id": "front-moov-mp4-001",
+  "actions": [
+    {
+      "t_ms": 12,
+      "kind": "set_deadlines",
+      "pieces": [
+        { "piece": 0,  "deadline_ms": 0,    "priority": "critical" },
+        { "piece": 1,  "deadline_ms": 100,  "priority": "critical" },
+        { "piece": 2,  "deadline_ms": 200,  "priority": "critical" },
+        { "piece": 3,  "deadline_ms": 300,  "priority": "critical" },
+        { "piece": 4,  "deadline_ms": 250,  "priority": "readahead" },
+        { "piece": 5,  "deadline_ms": 500,  "priority": "readahead" },
+        { "piece": 6,  "deadline_ms": 750,  "priority": "readahead" },
+        { "piece": 7,  "deadline_ms": 1000, "priority": "readahead" },
+        { "piece": 8,  "deadline_ms": 1500, "priority": "readahead" },
+        { "piece": 9,  "deadline_ms": 2000, "priority": "readahead" },
+        { "piece": 10, "deadline_ms": 2500, "priority": "readahead" },
+        { "piece": 11, "deadline_ms": 3000, "priority": "readahead" },
+        { "piece": 12, "deadline_ms": 4000, "priority": "readahead" },
+        { "piece": 13, "deadline_ms": 5000, "priority": "readahead" },
+        { "piece": 14, "deadline_ms": 6000, "priority": "readahead" }
+      ]
+    },
+    {
+      "t_ms": 12,
+      "kind": "wait_for_range",
+      "request_id": "r1",
+      "max_wait_ms": 1500
+    },
+    {
+      "t_ms": 12,
+      "kind": "emit_health",
+      "seconds_buffered_ahead": 0.0,
+      "download_rate_bytes_per_sec": 0,
+      "peer_count": 0,
+      "outstanding_critical_pieces": 4,
+      "recent_stall_count": 0,
+      "tier": "starving"
+    },
+    {
+      "t_ms": 80,
+      "kind": "set_deadlines",
+      "pieces": [
+        { "piece": 15, "deadline_ms": 7000, "priority": "readahead" },
+        { "piece": 16, "deadline_ms": 8000, "priority": "readahead" }
+      ]
+    },
+    {
+      "t_ms": 80,
+      "kind": "wait_for_range",
+      "request_id": "r2",
+      "max_wait_ms": 800
+    },
+    {
+      "t_ms": 1450,
+      "kind": "clear_deadlines_except",
+      "pieces": [350, 351, 352, 353, 354, 355, 356, 357, 358, 359, 360, 361, 362, 363, 364, 365, 366, 367]
+    },
+    {
+      "t_ms": 1450,
+      "kind": "set_deadlines",
+      "pieces": [
+        { "piece": 350, "deadline_ms": 0,     "priority": "critical" },
+        { "piece": 351, "deadline_ms": 100,   "priority": "critical" },
+        { "piece": 352, "deadline_ms": 200,   "priority": "critical" },
+        { "piece": 353, "deadline_ms": 300,   "priority": "critical" },
+        { "piece": 354, "deadline_ms": 839,   "priority": "readahead" },
+        { "piece": 355, "deadline_ms": 1678,  "priority": "readahead" },
+        { "piece": 356, "deadline_ms": 2517,  "priority": "readahead" },
+        { "piece": 357, "deadline_ms": 3356,  "priority": "readahead" },
+        { "piece": 358, "deadline_ms": 4195,  "priority": "readahead" },
+        { "piece": 359, "deadline_ms": 5034,  "priority": "readahead" },
+        { "piece": 360, "deadline_ms": 5873,  "priority": "readahead" },
+        { "piece": 361, "deadline_ms": 6712,  "priority": "readahead" },
+        { "piece": 362, "deadline_ms": 7551,  "priority": "readahead" },
+        { "piece": 363, "deadline_ms": 8390,  "priority": "readahead" },
+        { "piece": 364, "deadline_ms": 9229,  "priority": "readahead" },
+        { "piece": 365, "deadline_ms": 10068, "priority": "readahead" },
+        { "piece": 366, "deadline_ms": 10907, "priority": "readahead" },
+        { "piece": 367, "deadline_ms": 11746, "priority": "readahead" }
+      ]
+    },
+    {
+      "t_ms": 1450,
+      "kind": "wait_for_range",
+      "request_id": "r3",
+      "max_wait_ms": 1200
+    },
+    {
+      "t_ms": 1450,
+      "kind": "emit_health",
+      "seconds_buffered_ahead": 0.0,
+      "download_rate_bytes_per_sec": 2500000,
+      "peer_count": 12,
+      "outstanding_critical_pieces": 4,
+      "recent_stall_count": 0,
+      "tier": "starving"
+    }
+  ]
+}
