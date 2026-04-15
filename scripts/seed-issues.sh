@@ -63,9 +63,9 @@ feature_row_re = re.compile(
 )
 
 # Open-question rows:
-#   | OQ.1 | Question | `Title` | spike | p0 |
+#   | OQ.2 | Question | `Title` | task | p1 | playback |
 oq_row_re = re.compile(
-    r"^\|\s*(OQ\.\d+)\s*\|\s*(.+?)\s*\|\s*`([^`]+)`\s*\|\s*(\w+)\s*\|\s*(p\d)\s*\|"
+    r"^\|\s*(OQ\.\d+)\s*\|\s*(.+?)\s*\|\s*`([^`]+)`\s*\|\s*(\w+)\s*\|\s*(p\d)\s*\|\s*(\w+)\s*\|"
 )
 
 in_oq = False
@@ -91,9 +91,7 @@ for line in lines:
     else:
         m = oq_row_re.match(line)
         if m:
-            num, question, title, issue_type, pri = m.groups()
-            # Open questions don't have explicit module; default to "settings" for tasks
-            mod = "settings" if issue_type == "task" else "discovery"
+            num, question, title, issue_type, pri, mod = m.groups()
             milestone = "v1"
             depends = "—"
             emit.append((issue_type, title, pri, mod, milestone, depends, current_section, num, question))
