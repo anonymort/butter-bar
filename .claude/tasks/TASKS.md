@@ -89,10 +89,11 @@ Implement `PiecePlanner` against `04-piece-planner.md`. All four policies: initi
 **Depends on:** `T-PLANNER-TYPES`, `T-PLANNER-FAKE-SESSION`, `T-PLANNER-FIXTURES`.
 **Review gate:** `[opus]` reviews before marking DONE. This is the project's highest-risk component.
 
-### T-PLANNER-PROPERTY-TESTS `[sonnet]` · TODO
-Add property-based tests using `SwiftCheck` or hand-rolled generators: random trace inputs within reasonable bounds, assert invariants (no deadline ever in the past, no `waitForRange` without a preceding `setDeadlines` covering the range, cancellation never leaves orphaned critical deadlines).
+### T-PLANNER-PROPERTY-TESTS `[sonnet]` · DONE
+Added `PlannerPropertyTests.swift` with 8 invariants, 100 seeds each (800 generated traces). Hand-rolled LCG generator (no SwiftCheck dependency). All 8 pass; total suite is now 76 tests.
 
-**Acceptance:** At least 6 invariants, each with ≥100 generated cases. All pass.
+Invariants: (1) no negative deadlines, (2) waitForRange always covered by prior setDeadlines, (3) cancel never produces critical-priority deadlines, (4) clearDeadlinesExcept immediately followed by setDeadlines, (5) seek classification only when distance > pieceLength*4, (6) health emit throttle respected, (7) all pieces within file bounds, (8) critical piece indices precede readahead piece indices.
+
 **Depends on:** `T-PLANNER-CORE` DONE + REVIEWED.
 
 ---
