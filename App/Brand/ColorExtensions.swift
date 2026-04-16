@@ -24,9 +24,9 @@ private extension NSColor {
     convenience init(hex: String) {
         let cleaned = hex.hasPrefix("#") ? String(hex.dropFirst()) : hex
         let value = UInt64(cleaned, radix: 16) ?? 0
-        let r = Double((value >> 16) & 0xFF) / 255.0
-        let g = Double((value >> 8) & 0xFF) / 255.0
-        let b = Double(value & 0xFF) / 255.0
-        self.init(sRGBRed: r, green: g, blue: b, alpha: 1.0)
+        let r = CGFloat((value >> 16) & 0xFF) / 255.0
+        let g = CGFloat((value >> 8) & 0xFF) / 255.0
+        let b = CGFloat(value & 0xFF) / 255.0
+        self.init(srgbRed: r, green: g, blue: b, alpha: 1.0)
     }
 }

@@ -5,7 +5,12 @@
 import SwiftUI
 
 enum BrandTypography {
-    /// SF Pro Display, weight 600, tracking -0.02em (approx -0.8 pt at 40pt).
+    /// SF Pro Display, weight 600, tracking -0.02em (−0.68 pt at the macOS largeTitle size of 34 pt).
+    ///
+    /// Platform constraint (v1): SwiftUI `.system(.largeTitle)` on macOS routes to SF Pro Text
+    /// rather than SF Pro Display. Accept for v1. If Display rendering is critical for a specific
+    /// screen, use `.font(.custom("SFProDisplay-Semibold", size: 34))` at that call site.
+    ///
     /// Used for large headers and the wordmark.
     static let display: Font = .system(.largeTitle, design: .default, weight: .semibold)
 
@@ -26,7 +31,7 @@ enum BrandTypography {
 // MARK: - View modifiers
 
 extension View {
-    /// SF Pro Display semibold with negative tracking (-0.02em at 34pt = -0.68pt).
+    /// SF Pro Display semibold with negative tracking (−0.02em at 34 pt = −0.68 pt).
     func brandDisplay() -> some View {
         self.font(BrandTypography.display)
             .tracking(-0.68)
