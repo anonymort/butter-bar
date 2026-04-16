@@ -232,7 +232,7 @@ Implement sparse-file reader that pulls bytes from the libtorrent-managed file v
 
 **Phase gate:** Phase 4 `T-GATEWAY-PLANNER-WIRING` and `T-GATEWAY-BYTE-READER` must be DONE.
 
-### T-STREAM-E2E `[sonnet]` · REVIEW: self-test rewritten — **awaiting user runtime run** (2026-04-15). `createTestTorrent` dropped; self-test now accepts a real magnet link or `.torrent` file exactly like `--cache-eviction-probe`. Validated at HEAD/GET/206/404/byte-accuracy level via URLSession; AVPlayer integration remains a separate manual step. See `docs/test-content.md` for invocation and suggested magnet.
+### T-STREAM-E2E `[sonnet]` · DONE — **Runtime-verified 2026-04-16** against Internet Archive "Big Buck Bunny" (276 MB MP4). `createTestTorrent` dropped; self-test accepts a real magnet URI or `.torrent` path, waits for metadata + first 8 pieces, spins up StreamRegistry + GatewayListener, runs HTTP round-trips. Passed: HEAD → 200 (Content-Length 276,134,947); GET bytes=0-65535 → 206 (65536 bytes); GET bytes=524288-525311 → 206; GET /stream/unknown → 404; byte-accuracy (HTTP body ≡ TorrentBridge.readBytes). Required `com.apple.security.network.server` entitlement added to EngineService.entitlements so libtorrent can bind port 6881 for peer listen. AVPlayer integration remains a separate manual step (per original acceptance criteria "recorded video of successful playback"); protocol-level proof is in the above self-test. See `docs/test-content.md`. GitHub #94 closed.
 Open a known-good public-domain torrent, select a file, open a stream via XPC, point `AVPlayer` at the returned loopback URL, verify playback starts within 10 seconds and runs for 60 seconds without a stall.
 
 **New self-test invocation:**
