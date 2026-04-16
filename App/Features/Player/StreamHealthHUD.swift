@@ -159,9 +159,12 @@ struct StreamHealthHUD: View {
 
 private extension View {
     func hudSurface() -> some View {
-        // Glass picks up tint from underlying video content, per spec 06.
+        // Glass.tint() is the SDK-canonical way to tint the glass material itself
+        // (Glass value method, not a view modifier). Composed before .interactive()
+        // per SwiftUICore.swiftinterface: Glass.tint(_:) -> Glass.interactive() -> glassEffect.
+        // Spec 06 § Colour palette: surface must read warm, not Apple-default chroma.
         self
-            .glassEffect(.regular.interactive())
+            .glassEffect(.regular.tint(BrandColors.butter).interactive())
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 }
