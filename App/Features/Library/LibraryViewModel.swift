@@ -24,6 +24,12 @@ final class LibraryViewModel: ObservableObject {
         self.engineClient = client
     }
 
+    func start() async {
+        guard !skipRefresh else { return }
+        await engineClient.connect()
+        await refresh()
+    }
+
     func refresh() async {
         guard !skipRefresh else { return }
         guard !isRefreshing else { return }
@@ -40,11 +46,6 @@ final class LibraryViewModel: ObservableObject {
     func listFiles(torrentID: String) async throws -> [TorrentFileDTO] {
         try await engineClient.listFiles(torrentID as NSString)
     }
-
-    /// Connects the underlying `EngineClient`. Safe to call from any async context.
-    func connectEngine() async {
-        await engineClient.connect()
-    }
 }
 
 // MARK: - Preview factories
@@ -52,7 +53,7 @@ final class LibraryViewModel: ObservableObject {
 extension LibraryViewModel {
 
     /// A view model pre-populated with sample data for Xcode Previews and snapshot tests.
-    /// `skipRefresh` is set so `.task { await viewModel.refresh() }` does not overwrite
+    /// `skipRefresh` is set so `.task { await viewModel.start() }` does not overwrite
     /// the pre-populated state during Canvas rendering or snapshot capture.
     static var previewWithData: LibraryViewModel {
         let vm = LibraryViewModel(client: EngineClient())

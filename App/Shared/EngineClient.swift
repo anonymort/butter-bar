@@ -3,11 +3,48 @@ import EngineInterface
 
 // MARK: - Error type
 
-public enum EngineClientError: Error {
+public enum EngineClientError: Error, LocalizedError {
     /// Attempted an XPC call before `connect()` or after invalidation.
     case notConnected
     /// The XPC proxy itself reported a connection error.
     case serviceError(NSError)
+
+    public var errorDescription: String? {
+        switch self {
+        case .notConnected:
+            return "Engine service is not connected yet."
+        case .serviceError(let error):
+            return error.localizedDescription
+        }
+    }
+}
+
+private final class ContinuationResumer<Value: Sendable>: @unchecked Sendable {
+    private let lock = NSLock()
+    private var didResume = false
+    private let continuation: CheckedContinuation<Value, Error>
+
+    init(_ continuation: CheckedContinuation<Value, Error>) {
+        self.continuation = continuation
+    }
+
+    func resume(returning value: Value) {
+        guard markResumed() else { return }
+        continuation.resume(returning: value)
+    }
+
+    func resume(throwing error: Error) {
+        guard markResumed() else { return }
+        continuation.resume(throwing: error)
+    }
+
+    private func markResumed() -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !didResume else { return false }
+        didResume = true
+        return true
+    }
 }
 
 // MARK: - EngineClient
@@ -15,8 +52,8 @@ public enum EngineClientError: Error {
 /// App-side actor that owns the `NSXPCConnection` to the EngineService XPC process.
 ///
 /// Lifecycle:
-/// - Call `connect()` once at app start. The actor keeps one connection for the
-///   app's lifetime, reconnecting automatically after invalidation.
+/// - Call `connect()` before the first engine call. The actor keeps one
+///   connection for the app's lifetime, reconnecting automatically after invalidation.
 /// - After interruption (engine crash/restart with connection still technically valid)
 ///   the actor re-subscribes for events without creating a new connection object.
 /// - All `EngineXPC` methods are exposed as `async throws` wrappers that bridge
@@ -35,8 +72,10 @@ public actor EngineClient {
     // MARK: - Connection lifecycle
 
     /// Creates and resumes the XPC connection to the EngineService.
-    /// Safe to call from any async context; must not be called while already connected.
+    /// Safe to call repeatedly from any async context.
     public func connect() {
+        guard connection == nil else { return }
+
         let conn = NSXPCConnection(serviceName: "com.butterbar.app.EngineService")
 
         // Engine exports EngineXPC; app exports EngineEvents for event callbacks.
@@ -74,10 +113,22 @@ public actor EngineClient {
 
     /// Returns the current list of torrents known to the engine.
     public func listTorrents() async throws -> [TorrentSummaryDTO] {
-        let p = try proxy()
         return try await withCheckedThrowingContinuation { cont in
+            let resumer = ContinuationResumer(cont)
+
+            let p: any EngineXPC
+            do {
+                p = try proxy(errorHandler: { error in
+                    NSLog("[EngineClient] listTorrents XPC error: %@", error.localizedDescription)
+                    resumer.resume(throwing: EngineClientError.serviceError(error))
+                })
+            } catch {
+                resumer.resume(throwing: error)
+                return
+            }
+
             p.listTorrents { summaries in
-                cont.resume(returning: summaries)
+                resumer.resume(returning: summaries)
             }
         }
     }
@@ -202,7 +253,7 @@ public actor EngineClient {
     /// Returns the remote proxy with an error handler.
     /// The error handler fires on connection failure after the call has been enqueued;
     /// it does not race with `notConnected` — that check is synchronous.
-    private func proxy() throws -> any EngineXPC {
+    private func proxy(errorHandler: @escaping (NSError) -> Void) throws -> any EngineXPC {
         guard let conn = connection else {
             throw EngineClientError.notConnected
         }
@@ -210,10 +261,15 @@ public actor EngineClient {
         // it gives a callback if the message cannot be delivered after queuing.
         guard let proxy = conn.remoteObjectProxyWithErrorHandler({ error in
             NSLog("[EngineClient] XPC proxy error: %@", error.localizedDescription)
+            errorHandler(error as NSError)
         }) as? any EngineXPC else {
             throw EngineClientError.notConnected
         }
         return proxy
+    }
+
+    private func proxy() throws -> any EngineXPC {
+        try proxy(errorHandler: { _ in })
     }
 
     /// Called when the XPC connection is fully invalidated (engine process died or was killed).
@@ -245,25 +301,20 @@ public actor EngineClient {
         guard let handler = eventHandler else { return }
         guard let conn = connection else { throw EngineClientError.notConnected }
         try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
-            // NSXPCConnection fires either the errorHandler OR the reply, never both.
-            // A local flag belt-and-braces against a rare double-fire inside the
-            // kernel XPC path; CheckedContinuation would crash on a second resume.
-            nonisolated(unsafe) var resumed = false
-            let resumeOnce: (Error?) -> Void = { error in
-                if resumed { return }
-                resumed = true
-                if let error { cont.resume(throwing: EngineClientError.serviceError(error as NSError)) }
-                else { cont.resume() }
-            }
+            let resumer = ContinuationResumer(cont)
             guard let proxy = conn.remoteObjectProxyWithErrorHandler({ err in
                 NSLog("[EngineClient] subscribe XPC error: %@", err.localizedDescription)
-                resumeOnce(err)
+                resumer.resume(throwing: EngineClientError.serviceError(err as NSError))
             }) as? any EngineXPC else {
-                cont.resume(throwing: EngineClientError.notConnected)
+                resumer.resume(throwing: EngineClientError.notConnected)
                 return
             }
             proxy.subscribe(handler) { error in
-                resumeOnce(error)
+                if let error {
+                    resumer.resume(throwing: EngineClientError.serviceError(error))
+                } else {
+                    resumer.resume(returning: ())
+                }
             }
         }
     }
