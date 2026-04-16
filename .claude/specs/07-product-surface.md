@@ -351,7 +351,7 @@ If those flows are robust, the product envelope is essentially covered.
 
 These are blocking decisions for issue creation. Raise as discussion threads on GitHub before opening implementation issues.
 
-- [ ] Which metadata source should be primary? Candidates: TMDB (free, requires key), TVDB (paid for some tiers), Trakt (decent metadata, primarily a sync service).
+- [x] ~~Which metadata source should be primary? Candidates: TMDB (free, requires key), TVDB (paid for some tiers), Trakt (decent metadata, primarily a sync service).~~ **Resolved 2026-04-16:** TMDB primary for metadata + artwork; Trakt reserved for Module 5 (Account Sync). Decision recorded in [`docs/spike-metadata-sources.md`](../../docs/spike-metadata-sources.md) and [`docs/design/discovery-metadata-foundation.md § D1`](../../docs/design/discovery-metadata-foundation.md).
 - [ ] Should external-player handoff be in v1 or deferred to v1.5+? (Recommendation: defer.)
 - [ ] Should sync (Module 5) be optional in v1 or required for onboarding? (Recommendation: optional, with clear "skip" path.)
 - [ ] How much provider logic is built in vs plugin-based? (Recommendation: built-in for v1; plugin architecture is v2.)
