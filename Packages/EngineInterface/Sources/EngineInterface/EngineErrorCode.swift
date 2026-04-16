@@ -4,7 +4,11 @@ import Foundation
 public let EngineErrorDomain = "com.butterbar.engine"
 
 /// Stable error codes for the `com.butterbar.engine` domain.
-@objc public enum EngineErrorCode: Int {
+///
+/// `Sendable` because every value is a primitive Int discriminator — no
+/// reference state, no mutability. Required for use as an associated value
+/// inside `Sendable` enums (e.g. `PlayerError.streamOpenFailed(_)`).
+@objc public enum EngineErrorCode: Int, Sendable {
     /// The requested method is not yet implemented.
     case notImplemented = 1
     /// The supplied magnet link or torrent data is malformed.
