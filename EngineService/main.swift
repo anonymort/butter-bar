@@ -7,6 +7,9 @@ import Foundation
 import EngineInterface
 
 #if DEBUG
+if CommandLine.arguments.contains("--cache-eviction-probe") {
+    runCacheEvictionProbeAndExit()
+}
 if CommandLine.arguments.contains("--bridge-self-test") {
     runBridgeSelfTestAndExit()
 }

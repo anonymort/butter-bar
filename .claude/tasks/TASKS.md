@@ -258,16 +258,23 @@ Wire `CacheManager` to the GRDB models created in `T-STORE-SCHEMA`. Implemented 
 **Depends on:** `T-STORE-SCHEMA`.
 **Acceptance:** Unit tests that exercise the read/write helpers and verify the in-memory pinned set is rebuilt correctly after a simulated engine restart.
 
-### T-CACHE-EVICTION `[sonnet]` · TODO · SPIKE
+### T-CACHE-EVICTION `[sonnet]` · BLOCKED: probe written, awaiting user-run observations · SPIKE
 Spike and then implement `CacheManager` with the eviction ordering from `05-cache-policy.md`. Unit tests with synthetic sparse-file state.
 
 **This task is an implementation spike.** The eviction mechanism described in `05-cache-policy.md` ("truncate regions where possible, or mark them for future overwrite") is hand-wavy because libtorrent's file-hole semantics and per-piece eviction behaviour need to be verified empirically against the real library. Before implementing:
 
-1. Write a small probe program that exercises libtorrent's `file_priority` and storage APIs against a real sparse file on HFS+/APFS.
+1. ✅ Write a small probe program that exercises libtorrent's `file_priority` and storage APIs against a real sparse file on HFS+/APFS. **Implemented as `--cache-eviction-probe` self-test in `EngineService/Cache/CacheEvictionProbe.swift`.**
 2. Verify what actually happens when a piece's priority is set to 0 — does the file region get truncated, sparsified, or just marked inert in libtorrent's view?
 3. Verify that setting a previously-evicted piece back to high priority causes libtorrent to re-fetch it.
 4. Document the observed behaviour in `docs/libtorrent-eviction-notes.md`.
 5. Only then implement `CacheManager` against the observed reality, and only then update `05-cache-policy.md` with the confirmed mechanism.
+
+**User action required before steps 2–5 can proceed:** Run the probe on a real machine and paste the output into `docs/libtorrent-eviction-notes.md`:
+```
+.build/debug/EngineService --cache-eviction-probe 2>&1 | tee docs/libtorrent-eviction-notes.md
+```
+
+**TorrentBridge gap noted:** `TorrentBridge` exposes `setFilePriority` (file granularity) but NOT `setPiecePriority` (piece granularity). The probe uses file-level priority as the coarsest available lever. If empirical results show that per-piece eviction is required, a `setPiecePriority` method must be added to `TorrentBridge.h/.mm` before step 5.
 
 **Depends on:** `T-CACHE-SCHEMA`, `T-BRIDGE-API` (need real libtorrent to probe).
 **Acceptance:** Probe notes committed, CacheManager implemented against observed behaviour, unit tests green, spec 05 updated with concrete mechanism (remove the "where possible / mark for future overwrite" hedge).
