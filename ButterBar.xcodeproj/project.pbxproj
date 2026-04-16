@@ -64,6 +64,8 @@
 		F3A4B5C6D7E8F3A4B5C6D7E8 /* RealTorrentSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E9F0A1B2C3D8E9F0A1B2C3 /* RealTorrentSession.swift */; };
 		F4249ADDF3CC568FD40A915F /* BrandTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85244C3556DDB6DB1831AAB0 /* BrandTypography.swift */; };
 		F9F417F62F912246005E8A2B /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = F9F417F52F912246005E8A2B /* AppIcon.icon */; };
+		TA000002000000000000AA01 /* TorrentAlertTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TA000001000000000000BB01 /* TorrentAlertTests.swift */; };
+		TA000003000000000000AA01 /* TorrentAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3C4D5E6F7A8B3C4D5E6F7A8 /* TorrentAlert.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -99,6 +101,7 @@
 
 /* Begin PBXFileReference section */
 		1081C8A3D05554F25364C74A /* EngineService.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = EngineService.entitlements; sourceTree = "<group>"; };
+		TA000001000000000000BB01 /* TorrentAlertTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TorrentAlertTests.swift; sourceTree = "<group>"; };
 		1785E418002BEE10CA7FEDC0 /* TestFixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TestFixtures; path = Packages/TestFixtures; sourceTree = "<group>"; };
 		39AB853C8253F0485E14495A /* EngineInterface */ = {isa = PBXFileReference; lastKnownFileType = folder; name = EngineInterface; path = Packages/EngineInterface; sourceTree = "<group>"; };
 		3A4B5C6D7E8F3A4B5C6D7E8F /* ButterBarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ButterBarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -239,6 +242,7 @@
 			children = (
 				EB3FC12896B9622317749428 /* LibrarySnapshotTests.swift */,
 				B1000005000000000000BB05 /* PlayerHUDSnapshotTests.swift */,
+				TA000001000000000000BB01 /* TorrentAlertTests.swift */,
 			);
 			path = ButterBarTests;
 			sourceTree = "<group>";
@@ -552,6 +556,8 @@
 			files = (
 				7733C28EE8BA53BDB56B8824 /* LibrarySnapshotTests.swift in Sources */,
 				A1000005000000000000AA05 /* PlayerHUDSnapshotTests.swift in Sources */,
+				TA000002000000000000AA01 /* TorrentAlertTests.swift in Sources */,
+				TA000003000000000000AA01 /* TorrentAlert.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
