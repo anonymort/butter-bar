@@ -103,11 +103,14 @@ public actor EngineClient {
         conn.setCodeSigningRequirement(engineServiceCodeSigningRequirement)
 
         // Capture self weakly so these closures don't keep the actor alive.
+        // Re-capture `[weak self]` inside the inner Task so Swift 6 strict
+        // concurrency can prove the hop across isolation boundaries is safe
+        // (the outer closure is a `sending` parameter).
         conn.invalidationHandler = { [weak self] in
-            Task { await self?.handleInvalidation() }
+            Task { [weak self] in await self?.handleInvalidation() }
         }
         conn.interruptionHandler = { [weak self] in
-            Task { await self?.handleInterruption() }
+            Task { [weak self] in await self?.handleInterruption() }
         }
 
         conn.resume()
