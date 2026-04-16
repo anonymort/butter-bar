@@ -1,6 +1,6 @@
 # 04 — PiecePlanner
 
-> **Revision 5** — § Mid-play GET clarified: the range `(pieceLength*2, pieceLength*4]` is treated as mid-play, not seek (addendum A21). **Revision 4** — § Seek and § Mid-play GET clarified: "most recently served byte" means `range.end` of most recent GET event processed, not delivered bytes (addendum A20). Rev 3 had expected-actions example rewritten to derive correctly from deadline-spacing rules (addendum A13); § Tick gains explicit `emitHealth` emission rules (addendum A15). Rev 2 introduced "deterministic state machine" language (addendum A3); `.seek` removed from public `PlayerEvent` and derived internally from GET patterns (addendum A4); explicit zero/unknown-rate fallback for deadline spacing added (addendum A5). Baseline revision was rev 1.
+> **Revision 6** — § Tick now points to spec 02 tier semantics, including the A22 nil-bitrate rule. **Revision 5** — § Mid-play GET clarified: the range `(pieceLength*2, pieceLength*4]` is treated as mid-play, not seek (addendum A21). **Revision 4** — § Seek and § Mid-play GET clarified: "most recently served byte" means `range.end` of most recent GET event processed, not delivered bytes (addendum A20). Rev 3 had expected-actions example rewritten to derive correctly from deadline-spacing rules (addendum A13); § Tick gains explicit `emitHealth` emission rules (addendum A15). Rev 2 introduced "deterministic state machine" language (addendum A3); `.seek` removed from public `PlayerEvent` and derived internally from GET patterns (addendum A4); explicit zero/unknown-rate fallback for deadline spacing added (addendum A5). Baseline revision was rev 1.
 
 The planner is the project's highest-risk component. Build it first, build it deterministic, build it from traces.
 
@@ -154,7 +154,7 @@ On `cancel(requestID)`:
 
 Called externally at ~2 Hz:
 
-1. Recompute `StreamHealth` from current session state.
+1. Recompute `StreamHealth` from current session state. Computation follows spec 02 § Tier semantics, including the nil-bitrate rule from addendum A22.
 2. Decide whether to emit it (see emission rules below).
 3. If readahead has fallen below target, emit `setDeadlines` to top it up.
 4. If more than 5 seconds have passed since last player activity with no stream close, emit nothing structural but keep deadlines alive.

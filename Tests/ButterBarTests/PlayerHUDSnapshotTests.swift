@@ -5,12 +5,22 @@ import SnapshotTesting
 import EngineInterface
 @testable import ButterBar
 
-// Wrap a SwiftUI view in an NSHostingView for macOS snapshot capture.
+// Render a SwiftUI view at a fixed size for macOS snapshot capture.
 @MainActor
-private func hosted<V: View>(_ view: V, size: CGSize) -> NSHostingView<V> {
-    let host = NSHostingView(rootView: view)
-    host.frame = CGRect(origin: .zero, size: size)
-    return host
+private func rendered<V: View>(_ view: V, size: CGSize, colorScheme: ColorScheme) -> NSImage {
+    let renderer = ImageRenderer(
+        content: view
+            .environment(\.colorScheme, colorScheme)
+            .frame(width: size.width, height: size.height)
+    )
+    renderer.proposedSize = ProposedViewSize(size)
+    renderer.scale = 2
+
+    guard let cgImage = renderer.cgImage else {
+        XCTFail("Could not render SwiftUI snapshot image")
+        return NSImage(size: size)
+    }
+    return NSImage(cgImage: cgImage, size: size)
 }
 
 // MARK: - PlayerHUDSnapshotTests
@@ -34,17 +44,24 @@ final class PlayerHUDSnapshotTests: XCTestCase {
     // HUD is rendered at a fixed width that matches a compact player window.
     private let snapshotSize = CGSize(width: 480, height: 80)
 
+    private func snapshotView(health: StreamHealthDTO, colorScheme: ColorScheme) -> some View {
+        ZStack {
+            if colorScheme == .dark {
+                Color.black
+            } else {
+                BrandColors.cream
+            }
+            StreamHealthHUD(health: health)
+        }
+    }
+
     // MARK: - Healthy tier
 
-    func testHUDHealthyTier() throws {
-        try XCTSkipIf(true, "Skipped pending #121 — headless NSHostingView produces transparent bitmap after #128 .glassEffect-only code path; re-enable once test host is fixed. See https://github.com/anonymort/butter-bar/issues/121")
-        let view = StreamHealthHUD(health: .healthy)
-            .environment(\.colorScheme, .dark)
-            .frame(width: snapshotSize.width, height: snapshotSize.height)
-            .background(Color.black)
+    func testHUDHealthyTier() {
+        let view = snapshotView(health: .healthy, colorScheme: .dark)
 
         assertSnapshot(
-            of: hosted(view, size: snapshotSize),
+            of: rendered(view, size: snapshotSize, colorScheme: .dark),
             as: .image,
             named: "dark-healthy"
         )
@@ -52,15 +69,11 @@ final class PlayerHUDSnapshotTests: XCTestCase {
 
     // MARK: - Marginal tier
 
-    func testHUDMarginalTier() throws {
-        try XCTSkipIf(true, "Skipped pending #121 — headless NSHostingView produces transparent bitmap after #128 .glassEffect-only code path; re-enable once test host is fixed. See https://github.com/anonymort/butter-bar/issues/121")
-        let view = StreamHealthHUD(health: .marginal)
-            .environment(\.colorScheme, .dark)
-            .frame(width: snapshotSize.width, height: snapshotSize.height)
-            .background(Color.black)
+    func testHUDMarginalTier() {
+        let view = snapshotView(health: .marginal, colorScheme: .dark)
 
         assertSnapshot(
-            of: hosted(view, size: snapshotSize),
+            of: rendered(view, size: snapshotSize, colorScheme: .dark),
             as: .image,
             named: "dark-marginal"
         )
@@ -68,15 +81,11 @@ final class PlayerHUDSnapshotTests: XCTestCase {
 
     // MARK: - Starving tier
 
-    func testHUDStarvingTier() throws {
-        try XCTSkipIf(true, "Skipped pending #121 — headless NSHostingView produces transparent bitmap after #128 .glassEffect-only code path; re-enable once test host is fixed. See https://github.com/anonymort/butter-bar/issues/121")
-        let view = StreamHealthHUD(health: .starving)
-            .environment(\.colorScheme, .dark)
-            .frame(width: snapshotSize.width, height: snapshotSize.height)
-            .background(Color.black)
+    func testHUDStarvingTier() {
+        let view = snapshotView(health: .starving, colorScheme: .dark)
 
         assertSnapshot(
-            of: hosted(view, size: snapshotSize),
+            of: rendered(view, size: snapshotSize, colorScheme: .dark),
             as: .image,
             named: "dark-starving"
         )
@@ -88,43 +97,31 @@ final class PlayerHUDSnapshotTests: XCTestCase {
     // in both modes. Background is `cream` in light mode (matches what the
     // HUD would sit on if ever composed into a light-scheme surface).
 
-    func testHUDHealthyTier_lightMode() throws {
-        try XCTSkipIf(true, "Skipped pending #121 — NSHostingView appearance pinning; see https://github.com/anonymort/butter-bar/issues/121")
-        let view = StreamHealthHUD(health: .healthy)
-            .environment(\.colorScheme, .light)
-            .frame(width: snapshotSize.width, height: snapshotSize.height)
-            .background(BrandColors.cream)
+    func testHUDHealthyTier_lightMode() {
+        let view = snapshotView(health: .healthy, colorScheme: .light)
 
         assertSnapshot(
-            of: hosted(view, size: snapshotSize),
+            of: rendered(view, size: snapshotSize, colorScheme: .light),
             as: .image,
             named: "light-healthy"
         )
     }
 
-    func testHUDMarginalTier_lightMode() throws {
-        try XCTSkipIf(true, "Skipped pending #121 — NSHostingView appearance pinning; see https://github.com/anonymort/butter-bar/issues/121")
-        let view = StreamHealthHUD(health: .marginal)
-            .environment(\.colorScheme, .light)
-            .frame(width: snapshotSize.width, height: snapshotSize.height)
-            .background(BrandColors.cream)
+    func testHUDMarginalTier_lightMode() {
+        let view = snapshotView(health: .marginal, colorScheme: .light)
 
         assertSnapshot(
-            of: hosted(view, size: snapshotSize),
+            of: rendered(view, size: snapshotSize, colorScheme: .light),
             as: .image,
             named: "light-marginal"
         )
     }
 
-    func testHUDStarvingTier_lightMode() throws {
-        try XCTSkipIf(true, "Skipped pending #121 — NSHostingView appearance pinning; see https://github.com/anonymort/butter-bar/issues/121")
-        let view = StreamHealthHUD(health: .starving)
-            .environment(\.colorScheme, .light)
-            .frame(width: snapshotSize.width, height: snapshotSize.height)
-            .background(BrandColors.cream)
+    func testHUDStarvingTier_lightMode() {
+        let view = snapshotView(health: .starving, colorScheme: .light)
 
         assertSnapshot(
-            of: hosted(view, size: snapshotSize),
+            of: rendered(view, size: snapshotSize, colorScheme: .light),
             as: .image,
             named: "light-starving"
         )

@@ -49,6 +49,14 @@ final class AlertDispatcher {
             emitTorrentUpdated(torrentID: torrentID, to: proxy)
             emitFileAvailabilityChanged(torrentID: torrentID, to: proxy)
 
+        case .hashFailed(let torrentID, let pieceIndex):
+            emitTorrentUpdated(torrentID: torrentID, to: proxy)
+            if let pieceIndex {
+                NSLog("[AlertDispatcher] hash failed for %@ piece %d", torrentID, pieceIndex)
+            } else {
+                NSLog("[AlertDispatcher] hash failed for %@ with no pieceIndex", torrentID)
+            }
+
         case .error(let torrentID, let message):
             if let id = torrentID {
                 emitTorrentUpdated(torrentID: id, to: proxy)
