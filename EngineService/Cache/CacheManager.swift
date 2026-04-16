@@ -120,8 +120,14 @@ public final class CacheManager {
     }
 
     /// Manually mark a file as watched (A26 + #34 design § Engine write rules).
-    /// Inserts the row when absent. Always sets `(completed=1, completed_at=now,
-    /// resume_byte_offset=0, last_played_at=now)`. Returns the written record.
+    /// Inserts the row when absent. Sets `(completed=1, resume_byte_offset=0,
+    /// last_played_at=now)`. `completed_at` is preserved when the existing row
+    /// already represented a `.watched` state (i.e. was completed AND already
+    /// at offset 0) — this matches the design doc transition matrix:
+    /// "manuallyMarkedWatched on .watched is a no-op: keeping the original
+    /// date matches user intent (I'm just confirming, not re-stamping)". A
+    /// fresh mark on an in-progress, never-completed, or currently-re-watching
+    /// row sets `completed_at = now` (most-recent-completion-wins per A26).
     @discardableResult
     public func markWatched(
         torrentId: String,
@@ -133,6 +139,19 @@ public final class CacheManager {
             let existing = try PlaybackHistoryRecord
                 .filter(Column("torrent_id") == torrentId && Column("file_index") == fileIndex)
                 .fetchOne(conn)
+
+            // Preserve completedAt iff the row was already in the .watched state
+            // (completed=1 AND offset=0). Anywhere else (.unwatched, .inProgress,
+            // .reWatching, or absent row), this mark represents a new completion.
+            let preserveCompletedAt =
+                (existing?.completed == true) &&
+                (existing?.resumeByteOffset == 0) &&
+                (existing?.completedAt != nil)
+
+            let newCompletedAt: Int64 = preserveCompletedAt
+                ? (existing?.completedAt ?? now)
+                : now
+
             var record = PlaybackHistoryRecord(
                 torrentId: torrentId,
                 fileIndex: fileIndex,
@@ -140,7 +159,7 @@ public final class CacheManager {
                 lastPlayedAt: now,
                 totalWatchedSeconds: existing?.totalWatchedSeconds ?? 0,
                 completed: true,
-                completedAt: now
+                completedAt: newCompletedAt
             )
             try record.save(conn)
             return record
