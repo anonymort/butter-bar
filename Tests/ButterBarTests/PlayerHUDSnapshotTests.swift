@@ -3,6 +3,7 @@ import SwiftUI
 import AppKit
 import SnapshotTesting
 import EngineInterface
+import PlayerDomain
 @testable import ButterBar
 
 // Render a SwiftUI view at a fixed size for macOS snapshot capture.
@@ -228,6 +229,47 @@ final class PlayerViewModelReconnectTests: XCTestCase {
             try await Task.sleep(for: poll)
         }
         XCTFail("Timed out: \(message)")
+    }
+
+    // MARK: - State projection (Phase 3 #18)
+
+    /// Verifies the engine-event projection wired in Phase 3: a starving
+    /// health DTO routes through `PlayerStateMachine` and surfaces as
+    /// `state == .buffering(.engineStarving)`. The existing reconnect tests
+    /// already cover the underlying delivery path; this asserts the new
+    /// projection contract added by the Phase 3 refactor.
+    func testStateBecomesBufferingEngineStarvingOnStarvingHealth() async throws {
+        let engineClient = EngineClient()
+        let streamID = "stream-projection-1"
+        let descriptor = StreamDescriptorDTO(
+            streamID: streamID as NSString,
+            loopbackURL: "http://127.0.0.1:52101/stream/\(streamID)" as NSString,
+            contentType: "video/mp4",
+            contentLength: 10_000
+        )
+        let viewModel = PlayerViewModel(streamDescriptor: descriptor,
+                                        engineClient: engineClient)
+
+        let handler = EngineEventHandler()
+        await engineClient._replaceEventHandlerForTesting(handler)
+        try await Task.sleep(for: .milliseconds(50))
+
+        handler.streamHealthChanged(
+            StreamHealthDTO(
+                streamID: streamID as NSString,
+                secondsBufferedAhead: 1,
+                downloadRateBytesPerSec: 50_000,
+                requiredBitrateBytesPerSec: nil,
+                peerCount: 0,
+                outstandingCriticalPieces: 5,
+                recentStallCount: 3,
+                tier: "starving"
+            )
+        )
+
+        try await assertEventually("state should project to .buffering(.engineStarving)") {
+            viewModel.state == .buffering(reason: .engineStarving)
+        }
     }
 }
 

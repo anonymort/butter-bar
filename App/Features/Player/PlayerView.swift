@@ -1,5 +1,6 @@
 import AVFoundation
 import EngineInterface
+import PlayerDomain
 import SwiftUI
 
 // MARK: - PlayerView
@@ -36,9 +37,11 @@ struct PlayerView: View {
                     .ignoresSafeArea()
             }
 
-            // Error overlay — only shown if player initialisation failed.
-            if let errorMessage = viewModel.error {
-                errorOverlay(errorMessage)
+            // Error overlay — derived from PlayerState per Phase 3 design.
+            // #26 will replace this minimal text with brand-compliant
+            // per-error-case chrome and a Retry affordance.
+            if case .error(let err) = viewModel.state {
+                errorOverlay(displayMessage(for: err))
             }
 
             // HUD overlay — floats at bottom centre, 24 pt margin.
@@ -96,6 +99,21 @@ struct PlayerView: View {
     }
 
     // MARK: - Error overlay
+
+    /// Map a `PlayerError` to interim display copy. #26 owns the final
+    /// brand-voice copy + retry chrome; this is the minimal seam.
+    private func displayMessage(for error: PlayerError) -> String {
+        switch error {
+        case .streamOpenFailed(let code):
+            return "We couldn't open this stream (engine code \(code.rawValue))."
+        case .xpcDisconnected:
+            return "We lost contact with the engine."
+        case .playbackFailed:
+            return "Playback couldn't continue."
+        case .streamLost:
+            return "The stream is no longer available."
+        }
+    }
 
     private func errorOverlay(_ message: String) -> some View {
         VStack(spacing: 8) {
