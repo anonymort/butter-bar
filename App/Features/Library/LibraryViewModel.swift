@@ -103,6 +103,45 @@ final class LibraryViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Continue watching (#35)
+
+    /// Items to show in the library's "Continue watching" row, sorted most-
+    /// recently-played first. Includes only files whose `WatchStatus` is
+    /// `.inProgress` or `.reWatching`. v1 surface is per-torrent file 0
+    /// (matches the rest of Phase 1's per-file limitations — see #37).
+    var continueWatching: [ContinueWatchingItem] {
+        let candidates: [ContinueWatchingItem] = torrents.compactMap { torrent in
+            let id = torrent.torrentID as String
+            guard let dto = playbackHistory[Self.key(for: id, fileIndex: 0)] else {
+                return nil
+            }
+            let status = WatchStatus.from(history: dto, totalBytes: torrent.totalBytes)
+            switch status {
+            case .inProgress(let p, let t):
+                return ContinueWatchingItem(
+                    torrent: torrent,
+                    fileIndex: 0,
+                    progressBytes: p,
+                    totalBytes: t,
+                    lastPlayedAtMillis: dto.lastPlayedAt,
+                    isReWatching: false
+                )
+            case .reWatching(let p, let t, _):
+                return ContinueWatchingItem(
+                    torrent: torrent,
+                    fileIndex: 0,
+                    progressBytes: p,
+                    totalBytes: t,
+                    lastPlayedAtMillis: dto.lastPlayedAt,
+                    isReWatching: true
+                )
+            case .unwatched, .watched:
+                return nil
+            }
+        }
+        return candidates.sorted { $0.lastPlayedAtMillis > $1.lastPlayedAtMillis }
+    }
+
     // MARK: - Helpers
 
     /// Stable composite key for `(torrentID, fileIndex)`.
@@ -178,6 +217,44 @@ extension LibraryViewModel {
     static var previewEmpty: LibraryViewModel {
         let vm = LibraryViewModel(client: EngineClient())
         vm.skipRefresh = true
+        return vm
+    }
+
+    /// Pre-populated with a continue-watching projection for #35 visual
+    /// snapshots. Exercises `.inProgress` and `.reWatching` side-by-side,
+    /// sorted by `lastPlayedAtMillis` desc.
+    static var previewWithContinueWatching: LibraryViewModel {
+        let vm = previewWithData
+        // Cosmos: .reWatching at ~35%, older lastPlayedAt.
+        vm.playbackHistory["abc123#0"] = PlaybackHistoryDTO(
+            torrentID: "abc123",
+            fileIndex: 0,
+            resumeByteOffset: 3_006_477_107,
+            lastPlayedAt: 1_700_000_000_000,
+            totalWatchedSeconds: 0,
+            completed: true,
+            completedAt: NSNumber(value: 1_699_000_000_000)
+        )
+        // The General: .inProgress at ~22%, newer lastPlayedAt — appears first.
+        vm.playbackHistory["ghi789#0"] = PlaybackHistoryDTO(
+            torrentID: "ghi789",
+            fileIndex: 0,
+            resumeByteOffset: 236_223_201,  // ~22% of 1.07 GB
+            lastPlayedAt: 1_700_000_500_000,
+            totalWatchedSeconds: 0,
+            completed: false,
+            completedAt: nil
+        )
+        // Night of the Living Dead: .watched — excluded from projection.
+        vm.playbackHistory["def456#0"] = PlaybackHistoryDTO(
+            torrentID: "def456",
+            fileIndex: 0,
+            resumeByteOffset: 0,
+            lastPlayedAt: 1_700_000_300_000,
+            totalWatchedSeconds: 0,
+            completed: true,
+            completedAt: NSNumber(value: 1_700_000_300_000)
+        )
         return vm
     }
 

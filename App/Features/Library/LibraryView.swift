@@ -78,23 +78,46 @@ struct LibraryView: View {
     private var torrentList: some View {
         // Use a mapped id (String) so the selection binding type matches.
         List(selection: $selectedTorrentID) {
-            ForEach(filteredTorrents, id: \.torrentID) { torrent in
-                TorrentRow(
-                    torrent: torrent,
-                    watchStatus: viewModel.watchStatus(
-                        torrentID: torrent.torrentID as String,
-                        fileIndex: 0,
-                        totalBytes: torrent.totalBytes
+            // #35 — Continue watching row, hidden when projection is empty
+            // (no in-progress / re-watching items). Rendered as a list section
+            // with a transparent background so it blends with the surrounding
+            // surface.
+            if !viewModel.continueWatching.isEmpty {
+                Section {
+                    ContinueWatchingRow(
+                        items: viewModel.continueWatching,
+                        onOpen: { item in
+                            openStream(
+                                torrentID: item.torrent.torrentID as String,
+                                fileIndex: Int32(item.fileIndex)
+                            )
+                        }
                     )
-                )
-                .tag(torrent.torrentID as String)
-                .contentShape(Rectangle())
-                .onTapGesture { handleRowTap(torrent) }
-                .contextMenu {
-                    watchStateMenuItems(for: torrent)
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(BrandColors.surfaceBase)
+                    .listRowSeparator(.hidden)
                 }
-                .listRowBackground(BrandColors.surfaceBase)
-                .listRowSeparatorTint(BrandColors.cocoaFaint)
+            }
+
+            Section {
+                ForEach(filteredTorrents, id: \.torrentID) { torrent in
+                    TorrentRow(
+                        torrent: torrent,
+                        watchStatus: viewModel.watchStatus(
+                            torrentID: torrent.torrentID as String,
+                            fileIndex: 0,
+                            totalBytes: torrent.totalBytes
+                        )
+                    )
+                    .tag(torrent.torrentID as String)
+                    .contentShape(Rectangle())
+                    .onTapGesture { handleRowTap(torrent) }
+                    .contextMenu {
+                        watchStateMenuItems(for: torrent)
+                    }
+                    .listRowBackground(BrandColors.surfaceBase)
+                    .listRowSeparatorTint(BrandColors.cocoaFaint)
+                }
             }
         }
         .listStyle(.plain)
@@ -347,4 +370,18 @@ private struct TorrentRow: View {
     LibraryView(viewModel: .previewWithWatchState)
         .preferredColorScheme(.dark)
         .frame(width: 480, height: 400)
+}
+
+// #35 — Continue watching row visible
+
+#Preview("Library — continue watching, light") {
+    LibraryView(viewModel: .previewWithContinueWatching)
+        .preferredColorScheme(.light)
+        .frame(width: 800, height: 500)
+}
+
+#Preview("Library — continue watching, dark") {
+    LibraryView(viewModel: .previewWithContinueWatching)
+        .preferredColorScheme(.dark)
+        .frame(width: 800, height: 500)
 }

@@ -111,4 +111,30 @@ final class LibrarySnapshotTests: XCTestCase {
             named: "dark-watch-state"
         )
     }
+
+    // MARK: - Continue watching (#35)
+
+    func testLibraryViewLightContinueWatching() {
+        let view = LibraryView(viewModel: .previewWithContinueWatching)
+            .environment(\.colorScheme, .light)
+            .frame(width: snapshotSize.width, height: snapshotSize.height)
+
+        assertSnapshot(
+            of: hosted(view, size: snapshotSize),
+            as: .image,
+            named: "light-continue-watching"
+        )
+    }
+
+    func testLibraryViewDarkContinueWatching() {
+        let view = LibraryView(viewModel: .previewWithContinueWatching)
+            .environment(\.colorScheme, .dark)
+            .frame(width: snapshotSize.width, height: snapshotSize.height)
+
+        assertSnapshot(
+            of: hosted(view, size: snapshotSize),
+            as: .image,
+            named: "dark-continue-watching"
+        )
+    }
 }

@@ -12,6 +12,7 @@
 		6AE4D8E712B992B57139800A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6219FBB50A4AF5FF44C0F8C /* ContentView.swift */; };
 		7733C28EE8BA53BDB56B8824 /* LibrarySnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB3FC12896B9622317749428 /* LibrarySnapshotTests.swift */; };
 		FACE0005AAAA0000BBBB0005 /* LibraryViewModelWatchStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE0006AAAA0000BBBB0006 /* LibraryViewModelWatchStateTests.swift */; };
+		FACE000BAAAA0000BBBB000B /* LibraryViewModelContinueWatchingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE000CAAAA0000BBBB000C /* LibraryViewModelContinueWatchingTests.swift */; };
 		8BE818E590240FD88380781A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9788A1872451B15183194D45 /* Assets.xcassets */; };
 		8E4F6EAC342FC231B7B08716 /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 6F770D65D670E58E0351D8AE /* SnapshotTesting */; };
 		97D6C5379559B125DE089050 /* PlannerCore in Frameworks */ = {isa = PBXBuildFile; productRef = BDA7E17795E9B0C29D6E029A /* PlannerCore */; };
@@ -57,6 +58,8 @@
 		E5F6A7B8C9D0E5F6A7B8C9D0 /* GatewayPlannerSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6A7B8C9D0E1F6A7B8C9D0E1 /* GatewayPlannerSelfTest.swift */; };
 		E7F8A9B0C1D2E7F8A9B0C1D2 /* RealEngineBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8D9E0F1A2B3C8D9E0F1A2B3 /* RealEngineBackend.swift */; };
 		EE44FF550011AA22BB33CC44 /* FileSelectionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD33EE44FF550011AA22BB44 /* FileSelectionSheet.swift */; };
+		FACE0007AAAA0000BBBB0007 /* ContinueWatchingItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE0008AAAA0000BBBB0008 /* ContinueWatchingItem.swift */; };
+		FACE0009AAAA0000BBBB0009 /* ContinueWatchingRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE000AAAAAA0000BBBB000A /* ContinueWatchingRow.swift */; };
 		EE5566778899AABBEE5566FF /* HTTPSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF66778899AABBCC0011FF66 /* HTTPSerializer.swift */; };
 		EW000001000000000000AA01 /* EvictionWireSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = EW000002000000000000AA02 /* EvictionWireSelfTest.swift */; };
 		EW000003000000000000AA03 /* XPCCodesignSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = EW000004000000000000AA04 /* XPCCodesignSelfTest.swift */; };
@@ -152,6 +155,8 @@
 		D6219FBB50A4AF5FF44C0F8C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		D8E9F0A1B2C3D8E9F0A1B2C3 /* RealTorrentSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealTorrentSession.swift; sourceTree = "<group>"; };
 		DD33EE44FF550011AA22BB44 /* FileSelectionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSelectionSheet.swift; sourceTree = "<group>"; };
+		FACE0008AAAA0000BBBB0008 /* ContinueWatchingItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinueWatchingItem.swift; sourceTree = "<group>"; };
+		FACE000AAAAAA0000BBBB000A /* ContinueWatchingRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinueWatchingRow.swift; sourceTree = "<group>"; };
 		DD4455667788990ADDEEE445 /* HTTPParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPParser.swift; sourceTree = "<group>"; };
 		DD44EE55FF6677AA88BB99CC /* DTOSendable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTOSendable.swift; sourceTree = "<group>"; };
 		DD44EE66FF88AA00BB22CC44 /* EngineStore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = EngineStore; path = Packages/EngineStore; sourceTree = "<group>"; };
@@ -163,6 +168,7 @@
 		E3A7F9C2B1D486530E2F4A91 /* TorrentBridgeSmokeTest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TorrentBridgeSmokeTest.h; sourceTree = "<group>"; };
 		EB3FC12896B9622317749428 /* LibrarySnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySnapshotTests.swift; sourceTree = "<group>"; };
 		FACE0006AAAA0000BBBB0006 /* LibraryViewModelWatchStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryViewModelWatchStateTests.swift; sourceTree = "<group>"; };
+		FACE000CAAAA0000BBBB000C /* LibraryViewModelContinueWatchingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryViewModelContinueWatchingTests.swift; sourceTree = "<group>"; };
 		EE55FF7788990011AABB2233 /* ResumeTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeTracker.swift; sourceTree = "<group>"; };
 		EW000002000000000000AA02 /* EvictionWireSelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvictionWireSelfTest.swift; sourceTree = "<group>"; };
 		EW000004000000000000AA04 /* XPCCodesignSelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPCCodesignSelfTest.swift; sourceTree = "<group>"; };
@@ -253,6 +259,7 @@
 				EB3FC12896B9622317749428 /* LibrarySnapshotTests.swift */,
 				B1000005000000000000BB05 /* PlayerHUDSnapshotTests.swift */,
 				FACE0006AAAA0000BBBB0006 /* LibraryViewModelWatchStateTests.swift */,
+				FACE000CAAAA0000BBBB000C /* LibraryViewModelContinueWatchingTests.swift */,
 				TA000001000000000000BB01 /* TorrentAlertTests.swift */,
 				PBM00005000000000000BB01 /* PieceByteMappingTests.swift */,
 			);
@@ -408,6 +415,8 @@
 				BB11CC22DD33EE44FF550022 /* LibraryViewModel.swift */,
 				CC22DD33EE44FF550011AA33 /* LibraryView.swift */,
 				DD33EE44FF550011AA22BB44 /* FileSelectionSheet.swift */,
+				FACE0008AAAA0000BBBB0008 /* ContinueWatchingItem.swift */,
+				FACE000AAAAAA0000BBBB000A /* ContinueWatchingRow.swift */,
 			);
 			path = Library;
 			sourceTree = "<group>";
@@ -573,6 +582,7 @@
 				7733C28EE8BA53BDB56B8824 /* LibrarySnapshotTests.swift in Sources */,
 				A1000005000000000000AA05 /* PlayerHUDSnapshotTests.swift in Sources */,
 				FACE0005AAAA0000BBBB0005 /* LibraryViewModelWatchStateTests.swift in Sources */,
+				FACE000BAAAA0000BBBB000B /* LibraryViewModelContinueWatchingTests.swift in Sources */,
 				TA000002000000000000AA01 /* TorrentAlertTests.swift in Sources */,
 				TA000003000000000000AA01 /* TorrentAlert.swift in Sources */,
 				PBM00003000000000000AA01 /* PieceByteMapping.swift in Sources */,
@@ -632,6 +642,8 @@
 				CC22DD33EE44FF550011AA22 /* LibraryViewModel.swift in Sources */,
 				DD33EE44FF550011AA22BB33 /* LibraryView.swift in Sources */,
 				EE44FF550011AA22BB33CC44 /* FileSelectionSheet.swift in Sources */,
+				FACE0007AAAA0000BBBB0007 /* ContinueWatchingItem.swift in Sources */,
+				FACE0009AAAA0000BBBB0009 /* ContinueWatchingRow.swift in Sources */,
 				A1000001000000000000AA01 /* PlayerView.swift in Sources */,
 				A1000002000000000000AA02 /* PlayerViewModel.swift in Sources */,
 				A1000003000000000000AA03 /* AVPlayerViewRepresentable.swift in Sources */,
