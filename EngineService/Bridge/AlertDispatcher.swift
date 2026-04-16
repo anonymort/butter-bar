@@ -76,11 +76,10 @@ final class AlertDispatcher {
         }
 
         let progress = (snapshot["progress"] as? NSNumber)?.floatValue ?? 0
+        let name = (snapshot["name"] as? NSString) ?? (torrentID as NSString)
         let dto = TorrentSummaryDTO(
             torrentID: torrentID as NSString,
-            // statusSnapshot does not include a name; use a placeholder.
-            // The real name will be available once the torrent is tracked in the store layer.
-            name: torrentID as NSString,
+            name: name,
             totalBytes: (snapshot["totalBytes"] as? NSNumber)?.int64Value ?? 0,
             progressQ16: Int32(min(progress * 65536, 65536)),
             state: (snapshot["state"] as? NSString) ?? ("unknown" as NSString),

@@ -445,8 +445,17 @@ overwriteExisting:(BOOL)overwriteExisting
 
         lt::torrent_status st = h.status();
         NSString *stateStr = [TorrentBridge _stateStringFrom:st.state];
+        NSString *nameStr = torrentID;
+
+        if (auto ti = h.torrent_file()) {
+            const std::string name = ti->name();
+            if (!name.empty()) {
+                nameStr = [NSString stringWithUTF8String:name.c_str()];
+            }
+        }
 
         result = @{
+            @"name":         nameStr,
             @"state":        stateStr,
             @"progress":     @((float)st.progress),
             @"downloadRate": @((int64_t)st.download_rate),

@@ -484,9 +484,10 @@ final class RealEngineBackend: EngineXPCBackend {
         }
 
         let progress = (snapshot["progress"] as? NSNumber)?.floatValue ?? 0
+        let name = (snapshot["name"] as? NSString) ?? (torrentID as NSString)
         return TorrentSummaryDTO(
             torrentID: torrentID as NSString,
-            name: torrentID as NSString,      // real name comes from metadata alert
+            name: name,
             totalBytes: (snapshot["totalBytes"] as? NSNumber)?.int64Value ?? 0,
             progressQ16: Int32(min(progress * 65536, 65536)),
             state: (snapshot["state"] as? NSString) ?? ("unknown" as NSString),
