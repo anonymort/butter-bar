@@ -127,7 +127,7 @@ overwriteExisting:(BOOL)overwriteExisting
 // MARK: - Status
 
 /// Returns a snapshot of the torrent's current status.
-/// Dict keys: @"state" (NSString), @"progress" (NSNumber float),
+/// Dict keys: @"name" (NSString), @"state" (NSString), @"progress" (NSNumber float),
 ///            @"downloadRate" (NSNumber int64), @"uploadRate" (NSNumber int64),
 ///            @"peerCount" (NSNumber int), @"totalBytes" (NSNumber int64).
 - (nullable NSDictionary *)statusSnapshot:(NSString *)torrentID error:(NSError **)error;
