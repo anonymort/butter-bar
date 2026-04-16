@@ -71,6 +71,36 @@ typedef NS_ERROR_ENUM(TorrentBridgeErrorDomain, TorrentBridgeError) {
                exceptPieces:(NSArray<NSNumber *> *)exceptPieces
                       error:(NSError **)error;
 
+/// Requests libtorrent to re-verify the entire torrent against what's on disk.
+/// Equivalent to `lt::torrent_handle::force_recheck()`. This is a heavy operation:
+/// libtorrent will disconnect peers, read every existing file, and re-hash every
+/// piece. Completion is asynchronous — observe via `torrent_checked_alert` or by
+/// polling `statusSnapshot` for the `checkingFiles` state to clear.
+///
+/// Used as the cache-eviction fallback path (see `05-cache-policy.md` § Fallback).
+/// Not intended for streaming-hot-path use.
+- (BOOL)forceRecheck:(NSString *)torrentID
+               error:(NSError **)error;
+
+/// Writes `data` to the torrent's storage as piece `piece` and schedules a hash
+/// check. If `overwriteExisting` is YES, libtorrent will overwrite any bytes
+/// already on disk for that piece (mapped to `add_piece_flags_t::overwrite_existing`).
+/// The hash check result arrives asynchronously via `piece_finished_alert` (pass)
+/// or `hash_failed_alert` (fail).
+///
+/// Primary use: the cache-eviction hot path per spec 05 rev 3. Passing 256 KB of
+/// zeros with `overwriteExisting: YES` triggers a deliberate hash failure which
+/// libtorrent resolves by internally calling `async_clear_piece`, removing the
+/// piece from the have-bitmap.
+///
+/// `data` must be exactly `pieceLength` bytes (see `pieceLength:`). Passing the
+/// wrong length is caller error; libtorrent's behaviour is undefined.
+- (BOOL)addPiece:(NSString *)torrentID
+           piece:(int)piece
+            data:(NSData *)data
+overwriteExisting:(BOOL)overwriteExisting
+           error:(NSError **)error;
+
 // MARK: - Status
 
 /// Returns a snapshot of the torrent's current status.

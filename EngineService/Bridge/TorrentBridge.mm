@@ -358,6 +358,66 @@ struct BridgeState {
     return ok;
 }
 
+- (BOOL)forceRecheck:(NSString *)torrentID
+               error:(NSError **)error {
+    __block BOOL ok = NO;
+    __block NSError *opError = nil;
+
+    dispatch_sync(_queue, ^{
+        lt::torrent_handle h;
+        if (![self _handle:torrentID into:&h error:&opError]) return;
+        h.force_recheck();
+        ok = YES;
+    });
+
+    if (error) *error = opError;
+    return ok;
+}
+
+- (BOOL)addPiece:(NSString *)torrentID
+           piece:(int)piece
+            data:(NSData *)data
+overwriteExisting:(BOOL)overwriteExisting
+           error:(NSError **)error {
+    __block BOOL ok = NO;
+    __block NSError *opError = nil;
+
+    dispatch_sync(_queue, ^{
+        lt::torrent_handle h;
+        if (![self _handle:torrentID into:&h error:&opError]) return;
+
+        auto ti = h.torrent_file();
+        if (!ti) { opError = [self _metadataNotReadyError]; return; }
+
+        if (piece < 0 || piece >= ti->num_pieces()) {
+            opError = [NSError errorWithDomain:TorrentBridgeErrorDomain
+                                          code:TorrentBridgeErrorFileNotFound
+                                      userInfo:@{
+                NSLocalizedDescriptionKey: [NSString stringWithFormat:
+                    @"Piece index %d out of range (num_pieces=%d)",
+                    piece, ti->num_pieces()]
+            }];
+            return;
+        }
+
+        // libtorrent's std::vector overload is async (non-blocking). Copy the
+        // bytes once here; libtorrent owns the vector from this point.
+        std::vector<char> buf(
+            static_cast<const char *>(data.bytes),
+            static_cast<const char *>(data.bytes) + data.length
+        );
+
+        lt::add_piece_flags_t flags = {};
+        if (overwriteExisting) flags |= lt::torrent_handle::overwrite_existing;
+
+        h.add_piece(lt::piece_index_t(piece), std::move(buf), flags);
+        ok = YES;
+    });
+
+    if (error) *error = opError;
+    return ok;
+}
+
 // MARK: - Status
 
 - (nullable NSDictionary *)statusSnapshot:(NSString *)torrentID error:(NSError **)error {
@@ -554,6 +614,14 @@ struct BridgeState {
                     }
                 }
             }
+        }
+
+        // Attach pieceIndex for hash_failed_alert and piece_finished_alert so
+        // probes and eviction logic can identify which piece was affected.
+        if (auto *hfa = lt::alert_cast<lt::hash_failed_alert>(a)) {
+            dict[@"pieceIndex"] = @((int)hfa->piece_index);
+        } else if (auto *pfa = lt::alert_cast<lt::piece_finished_alert>(a)) {
+            dict[@"pieceIndex"] = @((int)pfa->piece_index);
         }
 
         self->_alertCallback([dict copy]);
