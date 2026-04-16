@@ -12,7 +12,7 @@
 		3B57A8B70A08652E82BED14C /* BrandColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0339C9D8ED637562D06C13F /* BrandColors.swift */; };
 		F4249ADDF3CC568FD40A915F /* BrandTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85244C3556DDB6DB1831AAB0 /* BrandTypography.swift */; };
 		8BE818E590240FD88380781A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9788A1872451B15183194D45 /* Assets.xcassets */; };
-		E5956BD8BE3AB57C532630C3 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D64D5A568E80007ADCD6078 /* main.swift */; };
+		E5956BD8BE3AB57C532630C3 /* EngineServiceMain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D64D5A568E80007ADCD6078 /* EngineServiceMain.swift */; };
 		A1B2C3D4E5F6A1B2C3D4E5F6 /* EngineXPCServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A6B1C2D3E4F5A6 /* EngineXPCServer.swift */; };
 		F1E2D3C4B5A6F1E2D3C4B5A6 /* FakeEngineBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6B5C4D3E2F1A6B5C4D3E2F1 /* FakeEngineBackend.swift */; };
 		E7F8A9B0C1D2E7F8A9B0C1D2 /* RealEngineBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8D9E0F1A2B3C8D9E0F1A2B3 /* RealEngineBackend.swift */; };
@@ -45,6 +45,7 @@
 		DD44EE66FF88AABB11223344 /* ResumeTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE55FF7788990011AABB2233 /* ResumeTracker.swift */; };
 		AA33BB55CC77DD99EE11FF33 /* ResumeTrackerSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF6600889900AABB11CC2233 /* ResumeTrackerSelfTest.swift */; };
 		E1000001000000000000EE01 /* CacheEvictionProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1000002000000000000EE02 /* CacheEvictionProbe.swift */; };
+		F1000001000000000000FF01 /* EngineService.xpc in Embed XPC Services */ = {isa = PBXBuildFile; fileRef = 8B554906D42C3B11AEA5F497 /* EngineService.xpc */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		BB11CC22DD33EE44FF550011 /* ColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00BB11CC22DD33EE44FF55 /* ColorExtensions.swift */; };
 		CC22DD33EE44FF550011AA22 /* LibraryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB11CC22DD33EE44FF550022 /* LibraryViewModel.swift */; };
 		DD33EE44FF550011AA22BB33 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC22DD33EE44FF550011AA33 /* LibraryView.swift */; };
@@ -65,6 +66,7 @@
 			dstPath = "$(CONTENTS_FOLDER_PATH)/XPCServices";
 			dstSubfolderSpec = 16;
 			files = (
+				F1000001000000000000FF01 /* EngineService.xpc in Embed XPC Services */,
 			);
 			name = "Embed XPC Services";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -81,7 +83,7 @@
 		9788A1872451B15183194D45 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9EBDF5C24C8F5EB5E25FB9F3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		836CE9225747EF705AB41E09 /* ButterBar.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ButterBar.entitlements; sourceTree = "<group>"; };
-		3D64D5A568E80007ADCD6078 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		3D64D5A568E80007ADCD6078 /* EngineServiceMain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineServiceMain.swift; sourceTree = "<group>"; };
 		B0C16DCCF9DCCA2ABBE33990 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1081C8A3D05554F25364C74A /* EngineService.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = EngineService.entitlements; sourceTree = "<group>"; };
 		B1C2D3E4F5A6B1C2D3E4F5A6 /* EngineXPCServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineXPCServer.swift; sourceTree = "<group>"; };
@@ -139,6 +141,13 @@
 			remoteGlobalIDString = 147982BEBBBCF1EA792C8730;
 			remoteInfo = ButterBar;
 		};
+		F1000002000000000000FF02 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1781F676DEDF5767F3243DB0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FD733699DE76945E476C4A6F;
+			remoteInfo = EngineService;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXTargetDependency section */
@@ -146,6 +155,11 @@
 			isa = PBXTargetDependency;
 			target = 147982BEBBBCF1EA792C8730 /* ButterBar */;
 			targetProxy = D1000001000000000000DD01 /* PBXContainerItemProxy */;
+		};
+		F1000003000000000000FF03 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FD733699DE76945E476C4A6F /* EngineService */;
+			targetProxy = F1000002000000000000FF02 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -258,7 +272,7 @@
 		083595F532C478161EBFF269 /* EngineService */ = {
 			isa = PBXGroup;
 			children = (
-				3D64D5A568E80007ADCD6078 /* main.swift */,
+				3D64D5A568E80007ADCD6078 /* EngineServiceMain.swift */,
 				AA0ADD8202DC0C10E620218D /* Bridge */,
 				AC19255EEB7E0C3E386F5685 /* Planner */,
 				59B4567A9F6BDDBABF21005C /* Gateway */,
@@ -394,6 +408,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				F1000003000000000000FF03 /* PBXTargetDependency */,
 			);
 			name = ButterBar;
 			packageProductDependencies = (
@@ -540,7 +555,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E5956BD8BE3AB57C532630C3 /* main.swift in Sources */,
+				E5956BD8BE3AB57C532630C3 /* EngineServiceMain.swift in Sources */,
 				A1B2C3D4E5F6A1B2C3D4E5F6 /* EngineXPCServer.swift in Sources */,
 				F1E2D3C4B5A6F1E2D3C4B5A6 /* FakeEngineBackend.swift in Sources */,
 				E7F8A9B0C1D2E7F8A9B0C1D2 /* RealEngineBackend.swift in Sources */,

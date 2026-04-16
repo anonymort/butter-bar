@@ -18,7 +18,14 @@
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
-	<key>NSXPCServiceType</key>
-	<string>Application</string>
+	<key>XPCService</key>
+	<dict>
+		<key>ServiceType</key>
+		<string>Application</string>
+		<!-- RunLoopType intentionally omitted so our main.swift top-level
+		     code runs first and calls NSXPCListener.service().resume()
+		     itself. Setting dispatch_main here causes the XPC runtime to
+		     take over before XPCDelegate/RealEngineBackend is constructed. -->
+	</dict>
 </dict>
 </plist>

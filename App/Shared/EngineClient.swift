@@ -236,16 +236,34 @@ public actor EngineClient {
     }
 
     /// Sends the local `EngineEventHandler` to the engine so it can push events back.
+    ///
+    /// Uses a per-call `remoteObjectProxyWithErrorHandler` so the continuation
+    /// is resumed exactly once even when the XPC connection drops before the
+    /// reply arrives — otherwise the continuation would leak and produce a
+    /// "SWIFT TASK CONTINUATION MISUSE" runtime warning.
     private func subscribe() async throws {
         guard let handler = eventHandler else { return }
-        let p = try proxy()
+        guard let conn = connection else { throw EngineClientError.notConnected }
         try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
-            p.subscribe(handler) { error in
-                if let error {
-                    cont.resume(throwing: EngineClientError.serviceError(error))
-                } else {
-                    cont.resume()
-                }
+            // NSXPCConnection fires either the errorHandler OR the reply, never both.
+            // A local flag belt-and-braces against a rare double-fire inside the
+            // kernel XPC path; CheckedContinuation would crash on a second resume.
+            nonisolated(unsafe) var resumed = false
+            let resumeOnce: (Error?) -> Void = { error in
+                if resumed { return }
+                resumed = true
+                if let error { cont.resume(throwing: EngineClientError.serviceError(error as NSError)) }
+                else { cont.resume() }
+            }
+            guard let proxy = conn.remoteObjectProxyWithErrorHandler({ err in
+                NSLog("[EngineClient] subscribe XPC error: %@", err.localizedDescription)
+                resumeOnce(err)
+            }) as? any EngineXPC else {
+                cont.resume(throwing: EngineClientError.notConnected)
+                return
+            }
+            proxy.subscribe(handler) { error in
+                resumeOnce(error)
             }
         }
     }
