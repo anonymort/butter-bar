@@ -47,14 +47,18 @@ info at recording time.
 The baseline reflects the hardware it was recorded on. Numbers will differ across machines;
 the file is advisory, not a hard gate.
 
-## Deferred: regression gate threshold
+## Regression threshold
 
-The `regression_threshold_pct` field in the baseline JSON is currently `null`. Specs
-02/04/05 do not name a numerical seek-to-first-frame SLA. Follow-up issue
-[#107](https://github.com/anonymort/butter-bar/issues/107) (tagged `[opus]`) will define:
+`regression_threshold_pct` is **50.0** (per `00-addendum.md` A25). Applied uniformly across
+fixtures: a regression is anything where replay time exceeds `(1 + 50/100) * p90` of the
+committed baseline. Tight enough to catch O(N²) or allocation-storm regressions (both
+move replay ≥ 10×); generous enough to absorb sub-ms measurement noise and host-drift
+between local arm64 and CI macos-26 runners.
 
-- A numerical SLA per fixture
-- A regression threshold percentage for CI
-- Whether to gate PRs on regressions
+**CI policy: advisory only.** The bench runs on PRs for visibility but does not gate
+merges. Sub-ms measurements across heterogeneous silicon produce flaky signal unrelated to
+code quality. Headline regressions are triaged manually by Opus.
 
-Until that issue is resolved, the bench is **advisory only** — it does not fail builds.
+**End-to-end seek SLA** (from `PlayerEvent.get` to first decoded frame) is explicitly
+deferred to v1.5+ — it requires a real-network harness and a decoder-side measurement,
+neither of which exist in v1. See A25 for the full reasoning.
