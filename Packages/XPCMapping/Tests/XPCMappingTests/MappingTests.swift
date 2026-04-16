@@ -266,6 +266,21 @@ final class MappingTests: XCTestCase {
         }
     }
 
+    func test_streamHealth_unknownTierFallsBackToStarving() {
+        let dto = StreamHealthDTO(
+            streamID: "s",
+            secondsBufferedAhead: 0,
+            downloadRateBytesPerSec: 0,
+            requiredBitrateBytesPerSec: nil,
+            peerCount: 0,
+            outstandingCriticalPieces: 0,
+            recentStallCount: 0,
+            tier: "unexpected"
+        )
+        let reconstructed = StreamHealth(from: dto)
+        XCTAssertEqual(reconstructed.tier, .starving)
+    }
+
     func test_streamHealth_roundTrip_zeroCounts() {
         let domain = StreamHealth(
             secondsBufferedAhead: 0.0,
