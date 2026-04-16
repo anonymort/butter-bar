@@ -1,6 +1,6 @@
 # 02 — StreamHealth (canonical)
 
-> **Revision 3** — UI rendering contract now points at `06-brand.md` § Tier colours for the tier→colour mapping (addendum A16). Rev 2 named throttle state ownership explicitly (addendum A9) and marked container-metadata bitrate inference as v1.5+ (addendum A10). Baseline revision was rev 1.
+> **Revision 4** — Tier semantics now document `secondsBufferedAhead = 0.0` when `requiredBitrateBytesPerSec` is nil, and known limitation that `.healthy` and `.marginal` tiers via the buffer path are unreachable in v1 until 60s of continuous playback (addendum A22). Rev 3 updated UI rendering contract to reference `06-brand.md` § Tier colours (addendum A16); rev 2 named throttle state ownership explicitly (addendum A9) and marked container-metadata bitrate inference as v1.5+ (addendum A10). Baseline revision was rev 1.
 
 `StreamHealth` is the single operational metric shared between the planner and the UI. The UI may decorate it (colours, labels, animations) but must not reinterpret the tiers or recompute them from the raw fields.
 
@@ -27,6 +27,8 @@ public struct StreamHealth: Sendable, Hashable, Codable {
 ## Tier semantics (v1 thresholds)
 
 Thresholds are tuneable constants in one file (`StreamHealthThresholds.swift`). Do not scatter them.
+
+**When `requiredBitrateBytesPerSec` is nil:** `secondsBufferedAhead` is computed as `0.0`. The tier logic then falls through to the `outstandingCriticalPieces` threshold as the primary health signal. This means the stream starts in the `starving` tier until all critical pieces are downloaded, which is correct user-facing behavior — the user *is* starving until the buffer forms. **Known limitation in v1:** The `.healthy` and `.marginal` tiers via the buffer path (`secondsBufferedAhead`) are unreachable until 60 seconds of continuous playback (when `requiredBitrateBytesPerSec` is inferred). The critical-pieces path provides adequate tier transitions during the early buffer-building phase, so this limitation is acceptable.
 
 - **healthy** — all of the following:
   - `secondsBufferedAhead >= 30`, and
