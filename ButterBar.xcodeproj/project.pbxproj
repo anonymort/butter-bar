@@ -11,6 +11,7 @@
 		5449C4D2390E0AAD7914583D /* EngineInterface in Frameworks */ = {isa = PBXBuildFile; productRef = 29ED0EA0014C4BEC558549BB /* EngineInterface */; };
 		6AE4D8E712B992B57139800A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6219FBB50A4AF5FF44C0F8C /* ContentView.swift */; };
 		7733C28EE8BA53BDB56B8824 /* LibrarySnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB3FC12896B9622317749428 /* LibrarySnapshotTests.swift */; };
+		FACE0005AAAA0000BBBB0005 /* LibraryViewModelWatchStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE0006AAAA0000BBBB0006 /* LibraryViewModelWatchStateTests.swift */; };
 		8BE818E590240FD88380781A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9788A1872451B15183194D45 /* Assets.xcassets */; };
 		8E4F6EAC342FC231B7B08716 /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 6F770D65D670E58E0351D8AE /* SnapshotTesting */; };
 		97D6C5379559B125DE089050 /* PlannerCore in Frameworks */ = {isa = PBXBuildFile; productRef = BDA7E17795E9B0C29D6E029A /* PlannerCore */; };
@@ -28,6 +29,7 @@
 		AA11223344556677AABB1122 /* HTTPTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB22334455667788BBCC2233 /* HTTPTypes.swift */; };
 		AA11BB22CC33DD44EE55FF66 /* EngineClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF66EE55DD44CC33BB22AA11 /* EngineClient.swift */; };
 		AA11BB33CC55DD77EE99FF11 /* EngineStore in Frameworks */ = {isa = PBXBuildFile; productRef = FF66AA88BB00CC22DD44EE66 /* EngineStore */; };
+		FACE0001AAAA0000BBBB0001 /* LibraryDomain in Frameworks */ = {isa = PBXBuildFile; productRef = FACE0004AAAA0000BBBB0004 /* LibraryDomain */; };
 		AA33BB55CC77DD99EE11FF33 /* ResumeTrackerSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF6600889900AABB11CC2233 /* ResumeTrackerSelfTest.swift */; };
 		AA77889900BBCCDD11AA7788 /* HTTPSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8899AA00CCDDEE22BB8899 /* HTTPSelfTest.swift */; };
 		B5C7D9E1F3A2048A67B9C0D1 /* TorrentBridgeSmokeTest.mm in Sources */ = {isa = PBXBuildFile; fileRef = F8C1D5A3B2E497640F3A5B02 /* TorrentBridgeSmokeTest.mm */; };
@@ -153,12 +155,14 @@
 		DD4455667788990ADDEEE445 /* HTTPParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPParser.swift; sourceTree = "<group>"; };
 		DD44EE55FF6677AA88BB99CC /* DTOSendable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTOSendable.swift; sourceTree = "<group>"; };
 		DD44EE66FF88AA00BB22CC44 /* EngineStore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = EngineStore; path = Packages/EngineStore; sourceTree = "<group>"; };
+		FACE0002AAAA0000BBBB0002 /* LibraryDomain */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LibraryDomain; path = Packages/LibraryDomain; sourceTree = "<group>"; };
 		E1000002000000000000EE02 /* CacheEvictionProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheEvictionProbe.swift; sourceTree = "<group>"; };
 		E1F2A3B4C5D6E1F2A3B4C5D6 /* ByteReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ByteReader.swift; sourceTree = "<group>"; };
 		E2000002000000000000EE02 /* CacheEviction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheEviction.swift; sourceTree = "<group>"; };
 		E3000002000000000000EE02 /* CacheManagerEviction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheManagerEviction.swift; sourceTree = "<group>"; };
 		E3A7F9C2B1D486530E2F4A91 /* TorrentBridgeSmokeTest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TorrentBridgeSmokeTest.h; sourceTree = "<group>"; };
 		EB3FC12896B9622317749428 /* LibrarySnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySnapshotTests.swift; sourceTree = "<group>"; };
+		FACE0006AAAA0000BBBB0006 /* LibraryViewModelWatchStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryViewModelWatchStateTests.swift; sourceTree = "<group>"; };
 		EE55FF7788990011AABB2233 /* ResumeTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeTracker.swift; sourceTree = "<group>"; };
 		EW000002000000000000AA02 /* EvictionWireSelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvictionWireSelfTest.swift; sourceTree = "<group>"; };
 		EW000004000000000000AA04 /* XPCCodesignSelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPCCodesignSelfTest.swift; sourceTree = "<group>"; };
@@ -179,6 +183,7 @@
 				A1F000000000000000000002 /* AppIntents.framework in Frameworks */,
 				5449C4D2390E0AAD7914583D /* EngineInterface in Frameworks */,
 				97D6C5379559B125DE089050 /* PlannerCore in Frameworks */,
+				FACE0001AAAA0000BBBB0001 /* LibraryDomain in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -247,6 +252,7 @@
 			children = (
 				EB3FC12896B9622317749428 /* LibrarySnapshotTests.swift */,
 				B1000005000000000000BB05 /* PlayerHUDSnapshotTests.swift */,
+				FACE0006AAAA0000BBBB0006 /* LibraryViewModelWatchStateTests.swift */,
 				TA000001000000000000BB01 /* TorrentAlertTests.swift */,
 				PBM00005000000000000BB01 /* PieceByteMappingTests.swift */,
 			);
@@ -384,6 +390,7 @@
 				74D04F9622615D771356B70A /* PlannerCore */,
 				1785E418002BEE10CA7FEDC0 /* TestFixtures */,
 				DD44EE66FF88AA00BB22CC44 /* EngineStore */,
+				FACE0002AAAA0000BBBB0002 /* LibraryDomain */,
 			);
 			name = Packages;
 			sourceTree = "<group>";
@@ -441,6 +448,7 @@
 			packageProductDependencies = (
 				29ED0EA0014C4BEC558549BB /* EngineInterface */,
 				BDA7E17795E9B0C29D6E029A /* PlannerCore */,
+				FACE0004AAAA0000BBBB0004 /* LibraryDomain */,
 			);
 			productName = ButterBar;
 			productReference = 67921BA991E985B2A97454A8 /* ButterBar.app */;
@@ -524,6 +532,7 @@
 				946BD7824DF48CFD7E1404F6 /* XCLocalSwiftPackageReference "Packages/PlannerCore" */,
 				2E61653CC56FA54DED6A53B7 /* XCLocalSwiftPackageReference "Packages/TestFixtures" */,
 				EE55FF77AA99BB11CC33DD55 /* XCLocalSwiftPackageReference "Packages/EngineStore" */,
+				FACE0003AAAA0000BBBB0003 /* XCLocalSwiftPackageReference "Packages/LibraryDomain" */,
 				390C8C7D7247342CD8100F2F /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
 			);
 			productRefGroup = 21A59A6D24B4DEA9DB9C5973 /* Products */;
@@ -563,6 +572,7 @@
 			files = (
 				7733C28EE8BA53BDB56B8824 /* LibrarySnapshotTests.swift in Sources */,
 				A1000005000000000000AA05 /* PlayerHUDSnapshotTests.swift in Sources */,
+				FACE0005AAAA0000BBBB0005 /* LibraryViewModelWatchStateTests.swift in Sources */,
 				TA000002000000000000AA01 /* TorrentAlertTests.swift in Sources */,
 				TA000003000000000000AA01 /* TorrentAlert.swift in Sources */,
 				PBM00003000000000000AA01 /* PieceByteMapping.swift in Sources */,
@@ -1302,6 +1312,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/EngineStore;
 		};
+		FACE0003AAAA0000BBBB0003 /* XCLocalSwiftPackageReference "Packages/LibraryDomain" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/LibraryDomain;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
@@ -1345,6 +1359,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = EE55FF77AA99BB11CC33DD55 /* XCLocalSwiftPackageReference "Packages/EngineStore" */;
 			productName = EngineStore;
+		};
+		FACE0004AAAA0000BBBB0004 /* LibraryDomain */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FACE0003AAAA0000BBBB0003 /* XCLocalSwiftPackageReference "Packages/LibraryDomain" */;
+			productName = LibraryDomain;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

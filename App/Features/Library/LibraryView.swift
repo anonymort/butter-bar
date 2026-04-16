@@ -1,5 +1,6 @@
 import SwiftUI
 import EngineInterface
+import LibraryDomain
 
 // MARK: - LibraryView
 
@@ -78,12 +79,22 @@ struct LibraryView: View {
         // Use a mapped id (String) so the selection binding type matches.
         List(selection: $selectedTorrentID) {
             ForEach(filteredTorrents, id: \.torrentID) { torrent in
-                TorrentRow(torrent: torrent)
-                    .tag(torrent.torrentID as String)
-                    .contentShape(Rectangle())
-                    .onTapGesture { handleRowTap(torrent) }
-                    .listRowBackground(BrandColors.surfaceBase)
-                    .listRowSeparatorTint(BrandColors.cocoaFaint)
+                TorrentRow(
+                    torrent: torrent,
+                    watchStatus: viewModel.watchStatus(
+                        torrentID: torrent.torrentID as String,
+                        fileIndex: 0,
+                        totalBytes: torrent.totalBytes
+                    )
+                )
+                .tag(torrent.torrentID as String)
+                .contentShape(Rectangle())
+                .onTapGesture { handleRowTap(torrent) }
+                .contextMenu {
+                    watchStateMenuItems(for: torrent)
+                }
+                .listRowBackground(BrandColors.surfaceBase)
+                .listRowSeparatorTint(BrandColors.cocoaFaint)
             }
         }
         .listStyle(.plain)
@@ -139,6 +150,45 @@ struct LibraryView: View {
         }
     }
 
+    // MARK: - Watch state context menu (#37)
+
+    /// Build the mark-watched / mark-unwatched menu items for a torrent.
+    /// v1 limitation: targets file index 0. Multi-file mark-watched is a
+    /// follow-up; documented in #37 PR body.
+    @ViewBuilder
+    private func watchStateMenuItems(for torrent: TorrentSummaryDTO) -> some View {
+        let id = torrent.torrentID as String
+        let status = viewModel.watchStatus(
+            torrentID: id,
+            fileIndex: 0,
+            totalBytes: torrent.totalBytes
+        )
+        switch status {
+        case .unwatched:
+            Button("Mark as watched") {
+                Task { await viewModel.markWatched(torrentID: id, fileIndex: 0) }
+            }
+        case .inProgress:
+            Button("Mark as watched") {
+                Task { await viewModel.markWatched(torrentID: id, fileIndex: 0) }
+            }
+            Button("Mark as unwatched") {
+                Task { await viewModel.markUnwatched(torrentID: id, fileIndex: 0) }
+            }
+        case .watched:
+            Button("Mark as unwatched") {
+                Task { await viewModel.markUnwatched(torrentID: id, fileIndex: 0) }
+            }
+        case .reWatching:
+            Button("Mark as watched") {
+                Task { await viewModel.markWatched(torrentID: id, fileIndex: 0) }
+            }
+            Button("Mark as unwatched") {
+                Task { await viewModel.markUnwatched(torrentID: id, fileIndex: 0) }
+            }
+        }
+    }
+
     /// Calls `openStream` on the engine and, on success, presents the player sheet.
     private func openStream(torrentID: String, fileIndex: Int32) {
         Task {
@@ -177,13 +227,26 @@ private struct FileSheetState: Identifiable {
 
 private struct TorrentRow: View {
     let torrent: TorrentSummaryDTO
+    /// Watch status of file index 0 for this torrent. Drives the badge.
+    let watchStatus: WatchStatus
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(torrent.name as String)
-                .brandBodyRegular()
-                .foregroundStyle(BrandColors.cocoa)
-                .lineLimit(1)
+            HStack(spacing: 8) {
+                Text(torrent.name as String)
+                    .brandBodyRegular()
+                    .foregroundStyle(BrandColors.cocoa)
+                    .lineLimit(1)
+                if let badge = watchBadge {
+                    Text(badge)
+                        .brandCaption()
+                        .foregroundStyle(BrandColors.cocoaSoft)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(BrandColors.cocoaFaint)
+                        .clipShape(Capsule())
+                }
+            }
 
             HStack(spacing: 8) {
                 Text(formattedSize)
@@ -207,6 +270,21 @@ private struct TorrentRow: View {
             }
         }
         .padding(.vertical, 6)
+    }
+
+    /// Calm, factual badge per `06-brand.md § Voice`. Nil for unwatched/in-progress
+    /// because the existing download progress already speaks for itself.
+    private var watchBadge: String? {
+        switch watchStatus {
+        case .unwatched, .inProgress:
+            return nil
+        case .watched:
+            return "Watched"
+        case .reWatching(let p, let t, _):
+            guard t > 0 else { return "Re-watching" }
+            let pct = Int((Double(p) / Double(t)) * 100)
+            return "Re-watching · \(pct)%"
+        }
     }
 
     // MARK: Formatters
@@ -253,6 +331,20 @@ private struct TorrentRow: View {
 
 #Preview("Library — empty, dark") {
     LibraryView(viewModel: .previewEmpty)
+        .preferredColorScheme(.dark)
+        .frame(width: 480, height: 400)
+}
+
+// #37 — watch state badges visible
+
+#Preview("Library — watch state, light") {
+    LibraryView(viewModel: .previewWithWatchState)
+        .preferredColorScheme(.light)
+        .frame(width: 480, height: 400)
+}
+
+#Preview("Library — watch state, dark") {
+    LibraryView(viewModel: .previewWithWatchState)
         .preferredColorScheme(.dark)
         .frame(width: 480, height: 400)
 }

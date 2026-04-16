@@ -85,4 +85,30 @@ final class LibrarySnapshotTests: XCTestCase {
             named: "dark-empty"
         )
     }
+
+    // MARK: - Watch state (#37) — badges visible
+
+    func testLibraryViewLightWatchState() {
+        let view = LibraryView(viewModel: .previewWithWatchState)
+            .environment(\.colorScheme, .light)
+            .frame(width: snapshotSize.width, height: snapshotSize.height)
+
+        assertSnapshot(
+            of: hosted(view, size: snapshotSize),
+            as: .image,
+            named: "light-watch-state"
+        )
+    }
+
+    func testLibraryViewDarkWatchState() {
+        let view = LibraryView(viewModel: .previewWithWatchState)
+            .environment(\.colorScheme, .dark)
+            .frame(width: snapshotSize.width, height: snapshotSize.height)
+
+        assertSnapshot(
+            of: hosted(view, size: snapshotSize),
+            as: .image,
+            named: "dark-watch-state"
+        )
+    }
 }
