@@ -21,8 +21,9 @@ if CommandLine.arguments.contains("--http-self-test") {
 if CommandLine.arguments.contains("--gateway-planner-self-test") {
     runGatewayPlannerSelfTestAndExit()
 }
-if CommandLine.arguments.contains("--stream-e2e-self-test") {
-    runStreamE2ESelfTestAndExit()
+if let e2eIdx = CommandLine.arguments.firstIndex(of: "--stream-e2e-self-test") {
+    let trailingArgs = Array(CommandLine.arguments.dropFirst(e2eIdx + 1))
+    runStreamE2ESelfTestAndExit(trailingArgs: trailingArgs)
 }
 if CommandLine.arguments.contains("--cache-manager-self-test") {
     runCacheManagerSelfTestAndExit()

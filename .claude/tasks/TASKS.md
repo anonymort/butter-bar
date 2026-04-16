@@ -232,10 +232,20 @@ Implement sparse-file reader that pulls bytes from the libtorrent-managed file v
 
 **Phase gate:** Phase 4 `T-GATEWAY-PLANNER-WIRING` and `T-GATEWAY-BYTE-READER` must be DONE.
 
-### T-STREAM-E2E `[sonnet]` · REVIEW: code-reviewed but runtime-unverified — **REOPENED 2026-04-16**. The Opus review during Phase 5 validated the code but the self-test was never actually executed. When first run (during T-CACHE-EVICTION probe investigation) the test failed immediately: `createTestTorrent` throws `TorrentBridgeErrorReadError` ("Operation canceled") from `lt::set_piece_hashes` inside the EngineService XPC sandbox. Root cause suspected: sandbox permissions on `set_piece_hashes`'s thread-pool file I/O, but this has not been confirmed. The deeper issue: synthetic 256-byte-pattern single-file torrents don't reflect real-world torrents (KB-to-GB, multi-file, multiple container formats), so even if the sandbox bug were fixed, the self-test wouldn't validate actual streaming behaviour. Pivot: drop `createTestTorrent` from this task; use a real public-domain magnet (e.g. Internet Archive "Big Buck Bunny", ~160 MB MP4). See `docs/test-content.md`.
+### T-STREAM-E2E `[sonnet]` · REVIEW: self-test rewritten — **awaiting user runtime run** (2026-04-15). `createTestTorrent` dropped; self-test now accepts a real magnet link or `.torrent` file exactly like `--cache-eviction-probe`. Validated at HEAD/GET/206/404/byte-accuracy level via URLSession; AVPlayer integration remains a separate manual step. See `docs/test-content.md` for invocation and suggested magnet.
 Open a known-good public-domain torrent, select a file, open a stream via XPC, point `AVPlayer` at the returned loopback URL, verify playback starts within 10 seconds and runs for 60 seconds without a stall.
 
-**Acceptance:** Manual test with a named public-domain torrent (Internet Archive, documented in `docs/test-content.md`). Recorded video of successful playback committed to the repo.
+**New self-test invocation:**
+```
+EngineService --stream-e2e-self-test <magnet-or-torrent-path>
+EngineService --stream-e2e-self-test <magnet-or-torrent-path> --file-index N
+```
+Suggested magnet (Big Buck Bunny, ~276 MB MP4, well-seeded):
+```
+magnet:?xt=urn:btih:dd8255ecdc7ca55fb0bbf81323d87062db1f6d1c&dn=Big+Buck+Bunny&tr=udp%3A%2F%2Fexplodie.org%3A6969
+```
+
+**Acceptance:** Run self-test exits 0 against the above magnet. Then manual AVPlayer smoke test with a named public-domain torrent per `docs/test-content.md`.
 **Depends on:** all Phase 4 tasks.
 **Review gate:** `[opus]` reviews before marking DONE. First real proof the architecture works.
 

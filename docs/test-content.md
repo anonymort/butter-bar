@@ -1,58 +1,72 @@
 # Test Content for Stream E2E Verification
 
-## Self-test approach
+## Automated self-test (`--stream-e2e-self-test`)
 
-The automated E2E self-test (`--stream-e2e-self-test`) requires no external network access.
-It creates a 256 KB file of sequential bytes (`UInt8(offset & 0xFF)`) in a temp directory,
-builds a `.torrent` from it using `TorrentBridge.createTestTorrent`, and immediately adds
-it to a `TorrentBridge` session. Because the source data is local, libtorrent marks all
-pieces as available within seconds (no peer connections required).
-
-The test then exercises the full stack:
+The self-test exercises the full HTTP serving path against a real torrent:
 
 ```
-TorrentBridge → ByteReader → PlaybackSession → StreamRegistry → GatewayListener → URLSession
+TorrentBridge → metadata → StreamRegistry.createStream → GatewayListener → URLSession
 ```
 
-Verified assertions:
-- HEAD → 200, correct `Content-Length`
-- GET `bytes=0-1023` → 206, correct `Content-Range`, exact sequential bytes
-- GET `bytes=1024-2047` → 206, exact sequential bytes at that offset
-- GET (no Range header) → 200 or 206, full file body
-- Spot-check byte values at offsets 0, 256, 1024, and end-of-file
+It requires a real magnet link or `.torrent` file — no synthetic content is generated.
 
-### How to run
-
-Build and run the EngineService product with the launch argument:
-
-```
-xcodebuild -scheme EngineService build CODE_SIGN_IDENTITY=- 2>&1 | tail -5
-```
-
-Then locate the built product and run:
+### Invocation
 
 ```bash
-/path/to/EngineService.xpc/Contents/MacOS/EngineService --stream-e2e-self-test
+# Using a magnet link (recommended):
+/path/to/EngineService.xpc/Contents/MacOS/EngineService \
+  --stream-e2e-self-test \
+  'magnet:?xt=urn:btih:dd8255ecdc7ca55fb0bbf81323d87062db1f6d1c&dn=Big+Buck+Bunny&tr=udp%3A%2F%2Fexplodie.org%3A6969'
+
+# Using a .torrent file:
+/path/to/EngineService.xpc/Contents/MacOS/EngineService \
+  --stream-e2e-self-test /path/to/file.torrent
+
+# With explicit file index (default: largest file in torrent):
+/path/to/EngineService.xpc/Contents/MacOS/EngineService \
+  --stream-e2e-self-test <magnet-or-path> --file-index 0
 ```
 
-Or set `--stream-e2e-self-test` as a launch argument in the Xcode scheme
-(Product → Scheme → Edit Scheme → Arguments Passed On Launch).
+Build the EngineService product first:
 
-Exit code 0 means all tests passed. Exit code 1 prints the specific failure
-messages and exits.
+```bash
+xcodebuild -scheme EngineService -configuration Debug build 2>&1 | tail -10
+```
 
-The earlier `--gateway-planner-self-test` mode runs a broader set of wiring
-tests using a 10 MB file and is a superset of this test; both modes are
-available for targeted debugging.
+The built product is typically at:
+```
+~/Library/Developer/Xcode/DerivedData/ButterBar-*/Build/Products/Debug/EngineService.xpc/Contents/MacOS/EngineService
+```
+
+Exit code 0 = all tests passed. Exit code 1 = failure (FAIL lines in NSLog output).
+Exit code 2 = timeout (no metadata or pieces within the wait window).
+
+Downloaded content is left in `NSTemporaryDirectory()` after the test — reruns skip re-downloading.
+
+### What the self-test verifies
+
+- `HEAD` → 200, `Content-Length` matches the file size in the torrent
+- `GET Range: bytes=0-65535` → 206, correct `Content-Range`, 65536 bytes
+- `GET Range: bytes=<mid>-<mid+1023>` (inside first 8 downloaded pieces) → 206, correct body
+- `GET /stream/<unknown-id>` → 404
+- Byte accuracy: HTTP response bytes match `TorrentBridge.readBytes` exactly
+
+### Suggested test magnet
+
+**Big Buck Bunny** (Blender Foundation, CC BY 3.0) — Internet Archive, well-seeded ~276 MB MP4:
+
+```
+magnet:?xt=urn:btih:dd8255ecdc7ca55fb0bbf81323d87062db1f6d1c&dn=Big+Buck+Bunny&tr=udp%3A%2F%2Fexplodie.org%3A6969
+```
 
 ---
 
-## Manual testing with real public-domain content
+## Manual AVPlayer smoke test
 
-For human-in-the-loop playback verification (AVPlayer smoke test with a real
-torrent), use a small public-domain video from the Internet Archive.
+For human-in-the-loop playback verification (AVPlayer with a real torrent), use a small
+public-domain video from the Internet Archive.
 
-### Suggested test torrent
+### Suggested test torrents
 
 **Elephants Dream** (Blender Foundation, CC BY 2.5)
 - Internet Archive page: <https://archive.org/details/ElephantsDream>
@@ -64,8 +78,7 @@ torrent), use a small public-domain video from the Internet Archive.
 - Magnet: `magnet:?xt=urn:btih:dd8255ecdc7ca55fb0bbf81323d87062db1f6d1c&dn=Big+Buck+Bunny&tr=udp%3A%2F%2Fexplorer.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com`
 - Size: ~276 MB, H.264/AAC `.mp4`, no transcoding needed
 
-Both are confirmed AVFoundation-compatible. Neither requires any tracker or DHT
-connection when sourced from the Internet Archive `.torrent` file directly.
+Both are confirmed AVFoundation-compatible.
 
 ### Manual verification checklist
 
