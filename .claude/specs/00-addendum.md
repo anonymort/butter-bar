@@ -334,17 +334,39 @@ Separately, while writing the workflow into spec 06 rev 2 (per A18), two things 
 
 **Affected specs:** `02-stream-health.md` § Tier semantics, `04-piece-planner.md` § Tick.
 
+## A23 — libtorrent 2.0.12 eviction API constraint and chosen mechanism
+
+**Context:** Spec 05 rev 2 § Piece eviction mechanism described the primitive as "set priority to 0, truncate regions where possible, or mark them for future overwrite, update the in-memory view." This was hand-wavy because the actual libtorrent API surface had not been verified. Investigation on 2026-04-16 (`docs/libtorrent-eviction-notes.md`) confirmed:
+
+- `torrent_handle::clear_piece` does NOT exist in libtorrent 2.0.12 (our pinned version). It is declared only on the internal `disk_interface` and is called by libtorrent when a piece fails its hash check.
+- Setting `piece_priority(idx, 0)` does not reclaim disk or update the have-bitmap for pieces already downloaded.
+- `ftruncate()` reduces the file on disk but libtorrent does not re-check, so the have-bitmap goes out of sync with reality.
+
+**Decision (v1):** Eviction is implemented in two tiers.
+
+1. **Hot path (per piece, surgical):** `add_piece(idx, 256 KB of zeros, overwrite_existing)` → wait for `hash_failed_alert` → `fcntl(F_PUNCHHOLE)` over the piece-aligned byte range. The intentional hash failure invokes libtorrent's internal `async_clear_piece` and removes the piece from the have-bitmap. The punch reclaims APFS blocks that the zero write re-allocated.
+2. **Fallback (bulk, idle):** `force_recheck()` — only for idle-time reconciliation and recovery if the add_piece trick stops working.
+
+**Risk:** the hot path trades on an implementation detail (add_piece writes its buffer to disk before hashing). If libtorrent ever short-circuits this, we fall back to `force_recheck`. The fallback is already in the bridge surface for this reason.
+
+**Affected files:**
+- `05-cache-policy.md` § Piece eviction mechanism (rewritten — see Rev 3 block).
+- `TorrentBridge.h/.mm` — two new methods: `forceRecheck(torrentID:)` and `addPiece(torrentID:, piece:, data:, overwriteExisting:)`.
+- `EngineService/Cache/CacheEvictionProbe.swift` — revised to test both mechanisms head-to-head.
+- `TASKS.md` T-CACHE-EVICTION — status and probe plan updated.
+
 ## Summary of file changes in this revision
 
 (extends earlier summaries)
 
-- `00-addendum.md` — A16–A19 appended in earlier revision; A20–A22 appended from Phase 1 review.
+- `00-addendum.md` — A16–A19 appended in earlier revision; A20–A22 appended from Phase 1 review; A23 appended from 2026-04-16 API surface investigation.
 - `06-brand.md` — rev 3: § Asset specifications and § Tahoe icon workflow rewritten around the Liquid Glass prep package. Layer model corrected (background + up to 4 foreground groups). `.icon` placement corrected to `App/AppIcon.icon` (sibling of Assets.xcassets, not nested). Step-by-step Icon Composer workflow added. (A19.) Rev 2 introduced Tahoe targeting (A18); rev 1 was the initial brand spec.
 - `07-product-surface.md` — authoritative product surface spec for catalogue, sync, providers, etc. (A17.)
 - `08-issue-workflow.md` — GitHub issue/branch/PR conventions. (A17.)
 - `09-platform-tahoe.md` — authoritative platform spec: macOS 26 deployment target, SDK 26, Apple silicon priority, Liquid Glass adoption stance. § Icon format updated for corrected `.icon` placement. (A18, A19.)
 - All files mentioning project name — `PopcornMac` → `ButterBar`, `popcornmac` → `butterbar`.
 - `02-stream-health.md` — revision bumped; UI rendering contract now points at `06-brand.md` for tier colours.
+- `05-cache-policy.md` — rev 3: § Piece eviction mechanism rewritten with concrete 2.0.12 API surface (add_piece/hash-fail primary + force_recheck fallback). (A23.)
 - `CLAUDE.md` — tagline mentions Tahoe; reading order includes specs 09; project layout updated to show `App/AppIcon.icon` at sibling level and top-level `icons/` (with `ButterBar-LiquidGlass-prep/` subfolder). (A18, A19.)
 - `.claude/README.md` — directory listing updated.
 - `TASKS.md` — `T-REPO-INIT` and `T-BRAND-ASSETS` rewritten for the Liquid Glass prep workflow. T-REPO-INIT places source material; T-BRAND-ASSETS runs Icon Composer. (A18, A19.)
