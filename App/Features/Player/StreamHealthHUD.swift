@@ -157,30 +157,12 @@ struct StreamHealthHUD: View {
 
 // MARK: - HUD surface modifier
 
-/// Applies the correct floating glass surface to the HUD on macOS 26+,
-/// with a `cocoa` 60% opacity fallback for pre-Tahoe SDK builds.
-///
-/// Concern: `.glassEffect(.regular.interactive())` is macOS 26+. The
-/// fallback (`.ultraThinMaterial` + opaque tint) approximates the effect
-/// but will not pick up tint from the video underneath. Since the v1
-/// deployment target is macOS 26 (Xcode 26 SDK), the fallback path
-/// should not ship, but is kept so the project builds cleanly if the
-/// SDK is temporarily downgraded during development.
 private extension View {
-    @ViewBuilder
     func hudSurface() -> some View {
-        if #available(macOS 26, *) {
-            // Glass picks up tint from underlying video content, per spec 06.
-            self
-                .glassEffect(.regular.interactive())
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-        } else {
-            // Pre-Tahoe fallback — does not reach production in v1.
-            self
-                .background(BrandColors.cocoa.opacity(0.6))
-                .background(.ultraThinMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-        }
+        // Glass picks up tint from underlying video content, per spec 06.
+        self
+            .glassEffect(.regular.interactive())
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 }
 
