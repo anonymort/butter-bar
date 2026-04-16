@@ -38,12 +38,19 @@ jobs:
         run: echo "CI scaffolded; actual build steps come online with T-REPO-INIT."
 
       - name: Snapshot tests
+        # CI runners don't have the owner's personal signing certificate for
+        # team 6633CLRXPK (set in 1483bcc). Disable signing for this step —
+        # safe because nothing is being distributed. Local developer builds
+        # still sign normally via project-level DEVELOPMENT_TEAM.
         run: |
           xcodebuild test \
             -scheme ButterBar \
             -only-testing:ButterBarTests/LibrarySnapshotTests \
             -only-testing:ButterBarTests/PlayerHUDSnapshotTests \
-            -destination 'platform=macOS'
+            -destination 'platform=macOS' \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
 
   link-check:
     name: PR must link an issue
