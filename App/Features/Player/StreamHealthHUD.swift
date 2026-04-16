@@ -159,11 +159,12 @@ struct StreamHealthHUD: View {
 
 private extension View {
     func hudSurface() -> some View {
-        // Explicit butter tint keeps the glass surface warm rather than
-        // inheriting generic Apple-default chroma (spec 06 § Colour palette).
+        // Glass.tint() is the SDK-canonical way to tint the glass material itself
+        // (Glass value method, not a view modifier). Composed before .interactive()
+        // per SwiftUICore.swiftinterface: Glass.tint(_:) -> Glass.interactive() -> glassEffect.
+        // Spec 06 § Colour palette: surface must read warm, not Apple-default chroma.
         self
-            .tint(BrandColors.butter)
-            .glassEffect(.regular.interactive())
+            .glassEffect(.regular.tint(BrandColors.butter).interactive())
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 }
