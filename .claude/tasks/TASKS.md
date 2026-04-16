@@ -305,13 +305,8 @@ Wire resume offset tracking: update every 15 seconds during playback, on stream 
 **Depends on:** `T-CACHE-SCHEMA`.
 **Completed:** `ResumeTracker` with deadline-based 15s throttle + injectable time source; wired into `PlaybackSession` (tick path + stop) and `StreamRegistry` (creates tracker per stream). Five self-tests pass (`--resume-tracker-self-test`). `StreamDescriptorDTO` extended with `resumeByteOffset: Int64` (schema v2, additive/backward-compatible) for v1 XPC contract readiness; `StreamDescriptor` domain type and both mapping directions updated; `FakeEngineBackend` passes 0; real backend populates from `CacheManager.fetchHistory` — wired 2026-04-16 as part of GitHub #95.
 
-### T-CACHE-EVICTION-WIRE `[sonnet]` · TODO
-Wire `CacheManager.runEvictionPass` into `RealEngineBackend` (the unit-tested mechanism shipped in `T-CACHE-EVICTION` is currently inert — `RealEngineBackend` holds the `CacheManager` but never invokes eviction). Periodic tick (idle-only), candidate computation from torrent state + playback history, pinned-set filtering (active streams + `pinned_files` rows + files with non-zero resume offset), and `DiskPressureDTO` emission via the `EngineEvents` proxy with the 5 s throttle from spec 05.
-
-**Spec:** `05-cache-policy.md` § Eviction order, § Pinned set, § Cost and batching, § Disk pressure signalling.
-**Depends on:** `T-CACHE-EVICTION` DONE (it is, on main).
-**Tracked in:** GitHub #104.
-**Acceptance:** Eviction tick runs on the backend's serial queue every 30 s; never recheck-blocks an active-stream torrent; pinned files never appear as candidates; `DiskPressureDTO` reaches subscribed clients on level changes; throttle caps emissions at one per 5 s. Unit tests with mocked `CacheManagerBridge`; self-test `--eviction-wire-self-test` exits 0.
+### T-CACHE-EVICTION-WIRE `[sonnet]` · DONE — PR #108 (merged 2026-04-16)
+Wire `CacheManager.runEvictionPass` into `RealEngineBackend`. Shipped: 30 s `DispatchSourceTimer` on the backend's serial queue (initial fire at +1 s so subscribers see DTO promptly), candidate computation with tier-rank assignment per spec 05 § Eviction order, v1 wholesale exclusion of pinned + partial-resume + active-stream files, `DiskPressureDTO` emission with 5 s throttle + level-change override, eviction pass invoked only when `level == .critical` and no torrent has an active stream, `StreamRegistry.hasActiveStream(torrentID:)` accessor, 8-case `--eviction-wire-self-test`, pure helpers extracted for coverage. Opus APPROVE-WITH-FOLLOW-UPS (findings F4/F5/F6/F7 applied in-PR; F2 helper-visibility drift and F3 decideToEvict extraction deferred as nice-to-haves). Closes #104.
 
 ### T-BRAND-ASSETS `[sonnet]` · TODO
 Author the `AppIcon.icon` bundle by importing the supplied Liquid Glass prep package into Apple's Icon Composer.
@@ -367,8 +362,8 @@ SwiftUI player view with `AVPlayerView` (via `NSViewRepresentable`), `StreamHeal
 ### T-SECURITY-XPC-CODESIGN `[sonnet]` · BLOCKED: bundles are adhoc-signed (no Team ID); requirement string has nothing to anchor on. See GitHub #103.
 Once the service bundle is signed, add `setCodeSigningRequirement(_:)` to the connection and verify rejected peers. Verified 2026-04-16: `codesign -dvv` on `ButterBar.app` and `EngineService.xpc` reports `Signature=adhoc, TeamIdentifier=not set`; `xcodebuild -showBuildSettings` reports `_DEVELOPMENT_TEAM_IS_EMPTY = YES`. User must configure DEVELOPMENT_TEAM in Xcode (Signing & Capabilities) for both targets before this task can resume. Implementation plan filed in #103.
 
-### T-PERF-SEEK-BENCH `[sonnet]` · TODO
-Benchmark: measure seek-to-first-frame time across the four trace fixtures. Record results. Regressions block merges. **Tracked in:** GitHub #105. Spec gap noted: specs 02/04/05 do not name a numerical SLA — v1 bench measures planner replay wall time across the 4 fixtures (catches planner-side regressions, e.g. accidental O(N²)); end-to-end seek-time SLA + CI gate threshold deferred to opus follow-up.
+### T-PERF-SEEK-BENCH `[sonnet]` · DONE — PR #106 (merged 2026-04-16)
+Benchmark: measure seek-to-first-frame time across the four trace fixtures. Record results. Regressions block merges. **Shipped:** `PlannerSeekBenchTests.swift` (XCTest `measure(metrics: [XCTClockMetric()])`, 4 fixtures, fresh planner+session per iteration); `PlannerSeekBenchRecorder.swift` (opt-in N=20 recorder gated on `BUTTERBAR_RECORD_SEEK_BASELINE=1`); `scripts/run-seek-bench.sh`; `docs/benchmarks/README.md`; `docs/benchmarks/seek-baseline.json` (arm64 / macOS 26.5: p50 0.039–0.058 ms). Spec gap (specs 02/04/05 name no numerical SLA) captured in follow-up issue #107 tagged `[opus]`. Opus APPROVE; 3 cosmetic fixups applied in-PR. Closes #105.
 
 ### T-DOC-ARCHITECTURE `[opus]` · TODO
 Write `docs/architecture.md` describing the shipped v1 for future contributors. Includes the diagrams from `01-architecture.md` plus notes on what was tried and rejected.
