@@ -10,7 +10,7 @@ Butter Bar is a desktop-native streaming application in the general product cate
 
 ## Status
 
-**Phase 5 — first end-to-end stream complete.** Phases 0–5 done (24 tasks, 163+ tests across 6 packages plus self-test suites). PiecePlanner proven on recorded traces, XPC contract with typed DTOs and secure coding, libtorrent-rasterbar ObjC++ bridge, loopback HTTP gateway with RFC 7233 range-request support, and full end-to-end stream path verified (TorrentBridge → PiecePlanner → ByteReader → PlaybackSession → GatewayListener → HTTP). Next: Phase 6 (CacheManager, UI, polish).
+**Phase 6 code complete; Phase 5 E2E runtime verification reopened.** Phases 0–4 done, Phase 5 `T-STREAM-E2E` code-reviewed but never runtime-executed (discovered during T-CACHE-EVICTION probe work on 2026-04-16 — the synthetic-content self-test throws inside the XPC sandbox). PiecePlanner proven on recorded traces, XPC contract with typed DTOs and secure coding, libtorrent-rasterbar ObjC++ bridge, loopback HTTP gateway with RFC 7233 range-request support implemented. Phase 6 code (cache glue, resume tracking, library view, player, health HUD) landed behind the still-unverified E2E path. Active work: replace synthetic-torrent self-tests with real public-domain magnet-link verification to close the Phase 5 gate properly, then unblock the cache-eviction spike.
 
 ## Documentation
 

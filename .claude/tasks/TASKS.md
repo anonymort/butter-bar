@@ -232,7 +232,7 @@ Implement sparse-file reader that pulls bytes from the libtorrent-managed file v
 
 **Phase gate:** Phase 4 `T-GATEWAY-PLANNER-WIRING` and `T-GATEWAY-BYTE-READER` must be DONE.
 
-### T-STREAM-E2E `[sonnet]` · DONE — Opus-reviewed. `StreamE2ESelfTest.swift` exercises full path: TorrentBridge → createTestTorrent → addTorrent → wait for metadata/pieces → StreamRegistry.createStream → GatewayListener → URLSession HTTP round-trips (HEAD→200, GET range→206 with byte verification, GET full file). `docs/test-content.md` documents test approach. Activated via `--stream-e2e-self-test`. Build clean.
+### T-STREAM-E2E `[sonnet]` · REVIEW: code-reviewed but runtime-unverified — **REOPENED 2026-04-16**. The Opus review during Phase 5 validated the code but the self-test was never actually executed. When first run (during T-CACHE-EVICTION probe investigation) the test failed immediately: `createTestTorrent` throws `TorrentBridgeErrorReadError` ("Operation canceled") from `lt::set_piece_hashes` inside the EngineService XPC sandbox. Root cause suspected: sandbox permissions on `set_piece_hashes`'s thread-pool file I/O, but this has not been confirmed. The deeper issue: synthetic 256-byte-pattern single-file torrents don't reflect real-world torrents (KB-to-GB, multi-file, multiple container formats), so even if the sandbox bug were fixed, the self-test wouldn't validate actual streaming behaviour. Pivot: drop `createTestTorrent` from this task; use a real public-domain magnet (e.g. Internet Archive "Big Buck Bunny", ~160 MB MP4). See `docs/test-content.md`.
 Open a known-good public-domain torrent, select a file, open a stream via XPC, point `AVPlayer` at the returned loopback URL, verify playback starts within 10 seconds and runs for 60 seconds without a stall.
 
 **Acceptance:** Manual test with a named public-domain torrent (Internet Archive, documented in `docs/test-content.md`). Recorded video of successful playback committed to the repo.
@@ -258,8 +258,15 @@ Wire `CacheManager` to the GRDB models created in `T-STORE-SCHEMA`. Implemented 
 **Depends on:** `T-STORE-SCHEMA`.
 **Acceptance:** Unit tests that exercise the read/write helpers and verify the in-memory pinned set is rebuilt correctly after a simulated engine restart.
 
-### T-CACHE-EVICTION `[sonnet]` · BLOCKED: probe written, awaiting user-run observations · SPIKE
+### T-CACHE-EVICTION `[sonnet]` · BLOCKED: probe accepts real magnet, awaiting user run with real torrent · SPIKE
 Spike and then implement `CacheManager` with the eviction ordering from `05-cache-policy.md`. Unit tests with synthetic sparse-file state.
+
+**Probe interface (2026-04-16 rewrite):** Original probe generated synthetic 256 KB content via `createTestTorrent`, which is broken in the sandbox. Rewritten to accept a real magnet link (or `.torrent` path) so observations come from real libtorrent behaviour on real content:
+```
+EngineService --cache-eviction-probe <magnet-or-torrent-path>
+EngineService --cache-eviction-probe <magnet-or-torrent-path> --file-index N
+```
+Downloaded content is left in `NSTemporaryDirectory()` for iterative reruns. Paste NSLog output into `docs/libtorrent-eviction-notes.md`.
 
 **This task is an implementation spike.** The eviction mechanism described in `05-cache-policy.md` ("truncate regions where possible, or mark them for future overwrite") is hand-wavy because libtorrent's file-hole semantics and per-piece eviction behaviour need to be verified empirically against the real library. Before implementing:
 

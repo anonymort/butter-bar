@@ -7,8 +7,10 @@ import Foundation
 import EngineInterface
 
 #if DEBUG
-if CommandLine.arguments.contains("--cache-eviction-probe") {
-    runCacheEvictionProbeAndExit()
+if let probeIdx = CommandLine.arguments.firstIndex(of: "--cache-eviction-probe") {
+    // Pass everything after the flag so the probe can parse <magnet-or-path> and --file-index N.
+    let trailingArgs = Array(CommandLine.arguments.dropFirst(probeIdx + 1))
+    runCacheEvictionProbeAndExit(trailingArgs: trailingArgs)
 }
 if CommandLine.arguments.contains("--bridge-self-test") {
     runBridgeSelfTestAndExit()
