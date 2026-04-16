@@ -290,67 +290,15 @@ private func runCacheEvictionProbe(probeArgs: ProbeArgs) -> [String] {
         }
     }
 
-    // MARK: - Probe A: file size and on-disk blocks before eviction
-
-    note("")
-    note("--- Probe A: file state BEFORE priority change ---")
-    if let fp = downloadedFilePath, let s = statFile(fp) {
-        note("Probe A: file size=\(s.apparentSize) bytes, on-disk=\(s.onDiskBytes) bytes")
-        note("Probe A: sparse ratio = \(s.onDiskBytes == 0 ? "n/a" : String(format: "%.1f%%", Double(s.onDiskBytes) / Double(s.apparentSize) * 100))")
-    } else {
-        note("Probe A: SKIPPED — could not resolve on-disk file path (see setup warnings above)")
-    }
-    do {
-        let pieces = try bridge.havePieces(torrentID)
-        note("Probe A: havePieces count=\(pieces.count), indices=\(pieces.prefix(8).map(\.intValue))\(pieces.count > 8 ? "..." : "")")
-    } catch {
-        probeError("Probe A: havePieces failed: \(error)")
-    }
-
-    // MARK: - Probe B: set file priority to 0, observe immediate file state
-
-    note("")
-    note("--- Probe B: set file priority to 0 (ignore), observe file state ---")
-    note("  Note: TorrentBridge exposes setFilePriority (file granularity) only.")
-    note("  Per-piece priority (lt::torrent_handle::piece_priority) is NOT bridged.")
-    note("  This probe uses file-level priority as the coarsest available lever.")
-    do {
-        try bridge.setFilePriority(torrentID, fileIndex: Int32(targetFileIndex), priority: 0)
-        note("Probe B: setFilePriority(\(torrentID), fileIndex:\(targetFileIndex), priority:0) succeeded")
-    } catch {
-        probeError("Probe B: setFilePriority failed: \(error)")
-    }
-
-    // Immediate stat — no sleep; we want the instant view before libtorrent does anything.
-    if let fp = downloadedFilePath, let s = statFile(fp) {
-        note("Probe B (immediate): file size=\(s.apparentSize), on-disk=\(s.onDiskBytes)")
-    } else {
-        note("Probe B (immediate): SKIPPED — no file path")
-    }
-
-    // Also check after a short wait to see if libtorrent reacts asynchronously.
-    Thread.sleep(forTimeInterval: 2)
-    if let fp = downloadedFilePath, let s = statFile(fp) {
-        note("Probe B (after 2s): file size=\(s.apparentSize), on-disk=\(s.onDiskBytes)")
-    }
-    do {
-        let pieces = try bridge.havePieces(torrentID)
-        note("Probe B: havePieces count=\(pieces.count) (did priority=0 evict pieces?)")
-    } catch {
-        probeError("Probe B: havePieces failed: \(error)")
-    }
-
-    // MARK: - Probe C: two-mechanism eviction test (addPiece+punch and force_recheck)
-
-    // Alert collectors for C1. The alert callback runs on bridge's internal queue;
-    // reads happen on this thread. Use NSLock for thread-safety.
-    let alertLock = NSLock()
-    var hashFailedPieces: Set<Int> = []
-    var pieceFinishedPieces: Set<Int> = []
-
+    // -------------------------------------------------------------------------
+    // Install alert collectors (used by C0, C1, C2 below)
     // Safe to replace the setup-time alert callback here: TorrentBridge serialises
     // both subscribeAlerts installation and alert drain on the same internal queue,
     // so we cannot miss or double-fire an alert during handover.
+    // -------------------------------------------------------------------------
+    let alertLock = NSLock()
+    var hashFailedPieces: Set<Int> = []
+    var pieceFinishedPieces: Set<Int> = []
     bridge.subscribeAlerts { alert in
         let type = alert["type"] as? String ?? "?"
         let msg  = alert["message"] as? String ?? ""
@@ -368,12 +316,154 @@ private func runCacheEvictionProbe(probeArgs: ProbeArgs) -> [String] {
     }
 
     // -------------------------------------------------------------------------
-    // Probe C1: addPiece(zeros, overwrite_existing) → hash_failed_alert → punch
+    // Probe C0: baseline — corrupt a piece on disk + force_recheck, expect hash_failed_alert
+    // Goal: confirm the bridge's alert pipeline delivers hash_failed_alert AT ALL for a
+    // known-bad piece. If this fails, the pipeline is broken and all subsequent C1
+    // observations are ambiguous.
     // -------------------------------------------------------------------------
 
     note("")
-    note("--- Probe C1: addPiece(zeros, overwrite_existing) + F_PUNCHHOLE ---")
+    note("--- Probe C0: baseline hash_failed via direct disk corruption + force_recheck ---")
+    note("  Goal: confirm alert pipeline delivers hash_failed_alert when a piece is known-bad.")
+
+    var c0Succeeded = false
+    var c0CorruptedPiece: Int? = nil
+
+    probeC0: do {
+        var fileStart: Int64 = 0
+        var fileEnd: Int64 = 0
+        do {
+            try bridge.fileByteRange(torrentID, fileIndex: Int32(targetFileIndex),
+                                     start: &fileStart, end: &fileEnd)
+        } catch {
+            probeError("Probe C0: fileByteRange failed: \(error)")
+            break probeC0
+        }
+
+        let havePiecesC0 = (try? bridge.havePieces(torrentID)) ?? []
+        let haveSetC0 = Set(havePiecesC0.map { $0.intValue })
+        let firstFullC0 = Int((fileStart + pieceLen - 1) / pieceLen)
+        let lastFullC0  = Int(fileEnd / pieceLen)
+
+        // Pick a piece near the END of the file so C1 (which picks from the start)
+        // doesn't collide.
+        var c0Target: Int? = nil
+        for p in stride(from: lastFullC0 - 1, through: firstFullC0, by: -1) {
+            if haveSetC0.contains(p) { c0Target = p; break }
+        }
+        guard let cp = c0Target else {
+            note("Probe C0: SKIPPED — no downloaded piece fully inside target file.")
+            break probeC0
+        }
+        note("Probe C0: target piece = \(cp)")
+
+        alertLock.lock()
+        hashFailedPieces.removeAll()
+        pieceFinishedPieces.removeAll()
+        alertLock.unlock()
+
+        guard let fp = downloadedFilePath else {
+            note("Probe C0: SKIPPED — no downloaded file path.")
+            break probeC0
+        }
+        let pieceOffsetInFile = Int64(cp) * pieceLen - fileStart
+        // Corrupt 32 bytes at the piece's midpoint to guarantee SHA1 mismatch.
+        let corruptOffset = pieceOffsetInFile + pieceLen / 2
+        let fd = open(fp, O_RDWR)
+        if fd < 0 {
+            probeError("Probe C0: open failed: \(String(cString: strerror(errno)))")
+            break probeC0
+        }
+        var garbage = [UInt8](repeating: 0xFF, count: 32)
+        if lseek(fd, off_t(corruptOffset), SEEK_SET) < 0 {
+            close(fd)
+            probeError("Probe C0: lseek failed: \(String(cString: strerror(errno)))")
+            break probeC0
+        }
+        let written = write(fd, &garbage, 32)
+        fsync(fd)
+        close(fd)
+        if written != 32 {
+            probeError("Probe C0: short write: \(written) bytes")
+            break probeC0
+        }
+        note("Probe C0: wrote 32 bytes of 0xFF at file-offset \(corruptOffset) (inside piece \(cp))")
+
+        do {
+            try bridge.forceRecheck(torrentID)
+            note("Probe C0: forceRecheck() called; polling for hash_failed_alert up to 60s...")
+        } catch {
+            probeError("Probe C0: forceRecheck failed: \(error)")
+            break probeC0
+        }
+
+        let c0Deadline = Date().addingTimeInterval(60)
+        var c0Got = false
+        while Date() < c0Deadline {
+            alertLock.lock()
+            c0Got = hashFailedPieces.contains(cp)
+            alertLock.unlock()
+            if c0Got { break }
+            Thread.sleep(forTimeInterval: 0.5)
+        }
+
+        if c0Got {
+            note("Probe C0: RESULT: hash_failed_alert received for piece \(cp). Alert pipeline VERIFIED.")
+            c0Succeeded = true
+            c0CorruptedPiece = cp
+        } else {
+            alertLock.lock()
+            let snapshot = hashFailedPieces
+            alertLock.unlock()
+            note("Probe C0: RESULT: NEGATIVE — no hash_failed_alert for piece \(cp) in 60s.")
+            note("  Other hash_failed pieces seen in this window: \(snapshot.count == 0 ? "none" : String(describing: snapshot))")
+            note("  If this is negative, something is wrong with the alert pipeline (mask, drain, or bridge).")
+        }
+
+        // Wait for checking state to clear so subsequent probes start clean.
+        note("Probe C0: waiting for torrent to leave checking state (up to 30s)...")
+        let c0CheckDeadline = Date().addingTimeInterval(30)
+        while Date() < c0CheckDeadline {
+            if let snap = try? bridge.statusSnapshot(torrentID) {
+                let state = snap["state"] as? String ?? "unknown"
+                if state != "checkingFiles" && state != "checkingResumeData" {
+                    note("Probe C0: post-check state = \(state)")
+                    break
+                }
+            }
+            Thread.sleep(forTimeInterval: 0.5)
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Probe A: file state and have-bitmap observation (post-C0 steady state)
+    // -------------------------------------------------------------------------
+
+    note("")
+    note("--- Probe A: file state BEFORE priority change ---")
+    if let fp = downloadedFilePath, let s = statFile(fp) {
+        note("Probe A: file size=\(s.apparentSize) bytes, on-disk=\(s.onDiskBytes) bytes")
+        note("Probe A: sparse ratio = \(s.onDiskBytes == 0 ? "n/a" : String(format: "%.1f%%", Double(s.onDiskBytes) / Double(s.apparentSize) * 100))")
+    } else {
+        note("Probe A: SKIPPED — could not resolve on-disk file path (see setup warnings above)")
+    }
+    do {
+        let pieces = try bridge.havePieces(torrentID)
+        note("Probe A: havePieces count=\(pieces.count), indices=\(pieces.prefix(8).map(\.intValue))\(pieces.count > 8 ? "..." : "")")
+    } catch {
+        probeError("Probe A: havePieces failed: \(error)")
+    }
+
+    // -------------------------------------------------------------------------
+    // Probe C1: addPiece(zeros, overwrite_existing) + F_PUNCHHOLE — runs with
+    //           DEFAULT priority=1. If this produces hash_failed_alert, priority=0
+    //           in Probe B is the blocker observed in run #2.
+    // -------------------------------------------------------------------------
+
+    note("")
+    note("--- Probe C1: addPiece(zeros, overwrite_existing) + F_PUNCHHOLE (priority=1) ---")
     note("  Goal: confirm zeros trigger hash_failed_alert, piece leaves havePieces, punch reclaims blocks.")
+    note("  Runs BEFORE Probe B so target file is at default priority=1 — isolates add_piece from priority interaction.")
 
     var c1ClearedPiece: Int? = nil
 
@@ -405,24 +495,30 @@ private func runCacheEvictionProbe(probeArgs: ProbeArgs) -> [String] {
         note("Probe C1: file byte range [\(fileStart), \(fileEnd)), pieceLen=\(pieceLen)")
         note("Probe C1: full-piece range within file: [\(firstFull), \(lastFull))")
 
-        // Pick first downloaded piece in the full-piece range.
+        // Pick first downloaded piece in the full-piece range. Skip the piece
+        // that Probe C0 corrupted (if any) so the two probes don't interfere.
         var targetPiece: Int? = nil
         for p in firstFull..<lastFull {
-            if haveSet.contains(p) {
+            if haveSet.contains(p) && p != c0CorruptedPiece {
                 targetPiece = p
                 break
             }
         }
 
         guard let tp = targetPiece else {
-            note("Probe C1: SKIPPED — no downloaded piece fully inside target file (firstFull=\(firstFull), lastFull=\(lastFull), haveSet size=\(haveSet.count))")
-            note("  This can happen if < 1 full piece is available for the target file.")
+            note("Probe C1: SKIPPED — no suitable downloaded piece fully inside target file (firstFull=\(firstFull), lastFull=\(lastFull), haveSet size=\(haveSet.count), C0-corrupted=\(String(describing: c0CorruptedPiece)))")
             note("Probe C1: RESULT: SKIPPED")
             break probeC1
         }
 
         note("Probe C1: target piece = \(tp)")
         note("Probe C1: pre-check havePieces includes piece \(tp): \(haveSet.contains(tp))")
+
+        // Clear alert sets so we observe only this probe's events.
+        alertLock.lock()
+        hashFailedPieces.removeAll()
+        pieceFinishedPieces.removeAll()
+        alertLock.unlock()
 
         // Pre-stat the file.
         var preOnDisk: Int64 = 0
@@ -438,15 +534,16 @@ private func runCacheEvictionProbe(probeArgs: ProbeArgs) -> [String] {
         // Call addPiece with overwrite_existing.
         do {
             try bridge.addPiece(torrentID, piece: Int32(tp), data: zeros, overwriteExisting: true)
-            note("Probe C1: addPiece(piece:\(tp), zeros, overwrite_existing) sent")
+            note("Probe C1: addPiece(piece:\(tp), zeros, overwrite_existing) sent (priority=1)")
         } catch {
             probeError("Probe C1: addPiece failed: \(error)")
             // Continue — we still want to punch and observe.
         }
 
-        // Poll for hash_failed_alert for up to 15s.
-        note("Probe C1: polling for hash_failed_alert (pieceIndex=\(tp)) for up to 15s...")
-        let c1Deadline = Date().addingTimeInterval(15)
+        // Poll for hash_failed_alert for up to 30s (extended from 15s to tolerate
+        // disk-flush lag on APFS per alert_types.hpp:929-931).
+        note("Probe C1: polling for hash_failed_alert (pieceIndex=\(tp)) for up to 30s...")
+        let c1Deadline = Date().addingTimeInterval(30)
         var lastC1Log = Date()
         var gotHashFailed = false
         var gotPieceFinished = false
@@ -458,12 +555,12 @@ private func runCacheEvictionProbe(probeArgs: ProbeArgs) -> [String] {
 
             if gotHashFailed || gotPieceFinished { break }
 
-            if Date().timeIntervalSince(lastC1Log) >= 2 {
+            if Date().timeIntervalSince(lastC1Log) >= 3 {
                 alertLock.lock()
-                let hf = hashFailedPieces
-                let pf = pieceFinishedPieces
+                let hfCount = hashFailedPieces.count
+                let pfCount = pieceFinishedPieces.count
                 alertLock.unlock()
-                note("  Probe C1: still waiting... hashFailed=\(hf) pieceDone=\(pf)")
+                note("  Probe C1: still waiting... hashFailed.count=\(hfCount) pieceDone.count=\(pfCount)")
                 lastC1Log = Date()
             }
             Thread.sleep(forTimeInterval: 0.25)
@@ -500,40 +597,92 @@ private func runCacheEvictionProbe(probeArgs: ProbeArgs) -> [String] {
             }
         }
 
-        // Punch the hole regardless (to test filesystem behaviour even if bitmap isn't updated).
+        // Punch a BLOCK-ALIGNED sub-range of the piece. For multi-file torrents where
+        // the file does not start on a piece boundary (e.g. a 140-byte sidecar precedes
+        // the MP4), piece-aligned in torrent space is NOT 4 KiB-aligned in file space
+        // — F_PUNCHHOLE rejects unaligned offsets with EINVAL. Compute an aligned
+        // sub-range: skip up to (blockSize-1) leading bytes, trim up to (blockSize-1)
+        // trailing bytes. We forfeit up to ~8 KiB of reclaim per piece for correctness.
         if let fp = downloadedFilePath {
             let pieceOffsetInFile = Int64(tp) * pieceLen - fileStart
-            let fd = open(fp, O_RDWR)
-            if fd < 0 {
-                let errStr = String(cString: strerror(errno))
-                probeError("Probe C1: open for punch failed: \(errStr) (errno=\(errno))")
-            } else {
-                note("Probe C1: punching hole at file-relative offset \(pieceOffsetInFile), length \(pieceLen)")
-                let punchOK = punchHole(fd: fd, offset: pieceOffsetInFile, length: pieceLen)
-                if punchOK {
-                    note("Probe C1: F_PUNCHHOLE succeeded.")
-                } else {
-                    let errStr = String(cString: strerror(errno))
-                    note("Probe C1: F_PUNCHHOLE failed: \(errStr) (errno=\(errno))")
-                    note("  On HFS+: ENOTSUP is expected. On APFS: success expected.")
-                }
-                close(fd)
+            let pieceEndInFile = pieceOffsetInFile + pieceLen
+            let blockSize: Int64 = 4096
+            let alignedStart = ((pieceOffsetInFile + blockSize - 1) / blockSize) * blockSize
+            let alignedEnd = (pieceEndInFile / blockSize) * blockSize
+            let alignedLen = alignedEnd - alignedStart
 
-                if let s = statFile(fp) {
-                    let delta = preOnDisk - s.onDiskBytes
-                    note("Probe C1: after punch — on-disk bytes = \(s.onDiskBytes) (delta = \(delta))")
-                    let slack: Int64 = 65536  // APFS block-rounding allowance
-                    if delta >= pieceLen - slack {
-                        note("Probe C1: RESULT: on-disk bytes decreased by ~pieceLen — APFS sparse region created.")
-                    } else if delta > 0 {
-                        note("Probe C1: RESULT: on-disk bytes decreased by \(delta), less than pieceLen (\(pieceLen)). Partial effect.")
+            if alignedLen <= 0 {
+                note("Probe C1: SKIPPING punch — aligned sub-range is empty (piece geometry pathological)")
+            } else {
+                let leadingSkip = alignedStart - pieceOffsetInFile
+                let trailingSkip = pieceEndInFile - alignedEnd
+                note("Probe C1: punching block-aligned sub-range [\(alignedStart), \(alignedEnd)) len=\(alignedLen) " +
+                     "(piece file-range [\(pieceOffsetInFile), \(pieceEndInFile)); leading skip=\(leadingSkip), trailing skip=\(trailingSkip))")
+                let fd = open(fp, O_RDWR)
+                if fd < 0 {
+                    let errStr = String(cString: strerror(errno))
+                    probeError("Probe C1: open for punch failed: \(errStr) (errno=\(errno))")
+                } else {
+                    let punchOK = punchHole(fd: fd, offset: alignedStart, length: alignedLen)
+                    if punchOK {
+                        note("Probe C1: F_PUNCHHOLE succeeded.")
                     } else {
-                        note("Probe C1: RESULT: on-disk bytes unchanged — punch had no effect (HFS+ or already sparse).")
+                        let errStr = String(cString: strerror(errno))
+                        note("Probe C1: F_PUNCHHOLE failed: \(errStr) (errno=\(errno))")
+                        note("  On HFS+: ENOTSUP is expected. On APFS with block-aligned args: success expected.")
+                    }
+                    close(fd)
+
+                    if let s = statFile(fp) {
+                        let delta = preOnDisk - s.onDiskBytes
+                        note("Probe C1: after punch — on-disk bytes = \(s.onDiskBytes) (delta = \(delta))")
+                        let slack: Int64 = 65536  // APFS block-rounding allowance
+                        if delta >= alignedLen - slack {
+                            note("Probe C1: RESULT: on-disk bytes decreased by ~alignedLen — APFS sparse region created.")
+                        } else if delta > 0 {
+                            note("Probe C1: RESULT: on-disk bytes decreased by \(delta), less than alignedLen (\(alignedLen)). Partial effect.")
+                        } else {
+                            note("Probe C1: RESULT: on-disk bytes unchanged — punch had no effect (HFS+ or already sparse).")
+                        }
                     }
                 }
             }
         }
     } // end probeC1
+
+    // -------------------------------------------------------------------------
+    // Probe B: set file priority to 0, observe file state
+    //   Runs AFTER Probe C1 now, so we can confirm the "priority=0 blocks addPiece"
+    //   hypothesis by contrast with C1's result.
+    // -------------------------------------------------------------------------
+
+    note("")
+    note("--- Probe B: set file priority to 0 (ignore), observe file state ---")
+    note("  Note: TorrentBridge exposes setFilePriority (file granularity) only.")
+    note("  Per-piece priority (lt::torrent_handle::piece_priority) is NOT bridged.")
+    do {
+        try bridge.setFilePriority(torrentID, fileIndex: Int32(targetFileIndex), priority: 0)
+        note("Probe B: setFilePriority(\(torrentID), fileIndex:\(targetFileIndex), priority:0) succeeded")
+    } catch {
+        probeError("Probe B: setFilePriority failed: \(error)")
+    }
+
+    if let fp = downloadedFilePath, let s = statFile(fp) {
+        note("Probe B (immediate): file size=\(s.apparentSize), on-disk=\(s.onDiskBytes)")
+    } else {
+        note("Probe B (immediate): SKIPPED — no file path")
+    }
+
+    Thread.sleep(forTimeInterval: 2)
+    if let fp = downloadedFilePath, let s = statFile(fp) {
+        note("Probe B (after 2s): file size=\(s.apparentSize), on-disk=\(s.onDiskBytes)")
+    }
+    do {
+        let pieces = try bridge.havePieces(torrentID)
+        note("Probe B: havePieces count=\(pieces.count) (did priority=0 evict pieces?)")
+    } catch {
+        probeError("Probe B: havePieces failed: \(error)")
+    }
 
     // -------------------------------------------------------------------------
     // Probe C2: force_recheck
@@ -694,11 +843,11 @@ private func runCacheEvictionProbe(probeArgs: ProbeArgs) -> [String] {
     note("Copy all lines above into docs/libtorrent-eviction-notes.md")
     note("")
     note("Key questions to answer from the output:")
-    note("  1. Did setFilePriority(0) alone change on-disk bytes? (Probe A vs B)")
-    note("  2. Did addPiece(zeros, overwrite_existing) produce a hash_failed_alert? (Probe C1)")
-    note("  3. Was the addPiece path processed at all given the target file's priority=0 set in Probe B, i.e. did the hash check actually run? (Probe C1 — a silent timeout suggests priority=0 blocks addPiece processing.)")
-    note("  4. After C1's hash failure, did the targeted piece leave havePieces()? (Probe C1)")
-    note("  5. Did the piece-aligned F_PUNCHHOLE reduce on-disk bytes by roughly pieceLength? (Probe C1)")
+    note("  1. Did disk-corrupt + force_recheck produce hash_failed_alert? (Probe C0 — confirms alert pipeline works)")
+    note("  2. With DEFAULT priority=1, did addPiece(zeros, overwrite_existing) produce a hash_failed_alert? (Probe C1)")
+    note("  3. After C1's hash failure, did the targeted piece leave havePieces()? (Probe C1)")
+    note("  4. Did the BLOCK-ALIGNED F_PUNCHHOLE reduce on-disk bytes by ~alignedLen? (Probe C1)")
+    note("  5. Did setFilePriority(0) alone change on-disk bytes? (Probe A vs B — expected no.)")
     note("  6. Did force_recheck() complete and produce a coherent havePieces() bitmap? (Probe C2)")
     note("  7. After C1 + priority restore, did libtorrent re-download the cleared piece? (Probe C3)")
     note("  8. Does file-level setFilePriority(1) trigger full re-fetch of the file? (Probe D)")

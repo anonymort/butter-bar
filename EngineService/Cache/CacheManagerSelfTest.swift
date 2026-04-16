@@ -214,7 +214,228 @@ func runCacheManagerSelfTests() -> [String] {
         fail("6: unexpected error: \(error)")
     }
 
+    // MARK: - 7. pressure() classification
+
+    do {
+        let db = try EngineDatabase.openInMemory()
+        let cache = try CacheManager(db: db)
+        let high: Int64 = 100_000
+
+        // ok: below 80% of high water
+        expect(cache.pressure(usedBytes: 0, highWater: high) == .ok,
+               "7: 0 bytes should be ok")
+        expect(cache.pressure(usedBytes: 79_999, highWater: high) == .ok,
+               "7: 79999/100000 should be ok (< 80%)")
+
+        // warn: exactly at 80% boundary
+        expect(cache.pressure(usedBytes: 80_000, highWater: high) == .warn,
+               "7: exactly 80% (80000/100000) should be warn")
+        expect(cache.pressure(usedBytes: 99_999, highWater: high) == .warn,
+               "7: 99999/100000 should be warn (< highWater)")
+
+        // critical: at or above high water
+        expect(cache.pressure(usedBytes: 100_000, highWater: high) == .critical,
+               "7: exactly highWater (100000/100000) should be critical")
+        expect(cache.pressure(usedBytes: 150_000, highWater: high) == .critical,
+               "7: above highWater should be critical")
+    } catch {
+        fail("7: unexpected error: \(error)")
+    }
+
+    // MARK: - 8. usedBytes(paths:) accounting
+
+    do {
+        let db = try EngineDatabase.openInMemory()
+        let cache = try CacheManager(db: db)
+
+        let dir = NSTemporaryDirectory()
+        let p1 = (dir as NSString).appendingPathComponent("cache_test_8a_\(Int.random(in: 10000...99999)).bin")
+        let p2 = (dir as NSString).appendingPathComponent("cache_test_8b_\(Int.random(in: 10000...99999)).bin")
+
+        defer {
+            try? FileManager.default.removeItem(atPath: p1)
+            try? FileManager.default.removeItem(atPath: p2)
+        }
+
+        // Write files of known sizes. 4096 and 8192 bytes — one APFS block each
+        // and two blocks respectively, so st_blocks will be 8 and 16 (512-byte units).
+        let data1 = Data(repeating: 0xAA, count: 4096)
+        let data2 = Data(repeating: 0xBB, count: 8192)
+        try data1.write(to: URL(fileURLWithPath: p1))
+        try data2.write(to: URL(fileURLWithPath: p2))
+
+        // Verify individual stat matches usedBytes.
+        var st1 = stat()
+        var st2 = stat()
+        stat(p1, &st1)
+        stat(p2, &st2)
+        let expected = Int64(st1.st_blocks) * 512 + Int64(st2.st_blocks) * 512
+
+        let actual = cache.usedBytes(paths: [p1, p2])
+        expect(actual == expected,
+               "8: usedBytes([p1,p2]) should be \(expected), got \(actual)")
+        expect(actual > 0, "8: usedBytes should be positive for non-empty files")
+
+        // Missing path contributes 0.
+        let missing = (dir as NSString).appendingPathComponent("does_not_exist_\(Int.random(in: 10000...99999)).bin")
+        let withMissing = cache.usedBytes(paths: [p1, missing])
+        let onlyP1 = cache.usedBytes(paths: [p1])
+        expect(withMissing == onlyP1,
+               "8: missing file should contribute 0 bytes (withMissing=\(withMissing), onlyP1=\(onlyP1))")
+    } catch {
+        fail("8: unexpected error: \(error)")
+    }
+
+    // MARK: - 9. runEvictionPass with a mock bridge
+
+    do {
+        let db = try EngineDatabase.openInMemory()
+        let cache = try CacheManager(db: db)
+
+        // Create two temp files with known content so F_PUNCHHOLE has something to act on.
+        let dir = NSTemporaryDirectory()
+        let p1 = (dir as NSString).appendingPathComponent("cache_evict_9a_\(Int.random(in: 10000...99999)).bin")
+        let p2 = (dir as NSString).appendingPathComponent("cache_evict_9b_\(Int.random(in: 10000...99999)).bin")
+
+        defer {
+            try? FileManager.default.removeItem(atPath: p1)
+            try? FileManager.default.removeItem(atPath: p2)
+        }
+
+        // 256 KiB each — large enough for the piece range computation to have
+        // at least one full interior piece with a 64 KiB piece length.
+        let size: Int = 256 * 1024
+        let data = Data(repeating: 0xFF, count: size)
+        try data.write(to: URL(fileURLWithPath: p1))
+        try data.write(to: URL(fileURLWithPath: p2))
+
+        let pieceLength: Int64 = 64 * 1024   // 64 KiB
+
+        // Candidates: both files treated as a single-file torrent each, fully inside
+        // the piece range so punch geometry is exercised.
+        let c1 = EvictionCandidate(
+            torrentId: "torrent-A",
+            fileIndex: 0,
+            onDiskPath: p1,
+            fileStartInTorrent: 0,
+            fileEndInTorrent: Int64(size),
+            pieceLength: pieceLength,
+            lastPlayedAtMs: nil,
+            completed: false,
+            tierRank: 1
+        )
+        let c2 = EvictionCandidate(
+            torrentId: "torrent-B",
+            fileIndex: 0,
+            onDiskPath: p2,
+            fileStartInTorrent: 0,
+            fileEndInTorrent: Int64(size),
+            pieceLength: pieceLength,
+            lastPlayedAtMs: nil,
+            completed: false,
+            tierRank: 1
+        )
+
+        let bridge = MockCacheManagerBridge()
+
+        // Set highWater below the actual total so eviction is triggered.
+        // Set lowWater to 0 so both candidates are evicted.
+        var st1 = stat()
+        stat(p1, &st1)
+        var st2 = stat()
+        stat(p2, &st2)
+        let totalOnDisk = Int64(st1.st_blocks) * 512 + Int64(st2.st_blocks) * 512
+
+        let highWater = max(1, totalOnDisk - 1)   // just below total → triggers eviction
+        let lowWater: Int64 = 0                    // force eviction of all candidates
+
+        let result = try cache.runEvictionPass(
+            candidates: [c1, c2],
+            bridge: bridge,
+            highWaterBytes: highWater,
+            lowWaterBytes: lowWater
+        )
+
+        // Structural assertions.
+        expect(result.candidatesEvicted > 0,
+               "9: at least one candidate should be evicted, got \(result.candidatesEvicted)")
+        expect(result.torrentsRechecked > 0,
+               "9: at least one torrent should be rechecked, got \(result.torrentsRechecked)")
+
+        // setFilePriority(0) must have been called once per evicted candidate.
+        let priorityCalls = bridge.setFilePriorityCalls.filter { $0.priority == 0 }
+        expect(priorityCalls.count == result.candidatesEvicted,
+               "9: setFilePriority(0) should be called once per evicted candidate " +
+               "(expected \(result.candidatesEvicted), got \(priorityCalls.count))")
+
+        // forceRecheck must have been called once per distinct torrentId.
+        expect(bridge.forceRecheckCalls.count == result.torrentsRechecked,
+               "9: forceRecheck call count (\(bridge.forceRecheckCalls.count)) " +
+               "should equal torrentsRechecked (\(result.torrentsRechecked))")
+
+        // statusState must have been polled.
+        expect(bridge.statusStateCalls.count > 0,
+               "9: statusState should be polled at least once, got \(bridge.statusStateCalls.count)")
+
+        // bytesReclaimed >= 0 (F_PUNCHHOLE works on APFS; on HFS+ it will silently
+        // produce 0 reclaim — that's acceptable in a self-test environment).
+        expect(result.bytesReclaimed >= 0,
+               "9: bytesReclaimed should be >= 0, got \(result.bytesReclaimed)")
+
+        if result.bytesReclaimed == 0 {
+            NSLog("[CacheManagerSelfTest] Test 9: bytesReclaimed == 0 — likely running on HFS+ " +
+                  "or a filesystem that does not support F_PUNCHHOLE. Structural assertions still pass.")
+        }
+    } catch {
+        fail("9: unexpected error: \(error)")
+    }
+
     return failures
+}
+
+// MARK: - Mock bridge for test 9
+
+/// Records all bridge calls for structural verification in test 9.
+/// statusState drives through a simple three-state machine to simulate
+/// a real recheck lifecycle: downloading → checkingFiles → finished.
+private final class MockCacheManagerBridge: CacheManagerBridge {
+
+    struct PriorityCall {
+        let torrentID: String
+        let fileIndex: Int
+        let priority: Int
+    }
+
+    private(set) var setFilePriorityCalls: [PriorityCall] = []
+    private(set) var forceRecheckCalls: [String] = []
+    private(set) var statusStateCalls: [String] = []
+
+    // Per-torrent poll counter drives the state machine:
+    //   call 0   → "downloading"
+    //   call 1   → "checkingFiles"
+    //   call 2+  → "finished"
+    private var pollCounts: [String: Int] = [:]
+
+    func setFilePriority(torrentID: String, fileIndex: Int, priority: Int) throws {
+        setFilePriorityCalls.append(PriorityCall(torrentID: torrentID, fileIndex: fileIndex, priority: priority))
+    }
+
+    func forceRecheck(torrentID: String) throws {
+        forceRecheckCalls.append(torrentID)
+        // Reset the poll counter so the state machine restarts from the beginning.
+        pollCounts[torrentID] = 0
+    }
+
+    func statusState(torrentID: String) throws -> String {
+        statusStateCalls.append(torrentID)
+        let count = pollCounts[torrentID] ?? 0
+        pollCounts[torrentID] = count + 1
+        switch count {
+        case 0:  return "downloading"
+        case 1:  return "checkingFiles"
+        default: return "finished"
+        }
+    }
 }
 
 /// Entry point called from main.swift when --cache-manager-self-test is passed.

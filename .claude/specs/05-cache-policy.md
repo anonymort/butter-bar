@@ -1,6 +1,6 @@
 # 05 — Cache Policy
 
-> **Revision 3** — § Piece eviction mechanism rewritten around the libtorrent 2.0.12 public API (addendum A23). Rev 2 weakened resume offset to byte-last-served (A6) and added `settings` + `pinned_files` schemas (A7).
+> **Revision 4** — § Piece eviction mechanism rewritten again after probe run #3 (2026-04-16) empirically disproved the addPiece/hash-fail hot path in libtorrent 2.0.12. The new mechanism is `F_PUNCHHOLE` + `force_recheck()` (addendum A24). Rev 3 proposed add_piece+punch (A23, now retracted). Rev 2 weakened resume offset to byte-last-served (A6) and added `settings` + `pinned_files` schemas (A7).
 
 Cache eviction is piece-granular, not file-granular. The unit of value is "pieces the user is likely to need next," not "whole torrents."
 
@@ -42,35 +42,45 @@ At no point does eviction touch a pinned piece.
 
 ## Piece eviction mechanism
 
-Per addendum A23. libtorrent 2.0.12's public `torrent_handle` API exposes `force_recheck()` (whole-torrent), `piece_priority()` (gating only, no reconciliation), and `add_piece(..., overwrite_existing)` (per-piece write + hash check). There is no public `clear_piece`. The eviction primitive is built from these.
+Per addendum A24. Probe run #3 (2026-04-16) empirically disproved the A23 hot path: `add_piece(zeros, overwrite_existing)` does not emit `hash_failed_alert` in libtorrent 2.0.12 at any file priority, so that sequencing cannot drive `async_clear_piece`. What the probe did prove works:
 
-### Hot path — per-piece, surgical
+- `fcntl(F_PUNCHHOLE)` over a **block-aligned sub-range** within a piece reclaims APFS blocks cleanly. Piece-aligned alone is insufficient for multi-file torrents where the target file does not start on a piece boundary — the offset must be 4 KiB-aligned relative to the file's byte space. A small amount (up to ~8 KiB per piece) is forfeited at the boundary for correctness.
+- `torrent_handle::force_recheck()` rereads the sparse file and updates the have-bitmap accordingly. A punched piece hashes differently, so libtorrent removes it from the bitmap. On a 275 MB, fully-resident torrent, the recheck completes in ~0.5 s on Apple silicon.
+- `hash_failed_alert` is NOT emitted during `force_recheck` — it is only raised for peer-download hash failures. The eviction path therefore does not depend on alerts; it waits on `statusSnapshot` state transitions instead.
 
-For each piece selected for eviction by the ordering rules above:
+### The eviction primitive
 
-1. `TorrentBridge.addPiece(torrentID:, piece: idx, data: <256 KB of zeros>, overwriteExisting: true)`.
-2. Await the `hash_failed_alert` for `idx`. On receipt, libtorrent has internally called `async_clear_piece` and removed `idx` from the have-bitmap.
-3. `fcntl(fd, F_PUNCHHOLE, {offset: pieceStartInFile, length: pieceLength})` on the sparse file to reclaim the APFS blocks that the zero write just re-allocated. `pieceLength` is already an integer multiple of 4 KiB (the APFS allocation unit) for all common torrent piece sizes; no further alignment is required.
-4. Subsequent access under `piece_priority ≥ 1` triggers re-fetch normally.
+For each eviction batch:
 
-The punch comes *after* the alert. add_piece writes its buffer to disk before hashing — punching before would be pointless because the zeros would re-fill the hole.
+1. For every piece to evict in the batch: compute the piece's byte range in the file (`[piece * pieceLength - fileStart, (piece + 1) * pieceLength - fileStart)`), then derive the block-aligned sub-range:
+   - `alignedStart = ceil(pieceStartInFile / 4096) * 4096`
+   - `alignedEnd = floor(pieceEndInFile / 4096) * 4096`
+   - `alignedLen = alignedEnd - alignedStart`
+   If `alignedLen > 0`, `fcntl(fd, F_PUNCHHOLE, {offset: alignedStart, length: alignedLen})`. Pieces whose aligned sub-range collapses to zero bytes are skipped (extremely rare — requires pieceLength < 8 KiB).
+2. Before punching, set the file's `setFilePriority` to 0 (if not already) so peers do not immediately re-request the missing pieces. CacheManager enforces that only files outside the pinned set are eligible — those files are already at priority=0 or will be set to 0 as part of the eviction batch.
+3. After punching every piece in the batch: `TorrentBridge.forceRecheck(torrentID)`. Poll `statusSnapshot` every 500 ms until `state` is neither `checkingResumeData` nor `checkingFiles`.
+4. The have-bitmap now reflects disk reality. `AlertDispatcher` observes the resulting `state_changed` alerts and pushes an update to the planner.
+5. When the user later wants to play an evicted file, CacheManager restores priority and libtorrent re-fetches the missing pieces through the normal deadline/priority pipeline.
 
-### Fallback — bulk reconciliation
+### Cost and batching
 
-`TorrentBridge.forceRecheck(torrentID:)` is invoked only in two cases:
+- Punch: O(1) per piece, completes in a few milliseconds.
+- `force_recheck`: O(on-disk bytes). The probe measured ~0.5 s / 275 MB. Scales roughly linearly with data volume.
 
-- **Idle-time reconciliation.** On engine shutdown, or after a batch of evictions, the planner may schedule a recheck to re-sync the have-bitmap with disk across the whole torrent. Runs only while no stream is active.
-- **Recovery.** If `hash_failed_alert` stops arriving after `addPiece(zeros, overwrite)` — e.g., a future libtorrent optimises the write-then-verify path — `CacheManager` falls back to a force-recheck of the affected torrent and logs a one-shot warning.
+Eviction runs are therefore batched: when `usedBytes > highWater`, CacheManager selects enough pieces to push below `lowWater`, punches them all, then issues a single `forceRecheck` per affected torrent. The cost of `force_recheck` is paid once per batch per torrent, not once per piece.
 
-`force_recheck` is O(on-disk bytes) and pauses peers during the check. It is never used on the streaming hot path.
+`force_recheck` disconnects peers and stops tracker announcements during the check; the torrent is placed at the end of the session queue when the check completes. Eviction runs are therefore scheduled away from the streaming hot path — during idle periods or as part of "user opened the pause/settings screen." CacheManager never runs a recheck on a torrent that has an active stream. If disk pressure crosses `highWater` while every torrent is actively streaming, CacheManager emits `DiskPressureDTO(state: critical)` and defers; once the streams close, eviction runs immediately.
 
-### In-memory view
+### Why this beats rev 3's design
 
-After eviction, the in-memory `havePieces()` projection is refreshed by the planner's next tick. The hash_failed_alert also drives an immediate `AlertDispatcher` update so the planner sees the eviction without waiting for the next poll.
+- No dependency on `hash_failed_alert`, which turned out not to fire in the `add_piece`/overwrite path in 2.0.12.
+- No dependency on an implementation detail of libtorrent's write-then-verify ordering; we control the verify explicitly via `force_recheck`.
+- Simpler: one primitive (`forceRecheck`) plus a POSIX syscall (`fcntl(F_PUNCHHOLE)`) is the entire mechanism.
+- `TorrentBridge.addPiece` is retained as a general wrapper but is not part of the eviction path; its header doc was updated in A24 to reflect this.
 
 ### Budget accounting
 
-`CacheManager` tracks `usedBytes` as the sum of on-disk allocated bytes for every sparse file it manages, sampled from `stat().st_blocks * 512` after each eviction batch. Per-piece accounting is not maintained — libtorrent's buffer cache and APFS block-granularity rounding make per-piece byte counts unreliable. The budget is enforced against the aggregate.
+`CacheManager` tracks `usedBytes` as the sum of on-disk allocated bytes across every sparse file it manages, sampled via `stat().st_blocks * 512` after each eviction batch. Per-piece accounting is not maintained — libtorrent's buffer cache and APFS block-granularity rounding make per-piece byte counts unreliable. The budget is enforced against the aggregate.
 
 ## Disk pressure signalling
 

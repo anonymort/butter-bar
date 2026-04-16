@@ -355,18 +355,44 @@ Separately, while writing the workflow into spec 06 rev 2 (per A18), two things 
 - `EngineService/Cache/CacheEvictionProbe.swift` — revised to test both mechanisms head-to-head.
 - `TASKS.md` T-CACHE-EVICTION — status and probe plan updated.
 
+## A24 — Eviction mechanism retraction + PUNCH + FORCE_RECHECK replacement
+
+**Context:** Addendum A23 (rev 3 of spec 05) specified a per-piece hot path built on `add_piece(zeros, overwrite_existing)` → `hash_failed_alert` → `F_PUNCHHOLE`. Probe run #3 on 2026-04-16 (`docs/libtorrent-eviction-notes.md`) disproved this empirically. With libtorrent 2.0.12 (our pinned version):
+
+- `add_piece(zeros, overwrite_existing)` produces NO alert — neither `hash_failed_alert` nor `piece_finished_alert` — at either file priority (1 or 0). Tested across two runs with multiple polling windows. The expected internal `async_clear_piece` path is therefore unreachable through `add_piece`.
+- `hash_failed_alert` is only emitted for peer-download hash failures, not for disk-recheck mismatches (confirmed by Probe C0 in run #3: corrupting a piece on disk and calling `force_recheck` produces no alert, but the have-bitmap still updates).
+- What DOES work: a block-aligned `F_PUNCHHOLE` paired with `force_recheck()`. The punch reclaims APFS blocks; the recheck detects the now-bad piece and removes it from the have-bitmap. On Apple silicon, recheck takes ~0.5 s per 275 MB of resident content.
+
+**Decision (v1, replaces A23):** Eviction is implemented as a single tier: `F_PUNCHHOLE` + `force_recheck`.
+
+1. Set the target file's priority to 0 (if not already) so peers do not auto-request the punched pieces.
+2. For each piece: compute a block-aligned sub-range within the file-relative byte space of that piece, `fcntl(fd, F_PUNCHHOLE, …)` over that sub-range. Geometry: `alignedStart = ceil(pieceFileOffset / 4096) * 4096`, `alignedEnd = floor((pieceFileOffset + pieceLength) / 4096) * 4096`. Up to ~8 KiB is forfeited at each piece boundary for correctness on multi-file torrents where the file does not start on a piece boundary.
+3. `forceRecheck(torrentID)` after punching every piece in the batch. Poll `statusSnapshot` until the torrent leaves `checkingResumeData`/`checkingFiles`.
+4. The have-bitmap is now in sync with disk. When the user later wants the evicted file, CacheManager restores priority and the normal deadline/priority pipeline re-downloads.
+
+**What about `addPiece`?** The bridge method is retained but not used by eviction. It is a legitimate `lt::torrent_handle::add_piece` wrapper that may be useful for other purposes (e.g., injecting test pieces, future API experiments). The header doc is updated to note that `add_piece` with `overwrite_existing` does NOT drive eviction in 2.0.12.
+
+**What about batching?** `force_recheck` is O(on-disk bytes) and disconnects peers for its duration. CacheManager batches evictions: one `forceRecheck` per affected torrent per eviction run. Eviction never runs against a torrent with an active stream (would disrupt playback); if disk pressure crosses `highWater` while every torrent is streaming, CacheManager emits `DiskPressureDTO(state: critical)` and defers.
+
+**Affected files:**
+- `05-cache-policy.md` rev 4: § Piece eviction mechanism rewritten from scratch.
+- `docs/libtorrent-eviction-notes.md`: probe run #3 analysis appended.
+- `EngineService/Bridge/TorrentBridge.h`: `addPiece` header doc amended to note it's not part of the eviction path in 2.0.12.
+- `EngineService/Cache/CacheEvictionProbe.swift`: Probe C0 (baseline disk-corrupt recheck, confirms bitmap-updates-without-alerts), Probe C1 (addPiece regression sentinel — expected negative), Probe B moved after C1, punch geometry fixed.
+- `EngineService/Cache/CacheManager.swift`: eviction logic implemented per this spec.
+
 ## Summary of file changes in this revision
 
 (extends earlier summaries)
 
-- `00-addendum.md` — A16–A19 appended in earlier revision; A20–A22 appended from Phase 1 review; A23 appended from 2026-04-16 API surface investigation.
+- `00-addendum.md` — A16–A19 appended in earlier revision; A20–A22 appended from Phase 1 review; A23 appended from 2026-04-16 API surface investigation; A24 appended same-day after probe run #3 disproved A23's hot path.
 - `06-brand.md` — rev 3: § Asset specifications and § Tahoe icon workflow rewritten around the Liquid Glass prep package. Layer model corrected (background + up to 4 foreground groups). `.icon` placement corrected to `App/AppIcon.icon` (sibling of Assets.xcassets, not nested). Step-by-step Icon Composer workflow added. (A19.) Rev 2 introduced Tahoe targeting (A18); rev 1 was the initial brand spec.
 - `07-product-surface.md` — authoritative product surface spec for catalogue, sync, providers, etc. (A17.)
 - `08-issue-workflow.md` — GitHub issue/branch/PR conventions. (A17.)
 - `09-platform-tahoe.md` — authoritative platform spec: macOS 26 deployment target, SDK 26, Apple silicon priority, Liquid Glass adoption stance. § Icon format updated for corrected `.icon` placement. (A18, A19.)
 - All files mentioning project name — `PopcornMac` → `ButterBar`, `popcornmac` → `butterbar`.
 - `02-stream-health.md` — revision bumped; UI rendering contract now points at `06-brand.md` for tier colours.
-- `05-cache-policy.md` — rev 3: § Piece eviction mechanism rewritten with concrete 2.0.12 API surface (add_piece/hash-fail primary + force_recheck fallback). (A23.)
+- `05-cache-policy.md` — rev 3: § Piece eviction mechanism rewritten with concrete 2.0.12 API surface (add_piece/hash-fail primary + force_recheck fallback) (A23). Rev 4: mechanism retracted and replaced with `F_PUNCHHOLE` + `force_recheck` after probe disproof (A24).
 - `CLAUDE.md` — tagline mentions Tahoe; reading order includes specs 09; project layout updated to show `App/AppIcon.icon` at sibling level and top-level `icons/` (with `ButterBar-LiquidGlass-prep/` subfolder). (A18, A19.)
 - `.claude/README.md` — directory listing updated.
 - `TASKS.md` — `T-REPO-INIT` and `T-BRAND-ASSETS` rewritten for the Liquid Glass prep workflow. T-REPO-INIT places source material; T-BRAND-ASSETS runs Icon Composer. (A18, A19.)
