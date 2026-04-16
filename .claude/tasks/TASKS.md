@@ -376,6 +376,38 @@ Benchmark: measure seek-to-first-frame time across the four trace fixtures. Reco
 
 ---
 
+## Phase 8 — Product-surface engine seams
+
+Engine seams discovered during product-surface execution (per `docs/v1-roadmap.md § Missing engine seams`). Each seam is small, additive, and unblocks one or more product-surface issues.
+
+### T-STORE-FAVOURITES `[sonnet]` · TODO
+Add a GRDB additive migration for the `favourites` table per spec 07 § 4 (Watch state and local library). Schema:
+
+```sql
+CREATE TABLE favourites (
+    torrent_id TEXT NOT NULL,
+    file_index INTEGER NOT NULL,
+    favourited_at INTEGER NOT NULL,    -- unix ms
+    PRIMARY KEY (torrent_id, file_index)
+);
+```
+
+Implement `FavouriteRecord: Codable, FetchableRecord, PersistableRecord` mirroring `PinnedFileRecord`. Migration identifier: `v2_add_favourites` (named, not sequential — independent of `v2_add_completed_at` introduced by #34; migrations apply in registration order). Both can land in either order; neither blocks the other.
+
+**Spec:** `07-product-surface.md § 4` (favourites required feature); `08-issue-workflow.md` (engine task workflow).
+**Acceptance:**
+- Migration runs cleanly on a fresh database (V1 → V1+favourites).
+- Migration is idempotent (re-running is a no-op).
+- Migration runs cleanly on a database that already has `v2_add_completed_at` applied.
+- `FavouriteRecord` round-trip insert/fetch test passes.
+- Schema version recorded in GRDB's migration table under the named identifier.
+- No XPC / DTO work in this task — that's the `#36` GitHub issue's scope.
+
+**Blocks:** GitHub issue #36 (favourites feature).
+**Found during:** Epic #5 Phase 1 Opus design pass (2026-04-16). See `docs/design/watch-state-foundation.md`.
+
+---
+
 ## Escalation protocol
 
 Any task marked `BLOCKED:` halts work on that task. The blocking reason goes in the task description. Opus triages blocked tasks at the next review gate or on explicit request.

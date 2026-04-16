@@ -1,6 +1,6 @@
 # 05 — Cache Policy
 
-> **Revision 4** — § Piece eviction mechanism rewritten again after probe run #3 (2026-04-16) empirically disproved the addPiece/hash-fail hot path in libtorrent 2.0.12. The new mechanism is `F_PUNCHHOLE` + `force_recheck()` (addendum A24). Rev 3 proposed add_piece+punch (A23, now retracted). Rev 2 weakened resume offset to byte-last-served (A6) and added `settings` + `pinned_files` schemas (A7).
+> **Revision 5** — § Schema gains `playback_history.completed_at`; § Update rules gain the `completed_at` and manual-toggle write semantics (addendum A26, 2026-04-16, for Epic #5 Phase 1 foundation #34). Rev 4 rewrote § Piece eviction mechanism around `F_PUNCHHOLE` + `force_recheck()` after probe run #3 disproved the addPiece/hash-fail hot path (A24). Rev 3 proposed add_piece+punch (A23, now retracted). Rev 2 weakened resume offset to byte-last-served (A6) and added `settings` + `pinned_files` schemas (A7).
 
 Cache eviction is piece-granular, not file-granular. The unit of value is "pieces the user is likely to need next," not "whole torrents."
 
@@ -108,6 +108,7 @@ CREATE TABLE playback_history (
     last_played_at INTEGER NOT NULL,            -- unix ms
     total_watched_seconds REAL NOT NULL DEFAULT 0,  -- populated from CMTime observations
     completed INTEGER NOT NULL DEFAULT 0,
+    completed_at INTEGER,                       -- unix ms; NULL until first completion (A26)
     PRIMARY KEY (torrent_id, file_index)
 );
 
@@ -129,7 +130,11 @@ CREATE TABLE settings (
 
 - Engine updates `resume_byte_offset` on stream close and on a 15-second interval during active playback.
 - `total_watched_seconds` is incremented from AVPlayer's time observer callbacks on the app side and forwarded to the engine via a dedicated XPC method (deferred to v1.1; the column exists but stays at 0 in v1).
-- `completed = 1` when `resume_byte_offset >= 0.95 * file_size`. On the next stream open, reset `resume_byte_offset = 0`.
+- `completed = 1` when `resume_byte_offset >= 0.95 * file_size`. On the next stream open, reset `resume_byte_offset = 0` (do **not** clear `completed` or `completed_at`; that re-watch is part of the row's history).
+- `completed_at` (A26): set to `now()` on every `completed` 0 → 1 transition, including the initial completion and any subsequent re-completion during a re-watch. Never auto-cleared except by manual mark-unwatched. Most-recent-completion-wins is the v1 rule; preserving the original first-completion date would require a per-watch event log (v2+).
+- **Manual mark-watched** (XPC, introduced with #34): set `completed = 1`, `completed_at = now()`, `resume_byte_offset = 0`. Inserts the row if absent (`last_played_at = now()`).
+- **Manual mark-unwatched** (XPC, introduced with #34): set `completed = 0`, `completed_at = NULL`, `resume_byte_offset = 0`. `last_played_at` is preserved so library ordering does not jump.
+- After **every** write the engine emits `EngineEvents.playbackHistoryChanged(_:)` exactly once (A26). The 15-second tick is the natural coalescing point during active playback.
 
 ### What this means for the UI
 

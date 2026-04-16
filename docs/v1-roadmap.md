@@ -26,7 +26,8 @@ All engine dependencies for p0 work are in place:
 - Phase 6 UI foundations (`T-UI-LIBRARY`, `T-UI-PLAYER`, `T-UI-HEALTH-HUD`) DONE — brand-compliant library and player shells are built and reviewed.
 
 **Missing engine seams** that may surface during p0 execution (each gets a fresh engine issue when encountered):
-- `favourites` table (Epic #5 — #36 needs it).
+- `favourites` table (Epic #5 — #36 needs it). **Filed as `T-STORE-FAVOURITES` in `TASKS.md` Phase 8 during the Phase 1 design pass (2026-04-16).**
+- `playback_history.completed_at` column + `listPlaybackHistory` / `playbackHistoryChanged` XPC surface (Epic #5 — #34 foundation). **Bundled into the #34 foundation PR per `docs/design/watch-state-foundation.md`; spec 05 → rev 5, addendum A26.**
 - Watched-seconds reporting path (spec 05 § exclusion list; anchored in spec 03 exclusion list per F6 — v1.1).
 - Episode metadata association with `playback_history` (Epic #2 + #5 interaction).
 
@@ -44,12 +45,12 @@ Every phase follows the same protocol:
 
 **Why first:** smallest surface, most engine-adjacent, strengthens the existing library/player shells without touching new external services. A credible Phase 1 is a proof that the phased approach works.
 
-**Foundation:** **#34** — watched-state transitions (`in-progress → watched → re-watching`). Defines `WatchStatus` enum, the state machine, and the domain→DTO path for watch state events.
+**Foundation:** **#34** — watched-state transitions (`in-progress → watched → re-watching`). Defines `WatchStatus` enum, the deterministic transition state machine, the new `Packages/LibraryDomain` package, the `completed_at` schema column (V2 migration; spec 05 rev 5; addendum A26), and the `listPlaybackHistory` + `playbackHistoryChanged` XPC additions. **Full design:** [`docs/design/watch-state-foundation.md`](design/watch-state-foundation.md).
 
 **Dependent tickets (merge after foundation):**
-- **#35** continue-watching row generation (depends on #34 state model + `playback_history` queries).
-- **#37** manual mark-watched / mark-unwatched actions (depends on #34 transitions).
-- **#36** favourites with new schema table (independent of #34; needs a new engine issue for the GRDB `favourites` table migration — to be created during the Opus design pass).
+- **#35** continue-watching row generation (depends on #34 state model + `listPlaybackHistory` / `playbackHistoryChanged` XPC surface).
+- **#37** manual mark-watched / mark-unwatched actions (depends on #34 transitions + the new `setWatchedState` XPC method introduced alongside).
+- **#36** favourites with new schema table (independent of #34; depends on engine task `T-STORE-FAVOURITES` in `TASKS.md` Phase 8).
 
 **Deferred / reassigned:**
 - **#72** (macOS: drag-and-drop subtitle files) is labelled `module:macos` but is functionally the same as **#28** (Subtitles: drag-and-drop SRT ingestion onto player). Consolidate in Phase 2 — likely close #72 as duplicate of #28 or split into "drop anywhere in app" vs "drop on player window" if product decides both are needed.
