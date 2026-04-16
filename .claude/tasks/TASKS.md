@@ -308,7 +308,7 @@ Wire resume offset tracking: update every 15 seconds during playback, on stream 
 ### T-CACHE-EVICTION-WIRE `[sonnet]` · DONE — PR #108 (merged 2026-04-16)
 Wire `CacheManager.runEvictionPass` into `RealEngineBackend`. Shipped: 30 s `DispatchSourceTimer` on the backend's serial queue (initial fire at +1 s so subscribers see DTO promptly), candidate computation with tier-rank assignment per spec 05 § Eviction order, v1 wholesale exclusion of pinned + partial-resume + active-stream files, `DiskPressureDTO` emission with 5 s throttle + level-change override, eviction pass invoked only when `level == .critical` and no torrent has an active stream, `StreamRegistry.hasActiveStream(torrentID:)` accessor, 8-case `--eviction-wire-self-test`, pure helpers extracted for coverage. Opus APPROVE-WITH-FOLLOW-UPS (findings F4/F5/F6/F7 applied in-PR; F2 helper-visibility drift and F3 decideToEvict extraction deferred as nice-to-haves). Closes #104.
 
-### T-BRAND-ASSETS `[sonnet]` · TODO
+### T-BRAND-ASSETS `[sonnet]` · DONE 2026-04-16 — `App/AppIcon.icon` authored in Icon Composer from the supplied Liquid Glass prep package, wired into the ButterBar Xcode target as a `folder.iconcomposer.icon` resource, `ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon` set on Debug + Release. Build produces `AppIcon.icns` with the brown-on-blue butter-bar mark; Dock and Finder render correctly after `lsregister -f` + `killall Dock Finder`. Closes #112. Follow-up polish (warm-palette background, per-variant Dark/Tinted/Clear tuning) deferred — open as a new issue if/when desired; the Apple-default blue gradient remains in `icon.json` § fill.
 Author the `AppIcon.icon` bundle by importing the supplied Liquid Glass prep package into Apple's Icon Composer.
 
 **This task requires Icon Composer (Xcode 26 → Open Developer Tool → Icon Composer).** It is hands-on GUI work, not scriptable. Allow ~1–2 hours for tuning.
@@ -338,18 +338,20 @@ The source material is **already supplied** in `icons/ButterBar-LiquidGlass-prep
 - **16-pixel legibility check** — the icon is identifiable as the ButterBar mark at 16 × 16 in Finder list view on a Retina display. The carved play symbol may be invisible at this size; the pat-on-bar silhouette must read.
 - The `icons/ButterBar.icns` and `icons/ButterBar.iconset/` legacy fallbacks remain in `icons/` and are NOT added to the Xcode project for v1.
 
-### T-UI-LIBRARY `[sonnet]` · TODO
-SwiftUI library view: list of torrents, in-memory filter with `localizedStandardContains`, open-file sheet for multi-file torrents.
+### T-UI-LIBRARY `[sonnet]` · DONE 2026-04-16 — Opus-reviewed APPROVE-WITH-FOLLOW-UPS
+SwiftUI library list (`App/Features/Library/LibraryView.swift`, 258 lines) using brand tokens throughout (`surfaceBase`, `cocoa`, `cocoaSoft`, `cocoaFaint`, `creamRaised`, `butter`); calm empty-state copy "Add a magnet link to begin."; in-memory filter via `.searchable` + `localizedStandardContains`; multi-file `FileSelectionSheet`; per-row `TorrentRow` with monospaced numerics for progress and rate; error banner overlay. `LibraryViewModel` (@MainActor) bridges actor-isolated `EngineClient` with `previewWithData` / `previewEmpty` factories. 4 snapshot baselines committed (populated × empty × {light, dark}). Opus review: brand-token compliance ✓, voice ✓, glass-only-on-floating ✓, motion (.easeInOut value-tied) ✓, deployment target ✓. Follow-ups filed: #111 (error banner double-prefix), #114 (HUD initial-visibility analogue is in #114), #116 (`Color.black` token).
 
 **Spec:** `06-brand.md` § Window chrome and layout, § Typography, § Voice. Use `cream`-toned surface, `cocoa` primary text, `cocoaSoft` for metadata. Empty-state copy per the brand voice ("Add a magnet link to begin." not "Welcome!").
 **Acceptance:** Library view renders with brand-compliant colours and typography. Empty state matches the brand voice. Snapshot test for light and dark modes.
 
-### T-UI-PLAYER `[sonnet]` · TODO
-SwiftUI player view with `AVPlayerView` (via `NSViewRepresentable`), `StreamHealth` HUD, peer count, readahead indicator.
+### T-UI-PLAYER `[sonnet]` · DONE 2026-04-16 — Opus-reviewed APPROVE-WITH-FOLLOW-UPS
+SwiftUI player (`App/Features/Player/PlayerView.swift` + `PlayerViewModel.swift` + `AVPlayerViewRepresentable.swift`): `AVPlayerView` wrapped via `NSViewRepresentable`; `.preferredColorScheme(.dark)` enforced regardless of system appearance; `Color.black` letterbox; floating `StreamHealthHUD` at bottom-centre with 24 pt margin, auto-hide on hover (3 s timer); `viewModel.health` subscription via `EngineEventHandler.streamHealthChangedSubject` filtered by `streamID`; resume-seek by byte-ratio when `streamDescriptor.resumeByteOffset > 0`; idempotent `close()` releases `AVPlayer` and calls `closeStream` over XPC. HUD already DONE under T-UI-HEALTH-HUD provides the continuous 800 ms `.easeInOut` buffer-ahead animation, tier-colour 4 pt left strip paired with text label, and `.glassEffect(.regular.interactive())` floating surface. Opus review: dark-by-default ✓, glass-only-on-floating ✓, value-tied .easeInOut motion ✓, brand-token compliance ✓ (one nit: `Color.black` letterbox → #116). Follow-ups filed: #110 (HUD reconnect re-subscribe), #113 (HUD initial visibility timer), #114 (drop unreachable `#available(macOS 26)` guards), #115 (HUD glass tinting), #117 (typed tier enum), #118 (snapshot tests need test scheme).
 
 **Spec:** `06-brand.md` § Window chrome and layout (player window is dark by default), § Motion (slow easeInOut, no springs).
 **Depends on:** `T-UI-LIBRARY`, `T-STREAM-E2E`.
 **Acceptance:** Player window opens dark regardless of system appearance. HUD floats over video with `cocoa` 60% opacity background. Buffer-ahead indicator animates continuously, not in steps.
+
+> Acceptance note: spec 06 § Window chrome supersedes the "cocoa 60% opacity background" wording in this task with `.glassEffect(.regular.interactive())` for the production path on macOS 26. The `cocoa.opacity(0.6)` fallback still exists in code but is unreachable at the v1 deployment target — see #114.
 
 ### T-UI-HEALTH-HUD `[sonnet]` · DONE — Largely subsumed by `StreamHealthHUD` in T-UI-PLAYER: brand tier tokens (`tierHealthy`/`tierMarginal`/`tierStarving`), 400 ms cross-fade, 4 pt left colour strip paired with text label (colour never sole signal), 800 ms buffer-fill animation, glass surface with cocoa fallback. Residual work landed here: light-mode snapshot tests added (3 variants) alongside the existing 3 dark-mode snapshots — 6 total per spec 06 § Test obligations. No tier computation in UI; tier comes from `StreamHealthDTO.tier` as assigned by the engine.
 
