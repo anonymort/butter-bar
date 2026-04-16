@@ -57,6 +57,7 @@
 		EE44FF550011AA22BB33CC44 /* FileSelectionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD33EE44FF550011AA22BB44 /* FileSelectionSheet.swift */; };
 		EE5566778899AABBEE5566FF /* HTTPSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF66778899AABBCC0011FF66 /* HTTPSerializer.swift */; };
 		EW000001000000000000AA01 /* EvictionWireSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = EW000002000000000000AA02 /* EvictionWireSelfTest.swift */; };
+		EW000003000000000000AA03 /* XPCCodesignSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = EW000004000000000000AA04 /* XPCCodesignSelfTest.swift */; };
 		F1000001000000000000FF01 /* EngineService.xpc in Embed XPC Services */ = {isa = PBXBuildFile; fileRef = 8B554906D42C3B11AEA5F497 /* EngineService.xpc */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		F1E2D3C4B5A6F1E2D3C4B5A6 /* FakeEngineBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6B5C4D3E2F1A6B5C4D3E2F1 /* FakeEngineBackend.swift */; };
 		F2A3B4C5D6E7F2A3B4C5D6E7 /* ByteReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F2A3B4C5D6E1F2A3B4C5D6 /* ByteReader.swift */; };
@@ -151,6 +152,7 @@
 		EB3FC12896B9622317749428 /* LibrarySnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySnapshotTests.swift; sourceTree = "<group>"; };
 		EE55FF7788990011AABB2233 /* ResumeTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeTracker.swift; sourceTree = "<group>"; };
 		EW000002000000000000AA02 /* EvictionWireSelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvictionWireSelfTest.swift; sourceTree = "<group>"; };
+		EW000004000000000000AA04 /* XPCCodesignSelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPCCodesignSelfTest.swift; sourceTree = "<group>"; };
 		F5A6B7C8D9E0F5A6B7C8D9E0 /* BridgeSelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeSelfTest.swift; sourceTree = "<group>"; };
 		F6A7B8C9D0E1F6A7B8C9D0E1 /* GatewayPlannerSelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GatewayPlannerSelfTest.swift; sourceTree = "<group>"; };
 		F8C1D5A3B2E497640F3A5B02 /* TorrentBridgeSmokeTest.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = TorrentBridgeSmokeTest.mm; sourceTree = "<group>"; };
@@ -254,6 +256,7 @@
 				B1C2D3E4F5A6B1C2D3E4F5A6 /* EngineXPCServer.swift */,
 				A6B5C4D3E2F1A6B5C4D3E2F1 /* FakeEngineBackend.swift */,
 				C8D9E0F1A2B3C8D9E0F1A2B3 /* RealEngineBackend.swift */,
+				EW000004000000000000AA04 /* XPCCodesignSelfTest.swift */,
 			);
 			path = XPC;
 			sourceTree = "<group>";
@@ -556,6 +559,7 @@
 				A1B2C3D4E5F6A1B2C3D4E5F6 /* EngineXPCServer.swift in Sources */,
 				F1E2D3C4B5A6F1E2D3C4B5A6 /* FakeEngineBackend.swift in Sources */,
 				E7F8A9B0C1D2E7F8A9B0C1D2 /* RealEngineBackend.swift in Sources */,
+				EW000003000000000000AA03 /* XPCCodesignSelfTest.swift in Sources */,
 				B5C7D9E1F3A2048A67B9C0D1 /* TorrentBridgeSmokeTest.mm in Sources */,
 				C2D3E4F5A6B7C2D3E4F5A6B7 /* TorrentBridge.mm in Sources */,
 				E4F5A6B7C8D9E4F5A6B7C8D9 /* BridgeSelfTest.swift in Sources */,

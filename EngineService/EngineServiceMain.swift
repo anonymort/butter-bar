@@ -13,6 +13,16 @@
 import Foundation
 import EngineInterface
 
+// MARK: - Code-signing requirement
+
+/// Requirement string for validating the app peer.
+/// Matches the personal-team OU (`subject.OU = 6633CLRXPK`) of the Apple
+/// Development cert configured at the project's `DEVELOPMENT_TEAM`. A future
+/// migration to a paid Apple Developer Program team will need this updated to
+/// the new team identifier (the new `subject.OU` value).
+private let appCodeSigningRequirement =
+    "identifier \"com.butterbar.app\" and anchor apple generic and certificate leaf[subject.OU] = \"6633CLRXPK\""
+
 // MARK: - XPCDelegate
 
 /// Owns the shared backend for the process lifetime.
@@ -33,6 +43,11 @@ final class XPCDelegate: NSObject, NSXPCListenerDelegate {
         _ listener: NSXPCListener,
         shouldAcceptNewConnection connection: NSXPCConnection
     ) -> Bool {
+        // Reject any peer not signed by the same Apple Development team.
+        // macOS 13+ API. Subsequent messages from a peer that fails the
+        // requirement are silently dropped by the runtime; no exception here.
+        connection.setCodeSigningRequirement(appCodeSigningRequirement)
+
         connection.exportedInterface = XPCInterfaceFactory.engineInterface()
         connection.exportedObject = EngineXPCServer(backend: backend)
 
@@ -81,6 +96,9 @@ enum EngineServiceMain {
         }
         if CommandLine.arguments.contains("--eviction-wire-self-test") {
             runEvictionWireSelfTestAndExit()
+        }
+        if CommandLine.arguments.contains("--xpc-codesign-self-test") {
+            runXPCCodesignSelfTestAndExit()
         }
         #endif
 
