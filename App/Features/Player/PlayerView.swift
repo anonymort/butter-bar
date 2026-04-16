@@ -9,9 +9,9 @@ import SwiftUI
 /// Wraps `AVPlayerView` (via `AVPlayerViewRepresentable`) and floats
 /// `StreamHealthHUD` over the video at the bottom-centre of the frame.
 ///
-/// The HUD appears on mouse movement and auto-hides after 3 seconds of
-/// inactivity. On first appearance the HUD is visible until the first
-/// mouse movement that starts the timer.
+/// The HUD is visible on first appearance and auto-hides after 3 seconds of
+/// inactivity — even if the mouse never moves. Mouse movement resets the
+/// 3-second timer (existing behaviour).
 struct PlayerView: View {
 
     @StateObject private var viewModel: PlayerViewModel
@@ -66,6 +66,7 @@ struct PlayerView: View {
         }
         .onAppear {
             viewModel.play()
+            scheduleHide()
         }
         .onDisappear {
             hideTask?.cancel()
@@ -77,6 +78,12 @@ struct PlayerView: View {
 
     private func showHUD() {
         hudVisible = true
+        scheduleHide()
+    }
+
+    /// Cancels any pending hide task and starts a new 3-second countdown.
+    /// Called both from `.onAppear` (initial timer) and from `showHUD()` (reset on hover).
+    private func scheduleHide() {
         hideTask?.cancel()
         hideTask = Task {
             do {
