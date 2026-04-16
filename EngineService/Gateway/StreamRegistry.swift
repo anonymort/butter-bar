@@ -15,6 +15,8 @@ final class StreamRegistry {
     private let cacheManager: CacheManager?
 
     private var sessions: [String: PlaybackSession] = [:]
+    /// Maps streamID → torrentID. Parallel to `sessions`; kept in sync by createStream/closeStream.
+    private var streamTorrentIDs: [String: String] = [:]
 
     init(cacheManager: CacheManager? = nil) {
         self.cacheManager = cacheManager
@@ -80,6 +82,7 @@ final class StreamRegistry {
         session.onHealthUpdate = onHealthUpdate
         session.start()
         sessions[streamID] = session
+        streamTorrentIDs[streamID] = torrentID
         NSLog("[StreamRegistry] created stream %@", streamID)
         return session
     }
@@ -90,6 +93,7 @@ final class StreamRegistry {
             session.stop()
             NSLog("[StreamRegistry] closed stream %@", streamID)
         }
+        streamTorrentIDs.removeValue(forKey: streamID)
     }
 
     /// Remove all streams, stopping each one.
@@ -99,6 +103,15 @@ final class StreamRegistry {
             NSLog("[StreamRegistry] closed stream %@ (closeAll)", id)
         }
         sessions.removeAll()
+        streamTorrentIDs.removeAll()
+    }
+
+    // MARK: - Active stream query
+
+    /// Returns true if any session is currently registered for the given torrentID.
+    /// Used by the eviction tick to skip torrents with active streams.
+    func hasActiveStream(torrentID: String) -> Bool {
+        streamTorrentIDs.values.contains(torrentID)
     }
 
     // MARK: - Request routing

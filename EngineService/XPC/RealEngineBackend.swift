@@ -50,6 +50,12 @@ final class RealEngineBackend: EngineXPCBackend {
     /// Weak reference to the current event proxy; stored on first subscribe().
     private weak var eventProxy: (EngineEvents & NSObjectProtocol)?
 
+    // MARK: - Eviction timer state (queue-confined)
+
+    private var evictionTimer: DispatchSourceTimer?
+    private var lastDiskPressureEmission: Date?
+    private var lastDiskPressureLevel: DiskPressure?
+
     // MARK: - Init
 
     /// Starts the full engine stack. Exits the process if a critical component fails.
@@ -96,6 +102,13 @@ final class RealEngineBackend: EngineXPCBackend {
         self.alertDispatcher = AlertDispatcher(bridge: bridge)
 
         NSLog("[RealEngineBackend] startup complete")
+
+        // 7. Start the periodic eviction timer (30 s).
+        startEvictionTimer()
+    }
+
+    deinit {
+        evictionTimer?.cancel()
     }
 
     // MARK: - EngineXPCBackend
@@ -242,6 +255,214 @@ final class RealEngineBackend: EngineXPCBackend {
         eventProxy = client
         alertDispatcher.setClient(client)
         alertDispatcher.startListening()
+    }
+
+    // MARK: - Eviction timer
+
+    private func startEvictionTimer() {
+        let timer = DispatchSource.makeTimerSource(queue: queue)
+        // Fire once shortly after startup so subscribers get an initial
+        // DiskPressureDTO without waiting 30 s, then repeat every 30 s.
+        timer.schedule(deadline: .now() + 1, repeating: 30)
+        timer.setEventHandler { [weak self] in self?.runEvictionTick() }
+        timer.resume()
+        evictionTimer = timer
+    }
+
+    /// Periodic eviction tick — runs on `queue`.
+    ///
+    /// All other RealEngineBackend mutations (`addMagnet`, `openStream`, ...) also
+    /// dispatch through `queue.sync`, so the active-stream check below is race-free
+    /// with respect to a stream opening mid-tick. The trade-off: while
+    /// `runEvictionPass` is in flight (force_recheck takes ~0.5 s / 275 MB) the
+    /// queue is blocked, and any inbound `openStream` call waits for the pass to
+    /// finish. That is per spec 05 § Cost and batching ("eviction runs scheduled
+    /// away from the streaming hot path"), and the 30 s tick + critical-only gate
+    /// make it acceptable in practice.
+    private func runEvictionTick() {
+        guard let cm = cacheManager else { return }
+
+        let torrentIDs = knownTorrentIDs
+        guard !torrentIDs.isEmpty else { return }
+
+        let cacheAdapter = TorrentBridgeCacheAdapter(bridge: bridge)
+        let highWater = CacheManager.defaultHighWaterBytes
+        let lowWater  = CacheManager.defaultLowWaterBytes
+
+        // Collect candidates and path sets.
+        var allPaths: [String] = []
+        var pinnedPaths: [String] = []
+        var rawCandidates: [EvictionCandidate] = []
+
+        for torrentID in torrentIDs {
+            guard let rawFiles = try? bridge.listFiles(torrentID) else { continue }
+            let pieceLength = bridge.pieceLength(torrentID)
+            guard pieceLength > 0 else { continue }
+
+            for (index, dict) in rawFiles.enumerated() {
+                let path = dict["path"] as? String ?? ""
+                guard !path.isEmpty else { continue }
+
+                var fileStart: Int64 = 0
+                var fileEnd: Int64 = 0
+                guard (try? bridge.fileByteRange(torrentID,
+                                                  fileIndex: Int32(index),
+                                                  start: &fileStart,
+                                                  end: &fileEnd)) != nil else { continue }
+
+                allPaths.append(path)
+
+                let isPinned = cm.isPinned(torrentId: torrentID, fileIndex: index)
+                let history  = try? cm.fetchHistory(torrentId: torrentID, fileIndex: index)
+                let hasPartialResume = (history?.resumeByteOffset ?? 0) > 0
+                let hasActiveStr = registry.hasActiveStream(torrentID: torrentID)
+
+                // Exclude from candidates: pinned, partial resume, active stream.
+                if isPinned || hasPartialResume || hasActiveStr {
+                    pinnedPaths.append(path)
+                    continue
+                }
+
+                // Tier ranking per spec 05 § Eviction order.
+                //
+                // v1 simplification (issue #104 § Scope): wholesale exclusion of
+                // any file with `resumeByteOffset > 0` (handled above). That means
+                // tier 4 (head of partial) is unreachable, and the tier 3 branch
+                // here only fires for the degenerate case "history exists but
+                // resumeByteOffset == 0 and not completed" (e.g. file was started
+                // and rewound to byte 0 without finishing). True per-piece pinning
+                // of the resume cushion + tail-only tier 3 eviction is deferred.
+                let tierRank: Int
+                if let h = history {
+                    tierRank = h.completed ? 2 : 3
+                } else {
+                    tierRank = 1
+                }
+
+                rawCandidates.append(EvictionCandidate(
+                    torrentId: torrentID,
+                    fileIndex: index,
+                    onDiskPath: path,
+                    fileStartInTorrent: fileStart,
+                    fileEndInTorrent: fileEnd,
+                    pieceLength: pieceLength,
+                    lastPlayedAtMs: history?.lastPlayedAt,
+                    completed: history?.completed ?? false,
+                    tierRank: tierRank
+                ))
+            }
+        }
+
+        let candidates = makeCandidates(unsorted: rawCandidates)
+
+        // Compute disk pressure.
+        let usedBytesTotal  = cm.usedBytes(paths: allPaths)
+        let usedBytesPinned = cm.usedBytes(paths: pinnedPaths)
+        let level = cm.pressure(usedBytes: usedBytesTotal, highWater: highWater)
+
+        // Emit DiskPressureDTO if warranted.
+        let now = Date()
+        if shouldEmitPressure(now: now, level: level,
+                               lastEmission: lastDiskPressureEmission,
+                               lastLevel: lastDiskPressureLevel) {
+            let dto = makePressureDTO(cm: cm,
+                                      totalBudget: highWater,
+                                      usedBytes: usedBytesTotal,
+                                      pinnedBytes: usedBytesPinned)
+            eventProxy?.diskPressureChanged(dto)
+            lastDiskPressureEmission = now
+            lastDiskPressureLevel = level
+        }
+
+        // Only run eviction when critical and no torrent has an active stream.
+        guard level == .critical else { return }
+        let anyActive = torrentIDs.contains { registry.hasActiveStream(torrentID: $0) }
+        guard !anyActive, !candidates.isEmpty else {
+            if anyActive {
+                NSLog("[RealEngineBackend] eviction deferred: active streams present")
+            }
+            return
+        }
+
+        NSLog("[RealEngineBackend] running eviction pass (%d candidates)", candidates.count)
+        do {
+            let result = try cm.runEvictionPass(
+                candidates: candidates,
+                bridge: cacheAdapter,
+                highWaterBytes: highWater,
+                lowWaterBytes: lowWater
+            )
+            NSLog("[RealEngineBackend] eviction pass complete: evicted=%d reclaimed=%lld bytes",
+                  result.candidatesEvicted, result.bytesReclaimed)
+
+            // Re-measure and emit immediately after eviction (override throttle for state transition).
+            let levelAfter = result.pressureAfter
+            let pinnedAfter = cm.usedBytes(paths: pinnedPaths)
+            let dtoAfter = makePressureDTO(cm: cm,
+                                           totalBudget: highWater,
+                                           usedBytes: result.usedBytesAfter,
+                                           pinnedBytes: pinnedAfter)
+            let postNow = Date()
+            eventProxy?.diskPressureChanged(dtoAfter)
+            lastDiskPressureEmission = postNow
+            lastDiskPressureLevel = levelAfter
+        } catch {
+            NSLog("[RealEngineBackend] eviction pass error (non-fatal): %@", "\(error)")
+        }
+    }
+
+    // MARK: - Pure helpers (extracted for self-test)
+
+    /// Sorts an unsorted candidate list: tierRank ASC, then lastPlayedAtMs ASC (nils last).
+    func makeCandidates(unsorted: [EvictionCandidate]) -> [EvictionCandidate] {
+        unsorted.sorted {
+            if $0.tierRank != $1.tierRank { return $0.tierRank < $1.tierRank }
+            switch ($0.lastPlayedAtMs, $1.lastPlayedAtMs) {
+            case let (a?, b?): return a < b
+            case (.some, .none): return true   // non-nil sorts before nil (oldest first)
+            case (.none, .some): return false
+            case (.none, .none): return false
+            }
+        }
+    }
+
+    /// Returns true if a DiskPressureDTO should be emitted now.
+    /// Emits when: first ever, level changed, or >= 5 s since last emission.
+    func shouldEmitPressure(now: Date,
+                             level: DiskPressure,
+                             lastEmission: Date?,
+                             lastLevel: DiskPressure?) -> Bool {
+        guard let last = lastEmission, let prevLevel = lastLevel else {
+            return true
+        }
+        if level != prevLevel { return true }
+        return now.timeIntervalSince(last) >= 5.0
+    }
+
+    /// Builds a DiskPressureDTO from measured values.
+    ///
+    /// v1 semantics: `pinnedBytes` reports total on-disk bytes for every file the
+    /// tick excluded from candidacy — that is, the union of (a) explicitly pinned
+    /// files, (b) files with non-zero resume offset (v1 wholesale exclusion), and
+    /// (c) files belonging to torrents with an active stream. This is broader
+    /// than spec 05 § Pinned set's strict definition (active stream window pieces
+    /// + resume cushion pieces + explicit pins) and intentionally over-reports
+    /// rather than under-reports — `evictableBytes` then represents the actual
+    /// at-risk surface for an eviction pass. UI showing "pinned: X GB" should
+    /// label this as "protected" rather than implying spec-strict pinning.
+    func makePressureDTO(cm: CacheManager,
+                          totalBudget: Int64,
+                          usedBytes: Int64,
+                          pinnedBytes: Int64) -> DiskPressureDTO {
+        let evictable = max(0, usedBytes - pinnedBytes)
+        let level = cm.pressure(usedBytes: usedBytes, highWater: totalBudget)
+        return DiskPressureDTO(
+            totalBudgetBytes: totalBudget,
+            usedBytes: usedBytes,
+            pinnedBytes: pinnedBytes,
+            evictableBytes: evictable,
+            level: level.rawValue as NSString
+        )
     }
 
     // MARK: - Private helpers

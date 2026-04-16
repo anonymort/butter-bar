@@ -79,6 +79,9 @@ enum EngineServiceMain {
         if CommandLine.arguments.contains("--resume-tracker-self-test") {
             runResumeTrackerSelfTestAndExit()
         }
+        if CommandLine.arguments.contains("--eviction-wire-self-test") {
+            runEvictionWireSelfTestAndExit()
+        }
         #endif
 
         NSLog("[EngineService-main] creating XPCDelegate + backend")
