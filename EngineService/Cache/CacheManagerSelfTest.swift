@@ -373,18 +373,24 @@ func runCacheManagerSelfTests() -> [String] {
                "9: forceRecheck call count (\(bridge.forceRecheckCalls.count)) " +
                "should equal torrentsRechecked (\(result.torrentsRechecked))")
 
-        // statusState must have been polled.
-        expect(bridge.statusStateCalls.count > 0,
-               "9: statusState should be polled at least once, got \(bridge.statusStateCalls.count)")
+        // statusState must have been polled at least 3× per recheck: the mock
+        // state machine returns checkingResumeData, checkingFiles, finished —
+        // verifying the wait loop actually spun through its sleep branch.
+        let expectedMinPolls = 3 * result.torrentsRechecked
+        expect(bridge.statusStateCalls.count >= expectedMinPolls,
+               "9: statusState should be polled at least \(expectedMinPolls) times (3× per recheck to exercise wait-loop spin), got \(bridge.statusStateCalls.count)")
 
-        // bytesReclaimed >= 0 (F_PUNCHHOLE works on APFS; on HFS+ it will silently
-        // produce 0 reclaim — that's acceptable in a self-test environment).
+        // F_PUNCHHOLE works on APFS (the macOS system disk). NSTemporaryDirectory()
+        // is on APFS on all supported macOS versions for ButterBar, so we expect
+        // actual byte reclamation. Allow 0 as a fallback with a warning so the
+        // test doesn't fail on an unusual dev machine, but expect > 0 in practice.
         expect(result.bytesReclaimed >= 0,
-               "9: bytesReclaimed should be >= 0, got \(result.bytesReclaimed)")
-
-        if result.bytesReclaimed == 0 {
-            NSLog("[CacheManagerSelfTest] Test 9: bytesReclaimed == 0 — likely running on HFS+ " +
-                  "or a filesystem that does not support F_PUNCHHOLE. Structural assertions still pass.")
+               "9: bytesReclaimed should be non-negative, got \(result.bytesReclaimed)")
+        if result.bytesReclaimed > 0 {
+            // Expected path on APFS: four 64 KiB pieces × two files = ~512 KiB reclaimed.
+            NSLog("[CacheManagerSelfTest] Test 9: reclaimed %lld bytes — F_PUNCHHOLE working as expected.", result.bytesReclaimed)
+        } else {
+            NSLog("[CacheManagerSelfTest] Test 9: bytesReclaimed == 0 — filesystem may not support F_PUNCHHOLE (HFS+ or other non-APFS). Structural assertions still passed.")
         }
     } catch {
         fail("9: unexpected error: \(error)")
@@ -410,8 +416,12 @@ private final class MockCacheManagerBridge: CacheManagerBridge {
     private(set) var forceRecheckCalls: [String] = []
     private(set) var statusStateCalls: [String] = []
 
-    // Per-torrent poll counter drives the state machine:
-    //   call 0   → "downloading"
+    // Per-torrent poll counter drives the state machine. The first polls
+    // return a checking state so waitForRecheckToComplete has to spin
+    // through its sleep branch — if the first poll were non-checking the
+    // wait loop would return immediately and the sleep path wouldn't be
+    // exercised (Opus review D2).
+    //   call 0   → "checkingResumeData"
     //   call 1   → "checkingFiles"
     //   call 2+  → "finished"
     private var pollCounts: [String: Int] = [:]
@@ -431,7 +441,7 @@ private final class MockCacheManagerBridge: CacheManagerBridge {
         let count = pollCounts[torrentID] ?? 0
         pollCounts[torrentID] = count + 1
         switch count {
-        case 0:  return "downloading"
+        case 0:  return "checkingResumeData"
         case 1:  return "checkingFiles"
         default: return "finished"
         }

@@ -100,7 +100,7 @@ extension CacheManager {
     public func evictFile(
         candidate: EvictionCandidate,
         bridge: CacheManagerBridge,
-        rechecktimeoutSeconds: Double = 120
+        recheckTimeoutSeconds: Double = 120
     ) throws -> Int64 {
         let torrentId = candidate.torrentId
         let fileIndex = candidate.fileIndex
@@ -138,13 +138,12 @@ extension CacheManager {
         let lastFullExcl = Int(fileEnd / pieceLength)
 
         guard firstFull < lastFullExcl else {
-            // File is smaller than one piece — nothing to punch.
-            NSLog("[CacheManager] evictFile: file %@ has no full interior pieces (firstFull=%d lastFullExcl=%d), skipping punch",
+            // Nothing to punch and nothing has changed on disk, so no recheck
+            // is needed (Opus review D3 — previous code unnecessarily issued
+            // a whole-torrent force_recheck here for zero reclaim).
+            NSLog("[CacheManager] evictFile: file %@ has no full interior pieces (firstFull=%d lastFullExcl=%d); no-op",
                   path, firstFull, lastFullExcl)
-            // Still recheck so the bitmap reflects reality.
-            return try recheckAndWait(torrentId: torrentId, bridge: bridge,
-                                      bytesBefore: bytesBefore, path: path,
-                                      timeoutSeconds: rechecktimeoutSeconds)
+            return 0
         }
 
         let fd = open(path, O_RDWR)
@@ -185,7 +184,7 @@ extension CacheManager {
         // Steps 3 + 4: forceRecheck and wait.
         return try recheckAndWait(torrentId: torrentId, bridge: bridge,
                                   bytesBefore: bytesBefore, path: path,
-                                  timeoutSeconds: rechecktimeoutSeconds)
+                                  timeoutSeconds: recheckTimeoutSeconds)
     }
 
     // MARK: - Top-level eviction pass
@@ -261,6 +260,13 @@ extension CacheManager {
             let firstFull = Int((fileStart + pieceLength - 1) / pieceLength)
             let lastFullExcl = Int(fileEnd / pieceLength)
 
+            // Snapshot pre-punch on-disk bytes so we can subtract the file's
+            // FULL contribution from currentUsed after punching. Subtracting
+            // post-punch bytes (Opus review D1) would understate reclaim and
+            // over-evict on APFS.
+            var preSt = stat()
+            let preOnDisk: Int64 = (stat(path, &preSt) == 0) ? Int64(preSt.st_blocks) * 512 : 0
+
             if firstFull >= lastFullExcl {
                 NSLog("[CacheManager] runEvictionPass: no full interior pieces for %@, skipping punch", path)
             } else {
@@ -292,16 +298,11 @@ extension CacheManager {
                 }
             }
 
-            // Optimistically subtract this file's current on-disk allocation from
-            // the running total so we stop selecting candidates as soon as we
-            // expect to reach lowWater. The true reclaimed bytes are measured
-            // after all rechecks complete. Using st_blocks * 512 is consistent
-            // with usedBytes(paths:).
-            var st = stat()
-            if stat(path, &st) == 0 {
-                let onDisk = Int64(st.st_blocks) * 512
-                currentUsed = max(0, currentUsed - onDisk)
-            }
+            // Predict this file will contribute ~0 to on-disk usage after the
+            // recheck settles (priority=0 prevents auto-refetch). Subtracting
+            // the pre-punch on-disk bytes from currentUsed gives an accurate
+            // stop-criterion: once predicted total <= lowWater we stop selecting.
+            currentUsed = max(0, currentUsed - preOnDisk)
         }
 
         // Step 3: forceRecheck once per distinct torrentId.

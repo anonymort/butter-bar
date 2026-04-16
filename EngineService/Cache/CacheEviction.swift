@@ -87,10 +87,12 @@ public final class TorrentBridgeCacheAdapter: CacheManagerBridge {
         let snapshot = try bridge.statusSnapshot(torrentID) as NSDictionary?
         guard let snap = snapshot,
               let state = snap["state"] as? String else {
+            // No snapshot or no state key. The most common cause is the
+            // torrent having been removed; torrentNotFound is the honest code.
             throw NSError(
                 domain: TorrentBridgeErrorDomain,
-                code: Int(TorrentBridgeError.readError.rawValue),
-                userInfo: [NSLocalizedDescriptionKey: "statusSnapshot missing or nil for \(torrentID)"]
+                code: Int(TorrentBridgeError.torrentNotFound.rawValue),
+                userInfo: [NSLocalizedDescriptionKey: "statusSnapshot missing or malformed for \(torrentID)"]
             )
         }
         return state
