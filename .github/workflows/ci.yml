@@ -37,6 +37,14 @@ jobs:
       - name: Placeholder
         run: echo "CI scaffolded; actual build steps come online with T-REPO-INIT."
 
+      - name: Snapshot tests
+        run: |
+          xcodebuild test \
+            -scheme ButterBar \
+            -only-testing:ButterBarTests/LibrarySnapshotTests \
+            -only-testing:ButterBarTests/PlayerHUDSnapshotTests \
+            -destination 'platform=macOS'
+
   link-check:
     name: PR must link an issue
     runs-on: ubuntu-latest
