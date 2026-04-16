@@ -11,7 +11,8 @@ final class LibraryViewModel: ObservableObject {
     @Published var torrents: [TorrentSummaryDTO] = []
     @Published var loadError: String?
 
-    private let client: EngineClient
+    /// Exposed so `LibraryView` can pass the client to `PlayerView` for stream lifecycle.
+    let engineClient: EngineClient
     private(set) var isRefreshing: Bool = false
 
     /// Set `true` in preview/snapshot factory methods to prevent `.task` from
@@ -20,7 +21,7 @@ final class LibraryViewModel: ObservableObject {
     var skipRefresh: Bool = false
 
     init(client: EngineClient) {
-        self.client = client
+        self.engineClient = client
     }
 
     func refresh() async {
@@ -29,7 +30,7 @@ final class LibraryViewModel: ObservableObject {
         isRefreshing = true
         defer { isRefreshing = false }
         do {
-            torrents = try await client.listTorrents()
+            torrents = try await engineClient.listTorrents()
             loadError = nil
         } catch {
             loadError = error.localizedDescription
@@ -37,12 +38,12 @@ final class LibraryViewModel: ObservableObject {
     }
 
     func listFiles(torrentID: String) async throws -> [TorrentFileDTO] {
-        try await client.listFiles(torrentID as NSString)
+        try await engineClient.listFiles(torrentID as NSString)
     }
 
     /// Connects the underlying `EngineClient`. Safe to call from any async context.
     func connectEngine() async {
-        await client.connect()
+        await engineClient.connect()
     }
 }
 

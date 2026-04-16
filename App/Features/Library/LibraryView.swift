@@ -10,6 +10,9 @@ struct LibraryView: View {
     @State private var searchQuery: String = ""
     @State private var selectedTorrentID: String?
     @State private var fileSheetState: FileSheetState?
+    /// Wraps `StreamDescriptorDTO` with a stable `Identifiable` id so we can
+    /// use `.sheet(item:)` without making `StreamDescriptorDTO` itself `Identifiable`.
+    @State private var activeStream: ActiveStream?
 
     var body: some View {
         Group {
@@ -22,12 +25,29 @@ struct LibraryView: View {
         .background(BrandColors.surfaceBase)
         .searchable(text: $searchQuery, placement: .toolbar, prompt: "Filter")
         .task { await viewModel.refresh() }
+        // File selection sheet (multi-file torrents).
         .sheet(item: $fileSheetState) { state in
             FileSelectionSheet(
                 torrentName: state.torrentName,
                 files: state.files,
-                onSelect: { _ in fileSheetState = nil }
+                onSelect: { fileIndex in
+                    fileSheetState = nil
+                    openStream(torrentID: state.torrentID, fileIndex: fileIndex)
+                }
             )
+        }
+        // Player sheet — presented when a stream is successfully opened.
+        .sheet(item: $activeStream) { stream in
+            PlayerView(
+                streamDescriptor: stream.descriptor,
+                engineClient: viewModel.engineClient
+            )
+            .frame(minWidth: 640, minHeight: 360)
+            .onDisappear {
+                // PlayerView.onDisappear calls close() on the view model;
+                // clear the active stream state so the sheet binding is released.
+                activeStream = nil
+            }
         }
         .animation(.easeInOut(duration: 0.25), value: filteredTorrents.count)
     }
@@ -104,20 +124,51 @@ struct LibraryView: View {
             do {
                 let files = try await viewModel.listFiles(torrentID: torrent.torrentID as String)
                 if files.count > 1 {
-                    fileSheetState = FileSheetState(torrentName: torrent.name as String, files: files)
+                    fileSheetState = FileSheetState(
+                        torrentID: torrent.torrentID as String,
+                        torrentName: torrent.name as String,
+                        files: files
+                    )
+                } else {
+                    // Single-file torrent: open stream directly at index 0.
+                    openStream(torrentID: torrent.torrentID as String, fileIndex: 0)
                 }
-                // Single-file: row is selected; no sheet.
             } catch {
                 viewModel.loadError = "Could not load files: \(error.localizedDescription)"
             }
         }
     }
+
+    /// Calls `openStream` on the engine and, on success, presents the player sheet.
+    private func openStream(torrentID: String, fileIndex: Int32) {
+        Task {
+            do {
+                let descriptor = try await viewModel.engineClient.openStream(
+                    torrentID as NSString,
+                    fileIndex: NSNumber(value: fileIndex)
+                )
+                activeStream = ActiveStream(descriptor: descriptor)
+            } catch {
+                viewModel.loadError = "Could not open stream: \(error.localizedDescription)"
+            }
+        }
+    }
+}
+
+// MARK: - ActiveStream
+
+/// Stable `Identifiable` wrapper for `StreamDescriptorDTO` — required for
+/// `.sheet(item:)` which needs `Identifiable` conformance.
+struct ActiveStream: Identifiable {
+    let id = UUID()
+    let descriptor: StreamDescriptorDTO
 }
 
 // MARK: - FileSheetState
 
 private struct FileSheetState: Identifiable {
     let id = UUID()
+    let torrentID: String
     let torrentName: String
     let files: [TorrentFileDTO]
 }
