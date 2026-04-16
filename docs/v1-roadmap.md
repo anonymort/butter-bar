@@ -65,19 +65,21 @@ Every phase follows the same protocol:
 
 **Why second:** self-contained (mostly AVKit + ingestion), no cross-module dependencies, and unblocks Phase 3's subtitle picker (#22).
 
-**Foundation:** **#27** — define subtitle model and supported formats (SRT, embedded WebVTT, embedded MOV text). Produces `SubtitleTrack` type, format-detection logic, and the contract between ingestion + player.
+**Foundation:** **#27** — define `SubtitleTrack`, the sidecar SRT parser, and the language resolver. Lands the new `Packages/SubtitleDomain` package (pure Swift, AVKit-free) plus the ingestion / selection / fallback contracts used by #28, #29, #30, #32. **Full design:** [`docs/design/subtitle-foundation.md`](design/subtitle-foundation.md).
 
 **Dependent tickets (merge after foundation):**
-- **#28** drag-and-drop SRT ingestion onto player window (consolidates #72 if product confirms they're the same feature).
-- **#29** selection UI (depends on #27; surfaces in the player overlay).
-- **#30** persist preferred language (depends on #29 for UI; writes to `settings` table).
-- **#32** fallback when load fails (depends on #28 + #29; writes visible error state per `06-brand.md` voice).
+- **#28** drag-and-drop SRT ingestion onto the player window. **Consolidates #72** — closed as duplicate during the Phase 2 design pass (design doc D4).
+- **#29** selection UI (depends on #27; surfaces in the player HUD; consumed verbatim by Phase 3 #22).
+- **#30** persist preferred language in `UserDefaults` under `"subtitles.preferredLanguage"` (design doc D6 — revision of the previous "writes to `settings` table" wording; preference is pure UI state, no engine round-trip).
+- **#32** fallback when load fails (depends on #28 + #29; HUD banner, one-at-a-time, per `06-brand.md` voice — see design doc § Fallback matrix).
 
 **Out of scope for Phase 2:**
 - OpenSubtitles search — explicitly deferred per `01-architecture.md § What v1 explicitly excludes`.
+- Sidecar WebVTT / ASS / SSA / image-based subtitles — deferred per design doc D2.
+- Cross-session sidecar persistence — explicit v1 limitation per design doc D5.
 - Subtitle offset / styling controls — v1.5+ per spec 07.
 
-**Phase 2 done =** #27, #28, #29, #30, #32 closed; epic #4 closed; #72 closed or explicitly re-scoped as a distinct feature; user can drag a `.srt` onto the player, pick a track, and have the preference persisted.
+**Phase 2 done =** #27, #28, #29, #30, #32 closed; #72 closed as duplicate of #28; epic #4 closed; user can drag a `.srt` onto the player, pick a track, and have the preference persisted across launches.
 
 ### Phase 3 — Playback UX (Epic #3)
 
