@@ -118,10 +118,7 @@ public actor EngineClient {
 
             let p: any EngineXPC
             do {
-                p = try proxy(errorHandler: { error in
-                    NSLog("[EngineClient] listTorrents XPC error: %@", error.localizedDescription)
-                    resumer.resume(throwing: EngineClientError.serviceError(error))
-                })
+                p = try proxy(method: "listTorrents", resumer: resumer)
             } catch {
                 resumer.resume(throwing: error)
                 return
@@ -135,15 +132,24 @@ public actor EngineClient {
 
     /// Adds a torrent by magnet link. Returns the initial `TorrentSummaryDTO`.
     public func addMagnet(_ magnet: String) async throws -> TorrentSummaryDTO {
-        let p = try proxy()
         return try await withCheckedThrowingContinuation { cont in
+            let resumer = ContinuationResumer(cont)
+
+            let p: any EngineXPC
+            do {
+                p = try proxy(method: "addMagnet", resumer: resumer)
+            } catch {
+                resumer.resume(throwing: error)
+                return
+            }
+
             p.addMagnet(magnet) { dto, error in
                 if let error {
-                    cont.resume(throwing: EngineClientError.serviceError(error))
+                    resumer.resume(throwing: EngineClientError.serviceError(error))
                 } else if let dto {
-                    cont.resume(returning: dto)
+                    resumer.resume(returning: dto)
                 } else {
-                    cont.resume(throwing: EngineClientError.serviceError(
+                    resumer.resume(throwing: EngineClientError.serviceError(
                         NSError(domain: EngineErrorDomain,
                                 code: EngineErrorCode.notImplemented.rawValue,
                                 userInfo: [NSLocalizedDescriptionKey: "addMagnet returned nil without error"])))
@@ -154,15 +160,24 @@ public actor EngineClient {
 
     /// Adds a torrent from a security-scoped bookmark. Returns the initial `TorrentSummaryDTO`.
     public func addTorrentFile(_ bookmarkData: NSData) async throws -> TorrentSummaryDTO {
-        let p = try proxy()
         return try await withCheckedThrowingContinuation { cont in
+            let resumer = ContinuationResumer(cont)
+
+            let p: any EngineXPC
+            do {
+                p = try proxy(method: "addTorrentFile", resumer: resumer)
+            } catch {
+                resumer.resume(throwing: error)
+                return
+            }
+
             p.addTorrentFile(bookmarkData) { dto, error in
                 if let error {
-                    cont.resume(throwing: EngineClientError.serviceError(error))
+                    resumer.resume(throwing: EngineClientError.serviceError(error))
                 } else if let dto {
-                    cont.resume(returning: dto)
+                    resumer.resume(returning: dto)
                 } else {
-                    cont.resume(throwing: EngineClientError.serviceError(
+                    resumer.resume(throwing: EngineClientError.serviceError(
                         NSError(domain: EngineErrorDomain,
                                 code: EngineErrorCode.notImplemented.rawValue,
                                 userInfo: [NSLocalizedDescriptionKey: "addTorrentFile returned nil without error"])))
@@ -173,13 +188,22 @@ public actor EngineClient {
 
     /// Removes a torrent, optionally deleting downloaded data.
     public func removeTorrent(_ torrentID: NSString, deleteData: Bool) async throws {
-        let p = try proxy()
         try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+            let resumer = ContinuationResumer(cont)
+
+            let p: any EngineXPC
+            do {
+                p = try proxy(method: "removeTorrent", resumer: resumer)
+            } catch {
+                resumer.resume(throwing: error)
+                return
+            }
+
             p.removeTorrent(torrentID, deleteData: deleteData) { error in
                 if let error {
-                    cont.resume(throwing: EngineClientError.serviceError(error))
+                    resumer.resume(throwing: EngineClientError.serviceError(error))
                 } else {
-                    cont.resume()
+                    resumer.resume(returning: ())
                 }
             }
         }
@@ -187,13 +211,22 @@ public actor EngineClient {
 
     /// Lists the files contained in a multi-file torrent.
     public func listFiles(_ torrentID: NSString) async throws -> [TorrentFileDTO] {
-        let p = try proxy()
         return try await withCheckedThrowingContinuation { cont in
+            let resumer = ContinuationResumer(cont)
+
+            let p: any EngineXPC
+            do {
+                p = try proxy(method: "listFiles", resumer: resumer)
+            } catch {
+                resumer.resume(throwing: error)
+                return
+            }
+
             p.listFiles(torrentID) { files, error in
                 if let error {
-                    cont.resume(throwing: EngineClientError.serviceError(error))
+                    resumer.resume(throwing: EngineClientError.serviceError(error))
                 } else {
-                    cont.resume(returning: files)
+                    resumer.resume(returning: files)
                 }
             }
         }
@@ -201,13 +234,22 @@ public actor EngineClient {
 
     /// Marks a subset of files as wanted (prioritised for download).
     public func setWantedFiles(_ torrentID: NSString, fileIndexes: [NSNumber]) async throws {
-        let p = try proxy()
         try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+            let resumer = ContinuationResumer(cont)
+
+            let p: any EngineXPC
+            do {
+                p = try proxy(method: "setWantedFiles", resumer: resumer)
+            } catch {
+                resumer.resume(throwing: error)
+                return
+            }
+
             p.setWantedFiles(torrentID, fileIndexes: fileIndexes) { error in
                 if let error {
-                    cont.resume(throwing: EngineClientError.serviceError(error))
+                    resumer.resume(throwing: EngineClientError.serviceError(error))
                 } else {
-                    cont.resume()
+                    resumer.resume(returning: ())
                 }
             }
         }
@@ -215,15 +257,24 @@ public actor EngineClient {
 
     /// Opens a playback stream for a file. Returns a `StreamDescriptorDTO` with the loopback URL.
     public func openStream(_ torrentID: NSString, fileIndex: NSNumber) async throws -> StreamDescriptorDTO {
-        let p = try proxy()
         return try await withCheckedThrowingContinuation { cont in
+            let resumer = ContinuationResumer(cont)
+
+            let p: any EngineXPC
+            do {
+                p = try proxy(method: "openStream", resumer: resumer)
+            } catch {
+                resumer.resume(throwing: error)
+                return
+            }
+
             p.openStream(torrentID, fileIndex: fileIndex) { dto, error in
                 if let error {
-                    cont.resume(throwing: EngineClientError.serviceError(error))
+                    resumer.resume(throwing: EngineClientError.serviceError(error))
                 } else if let dto {
-                    cont.resume(returning: dto)
+                    resumer.resume(returning: dto)
                 } else {
-                    cont.resume(throwing: EngineClientError.serviceError(
+                    resumer.resume(throwing: EngineClientError.serviceError(
                         NSError(domain: EngineErrorDomain,
                                 code: EngineErrorCode.streamOpenFailed.rawValue,
                                 userInfo: [NSLocalizedDescriptionKey: "openStream returned nil without error"])))
@@ -234,10 +285,19 @@ public actor EngineClient {
 
     /// Closes a previously-opened stream.
     public func closeStream(_ streamID: NSString) async throws {
-        let p = try proxy()
-        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
+        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+            let resumer = ContinuationResumer(cont)
+
+            let p: any EngineXPC
+            do {
+                p = try proxy(method: "closeStream", resumer: resumer)
+            } catch {
+                resumer.resume(throwing: error)
+                return
+            }
+
             p.closeStream(streamID) {
-                cont.resume()
+                resumer.resume(returning: ())
             }
         }
     }
@@ -268,8 +328,14 @@ public actor EngineClient {
         return proxy
     }
 
-    private func proxy() throws -> any EngineXPC {
-        try proxy(errorHandler: { _ in })
+    private func proxy<Value: Sendable>(
+        method: String,
+        resumer: ContinuationResumer<Value>
+    ) throws -> any EngineXPC {
+        try proxy(errorHandler: { error in
+            NSLog("[EngineClient] %@ XPC error: %@", method, error.localizedDescription)
+            resumer.resume(throwing: EngineClientError.serviceError(error))
+        })
     }
 
     /// Called when the XPC connection is fully invalidated (engine process died or was killed).
