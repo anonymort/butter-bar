@@ -43,6 +43,10 @@
 		CC33DD55EE77FF99AA11BB33 /* CacheManagerSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB88CC00DD22EE44FF66AA88 /* CacheManagerSelfTest.swift */; };
 		DD44EE66FF88AABB11223344 /* ResumeTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE55FF7788990011AABB2233 /* ResumeTracker.swift */; };
 		AA33BB55CC77DD99EE11FF33 /* ResumeTrackerSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF6600889900AABB11CC2233 /* ResumeTrackerSelfTest.swift */; };
+		BB11CC22DD33EE44FF550011 /* ColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00BB11CC22DD33EE44FF55 /* ColorExtensions.swift */; };
+		CC22DD33EE44FF550011AA22 /* LibraryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB11CC22DD33EE44FF550022 /* LibraryViewModel.swift */; };
+		DD33EE44FF550011AA22BB33 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC22DD33EE44FF550011AA33 /* LibraryView.swift */; };
+		EE44FF550011AA22BB33CC44 /* FileSelectionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD33EE44FF550011AA22BB44 /* FileSelectionSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -84,6 +88,10 @@
 		FF66EE55DD44CC33BB22AA11 /* EngineClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineClient.swift; sourceTree = "<group>"; };
 		AA7766FF55EE44DD33CC22BB /* EngineEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineEventHandler.swift; sourceTree = "<group>"; };
 		DD44EE55FF6677AA88BB99CC /* DTOSendable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTOSendable.swift; sourceTree = "<group>"; };
+		AA00BB11CC22DD33EE44FF55 /* ColorExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorExtensions.swift; sourceTree = "<group>"; };
+		BB11CC22DD33EE44FF550022 /* LibraryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryViewModel.swift; sourceTree = "<group>"; };
+		CC22DD33EE44FF550011AA33 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		DD33EE44FF550011AA22BB44 /* FileSelectionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSelectionSheet.swift; sourceTree = "<group>"; };
 		E3A7F9C2B1D486530E2F4A91 /* TorrentBridgeSmokeTest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TorrentBridgeSmokeTest.h; sourceTree = "<group>"; };
 		F8C1D5A3B2E497640F3A5B02 /* TorrentBridgeSmokeTest.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = TorrentBridgeSmokeTest.mm; sourceTree = "<group>"; };
 		B8C9D0E1F2A3B8C9D0E1F2A3 /* TorrentBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TorrentBridge.h; sourceTree = "<group>"; };
@@ -157,6 +165,7 @@
 			children = (
 				A0339C9D8ED637562D06C13F /* BrandColors.swift */,
 				85244C3556DDB6DB1831AAB0 /* BrandTypography.swift */,
+				AA00BB11CC22DD33EE44FF55 /* ColorExtensions.swift */,
 			);
 			path = Brand;
 			sourceTree = "<group>";
@@ -164,8 +173,19 @@
 		2E8A3935F76DD63B81D5BCD8 /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				EE44FF5500AA11BB22CC33DD /* Library */,
 			);
 			path = Features;
+			sourceTree = "<group>";
+		};
+		EE44FF5500AA11BB22CC33DD /* Library */ = {
+			isa = PBXGroup;
+			children = (
+				BB11CC22DD33EE44FF550022 /* LibraryViewModel.swift */,
+				CC22DD33EE44FF550011AA33 /* LibraryView.swift */,
+				DD33EE44FF550011AA22BB44 /* FileSelectionSheet.swift */,
+			);
+			path = Library;
 			sourceTree = "<group>";
 		};
 		A6AB9F900515E6EB3A7A72A7 /* Shared */ = {
@@ -410,6 +430,10 @@
 				AA11BB22CC33DD44EE55FF66 /* EngineClient.swift in Sources */,
 				BB22CC33DD44EE55FF6677AA /* EngineEventHandler.swift in Sources */,
 				CC33DD44EE55FF6677AA88BB /* DTOSendable.swift in Sources */,
+				BB11CC22DD33EE44FF550011 /* ColorExtensions.swift in Sources */,
+				CC22DD33EE44FF550011AA22 /* LibraryViewModel.swift in Sources */,
+				DD33EE44FF550011AA22BB33 /* LibraryView.swift in Sources */,
+				EE44FF550011AA22BB33CC44 /* FileSelectionSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
