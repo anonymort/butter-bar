@@ -113,6 +113,28 @@ import EngineInterface
         }
     }
 
+    // MARK: - Favourites (#36)
+
+    func listFavourites(_ reply: @escaping ([FavouriteDTO]) -> Void) {
+        reply(backend.listFavourites())
+    }
+
+    func setFavourite(_ torrentID: NSString,
+                      fileIndex: NSNumber,
+                      isFavourite: Bool,
+                      reply: @escaping (NSError?) -> Void) {
+        do {
+            try backend.setFavourite(
+                torrentID: torrentID as String,
+                fileIndex: fileIndex.intValue,
+                isFavourite: isFavourite
+            )
+            reply(nil)
+        } catch {
+            reply(error as NSError)
+        }
+    }
+
     // MARK: - Event subscription
 
     func subscribe(_ client: EngineEvents,

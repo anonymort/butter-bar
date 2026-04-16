@@ -32,6 +32,9 @@ public final class EngineEventHandler: NSObject, EngineEvents, @unchecked Sendab
     /// playback, stream close, or manual mark-watched/unwatched). See A26.
     public let playbackHistoryChangedSubject = PassthroughSubject<PlaybackHistoryDTO, Never>()
 
+    /// Fires whenever a `favourites` row is added or removed (#36).
+    public let favouritesChangedSubject = PassthroughSubject<FavouriteChangeDTO, Never>()
+
     // MARK: EngineEvents conformance
 
     public func torrentUpdated(_ snapshot: TorrentSummaryDTO) {
@@ -52,5 +55,9 @@ public final class EngineEventHandler: NSObject, EngineEvents, @unchecked Sendab
 
     public func playbackHistoryChanged(_ update: PlaybackHistoryDTO) {
         playbackHistoryChangedSubject.send(update)
+    }
+
+    public func favouritesChanged(_ change: FavouriteChangeDTO) {
+        favouritesChangedSubject.send(change)
     }
 }

@@ -168,6 +168,7 @@ final class XPCInterfaceFactoryTests: XCTestCase {
             (#selector(EngineXPC.listFiles(_:reply:)),                 0, true,  TorrentFileDTO.self,       "listFiles reply"),
             (#selector(EngineXPC.openStream(_:fileIndex:reply:)),      0, true,  StreamDescriptorDTO.self,  "openStream reply"),
             (#selector(EngineXPC.listPlaybackHistory(_:)),             0, true,  PlaybackHistoryDTO.self,   "listPlaybackHistory reply"),
+            (#selector(EngineXPC.listFavourites(_:)),                  0, true,  FavouriteDTO.self,         "listFavourites reply"),
         ]
 
         for c in cases {
@@ -187,6 +188,7 @@ final class XPCInterfaceFactoryTests: XCTestCase {
             (#selector(EngineEvents.streamHealthChanged(_:)),     StreamHealthDTO.self,     "streamHealthChanged"),
             (#selector(EngineEvents.diskPressureChanged(_:)),     DiskPressureDTO.self,     "diskPressureChanged"),
             (#selector(EngineEvents.playbackHistoryChanged(_:)),  PlaybackHistoryDTO.self,  "playbackHistoryChanged"),
+            (#selector(EngineEvents.favouritesChanged(_:)),       FavouriteChangeDTO.self,  "favouritesChanged"),
         ]
 
         for c in cases {

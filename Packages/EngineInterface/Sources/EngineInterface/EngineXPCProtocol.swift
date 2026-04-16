@@ -55,6 +55,20 @@ import Foundation
                          watched: Bool,
                          reply: @escaping (NSError?) -> Void)
 
+    // MARK: Favourites (#36, T-STORE-FAVOURITES)
+
+    /// Returns every row from `favourites`. Empty when the table is empty.
+    func listFavourites(_ reply: @escaping ([FavouriteDTO]) -> Void)
+
+    /// Set or clear the favourite flag for `(torrentID, fileIndex)`.
+    /// `isFavourite=true` upserts a row with `favourited_at = now`;
+    /// `isFavourite=false` deletes the row. Both fire exactly one
+    /// `favouritesChanged` event.
+    func setFavourite(_ torrentID: NSString,
+                      fileIndex: NSNumber,
+                      isFavourite: Bool,
+                      reply: @escaping (NSError?) -> Void)
+
     // MARK: Event subscription
 
     func subscribe(_ client: EngineEvents,

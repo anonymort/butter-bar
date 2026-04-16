@@ -22,6 +22,10 @@ protocol EngineXPCBackend: AnyObject {
     // Watch state (A26 — Epic #5 Phase 1 foundation)
     func listPlaybackHistory() -> [PlaybackHistoryDTO]
     func setWatchedState(torrentID: String, fileIndex: Int, watched: Bool) throws
+
+    // Favourites (#36)
+    func listFavourites() -> [FavouriteDTO]
+    func setFavourite(torrentID: String, fileIndex: Int, isFavourite: Bool) throws
 }
 
 // MARK: - RealEngineBackend
@@ -304,6 +308,48 @@ final class RealEngineBackend: EngineXPCBackend {
             totalWatchedSeconds: record.totalWatchedSeconds,
             completed: record.completed,
             completedAt: record.completedAt.map { NSNumber(value: $0) }
+        )
+    }
+
+    // MARK: - Favourites (#36)
+
+    func listFavourites() -> [FavouriteDTO] {
+        guard let cm = cacheManager else { return [] }
+        let rows = (try? cm.fetchAllFavourites()) ?? []
+        return rows.map { favouriteDTO(from: $0) }
+    }
+
+    func setFavourite(torrentID: String, fileIndex: Int, isFavourite: Bool) throws {
+        guard let cm = cacheManager else {
+            throw NSError(
+                domain: EngineErrorDomain,
+                code: EngineErrorCode.notImplemented.rawValue,
+                userInfo: [NSLocalizedDescriptionKey: "Cache manager unavailable"]
+            )
+        }
+        if isFavourite {
+            let written = try cm.addFavourite(torrentId: torrentID, fileIndex: fileIndex)
+            let dto = favouriteDTO(from: written)
+            queue.async { [weak self] in
+                guard let self = self else { return }
+                self.eventProxy?.favouritesChanged(FavouriteChangeDTO(favourite: dto, isRemoved: false))
+            }
+        } else if let removed = try cm.removeFavourite(torrentId: torrentID, fileIndex: fileIndex) {
+            let dto = favouriteDTO(from: removed)
+            queue.async { [weak self] in
+                guard let self = self else { return }
+                self.eventProxy?.favouritesChanged(FavouriteChangeDTO(favourite: dto, isRemoved: true))
+            }
+        }
+        // No-op event for clearing an absent favourite (matches FakeEngineBackend
+        // and the integration test contract).
+    }
+
+    private func favouriteDTO(from record: FavouriteRecord) -> FavouriteDTO {
+        FavouriteDTO(
+            torrentID: record.torrentId as NSString,
+            fileIndex: Int32(clamping: record.fileIndex),
+            favouritedAt: record.favouritedAt
         )
     }
 

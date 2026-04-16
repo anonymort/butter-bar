@@ -29,7 +29,8 @@ private final class MockEngineServer: NSObject, EngineXPC {
     private var streams: [String: StreamDescriptorDTO] = [:]
     /// Keyed by "\(torrentID)#\(fileIndex)".
     private var playbackHistory: [String: PlaybackHistoryDTO] = [:]
-    /// Injected for the watch-state tests so `setWatchedState` is deterministic.
+    private var favourites: [String: FavouriteDTO] = [:]
+    /// Injected for the watch-state and favourites tests so writes are deterministic.
     var nowMillis: Int64 = 1_700_000_000_000
 
     // Collected events for test assertion.
@@ -203,6 +204,33 @@ private final class MockEngineServer: NSObject, EngineXPC {
         reply(nil)
     }
 
+    // MARK: Favourites (#36)
+
+    func listFavourites(_ reply: @escaping ([FavouriteDTO]) -> Void) {
+        reply(Array(favourites.values))
+    }
+
+    func setFavourite(_ torrentID: NSString,
+                      fileIndex: NSNumber,
+                      isFavourite: Bool,
+                      reply: @escaping (NSError?) -> Void) {
+        let id = torrentID as String
+        let fi = fileIndex.int32Value
+        let key = "\(id)#\(fi)"
+        if isFavourite {
+            let dto = FavouriteDTO(
+                torrentID: torrentID,
+                fileIndex: fi,
+                favouritedAt: nowMillis
+            )
+            favourites[key] = dto
+            subscribedClient?.favouritesChanged(FavouriteChangeDTO(favourite: dto, isRemoved: false))
+        } else if let removed = favourites.removeValue(forKey: key) {
+            subscribedClient?.favouritesChanged(FavouriteChangeDTO(favourite: removed, isRemoved: true))
+        }
+        reply(nil)
+    }
+
     // MARK: - Event simulation
 
     /// Simulate one tick of progress updates.
@@ -247,6 +275,7 @@ private final class FakeEventReceiver: NSObject, EngineEvents {
     var streamHealthUpdates: [StreamHealthDTO] = []
     var diskPressureUpdates: [DiskPressureDTO] = []
     var playbackHistoryUpdates: [PlaybackHistoryDTO] = []
+    var favouritesChanges: [FavouriteChangeDTO] = []
 
     func torrentUpdated(_ snapshot: TorrentSummaryDTO) {
         torrentUpdates.append(snapshot)
@@ -266,6 +295,10 @@ private final class FakeEventReceiver: NSObject, EngineEvents {
 
     func playbackHistoryChanged(_ update: PlaybackHistoryDTO) {
         playbackHistoryUpdates.append(update)
+    }
+
+    func favouritesChanged(_ change: FavouriteChangeDTO) {
+        favouritesChanges.append(change)
     }
 }
 
@@ -608,5 +641,62 @@ final class XPCPlaybackHistoryTests: XCTestCase {
         // last_played_at preserved per spec 05 § Update rules.
         XCTAssertEqual(last.lastPlayedAt, 1_700_000_600_000,
                        "mark-unwatched must preserve last_played_at")
+    }
+}
+
+// MARK: - XPCFavouritesTests (#36)
+
+final class XPCFavouritesTests: XCTestCase {
+
+    func testListFavourites_emptyByDefault() {
+        let server = MockEngineServer()
+        var rows: [FavouriteDTO] = []
+        server.listFavourites { rows = $0 }
+        XCTAssertTrue(rows.isEmpty)
+    }
+
+    func testSetFavourite_setAndClear_emitsEventEachTime() {
+        let server = MockEngineServer()
+        let receiver = FakeEventReceiver()
+        server.subscribe(receiver) { _ in }
+        server.nowMillis = 1_700_000_900_000
+
+        var setError: NSError?
+        server.setFavourite("torrent-A" as NSString,
+                            fileIndex: NSNumber(value: 1),
+                            isFavourite: true) { setError = $0 }
+        XCTAssertNil(setError)
+        XCTAssertEqual(receiver.favouritesChanges.count, 1)
+        XCTAssertFalse(receiver.favouritesChanges[0].isRemoved)
+        XCTAssertEqual(receiver.favouritesChanges[0].favourite.torrentID, "torrent-A")
+        XCTAssertEqual(receiver.favouritesChanges[0].favourite.fileIndex, 1)
+        XCTAssertEqual(receiver.favouritesChanges[0].favourite.favouritedAt, 1_700_000_900_000)
+
+        var listed: [FavouriteDTO] = []
+        server.listFavourites { listed = $0 }
+        XCTAssertEqual(listed.count, 1)
+
+        // Clear
+        server.setFavourite("torrent-A" as NSString,
+                            fileIndex: NSNumber(value: 1),
+                            isFavourite: false) { _ in }
+        XCTAssertEqual(receiver.favouritesChanges.count, 2)
+        XCTAssertTrue(receiver.favouritesChanges[1].isRemoved)
+
+        server.listFavourites { listed = $0 }
+        XCTAssertTrue(listed.isEmpty)
+    }
+
+    func testSetFavourite_clearOnAbsent_isNoOpEmit() {
+        // Removing a favourite that doesn't exist is a no-op — no event.
+        let server = MockEngineServer()
+        let receiver = FakeEventReceiver()
+        server.subscribe(receiver) { _ in }
+
+        server.setFavourite("torrent-missing" as NSString,
+                            fileIndex: NSNumber(value: 0),
+                            isFavourite: false) { _ in }
+        XCTAssertTrue(receiver.favouritesChanges.isEmpty,
+                      "clearing an absent favourite must not emit an event")
     }
 }

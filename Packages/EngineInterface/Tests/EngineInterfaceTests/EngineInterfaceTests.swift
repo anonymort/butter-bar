@@ -423,3 +423,41 @@ final class PlaybackHistoryDTOTests: XCTestCase {
         XCTAssertEqual(decoded.completedAt?.int64Value, 1_700_000_021_000)
     }
 }
+
+// MARK: - FavouriteDTO (#36)
+
+final class FavouriteDTOTests: XCTestCase {
+
+    func testFavouriteRoundTrip() throws {
+        let dto = FavouriteDTO(
+            torrentID: "fav-1",
+            fileIndex: 2,
+            favouritedAt: 1_700_000_111_000
+        )
+        let decoded = try roundTrip(dto)
+        XCTAssertEqual(decoded.schemaVersion, 1)
+        XCTAssertEqual(decoded.torrentID, "fav-1")
+        XCTAssertEqual(decoded.fileIndex, 2)
+        XCTAssertEqual(decoded.favouritedAt, 1_700_000_111_000)
+    }
+
+    func testFavouriteChangeRoundTrip_added() throws {
+        let inner = FavouriteDTO(torrentID: "fav-2", fileIndex: 0,
+                                 favouritedAt: 1_700_000_222_000)
+        let dto = FavouriteChangeDTO(favourite: inner, isRemoved: false)
+        let decoded = try roundTrip(dto)
+        XCTAssertEqual(decoded.schemaVersion, 1)
+        XCTAssertFalse(decoded.isRemoved)
+        XCTAssertEqual(decoded.favourite.torrentID, "fav-2")
+        XCTAssertEqual(decoded.favourite.favouritedAt, 1_700_000_222_000)
+    }
+
+    func testFavouriteChangeRoundTrip_removed() throws {
+        let inner = FavouriteDTO(torrentID: "fav-3", fileIndex: 1,
+                                 favouritedAt: 1_700_000_333_000)
+        let dto = FavouriteChangeDTO(favourite: inner, isRemoved: true)
+        let decoded = try roundTrip(dto)
+        XCTAssertTrue(decoded.isRemoved)
+        XCTAssertEqual(decoded.favourite.fileIndex, 1)
+    }
+}

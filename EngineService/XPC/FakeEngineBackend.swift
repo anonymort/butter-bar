@@ -200,6 +200,38 @@ final class FakeEngineBackend: EngineXPCBackend {
         }
     }
 
+    // MARK: - Favourites (#36)
+
+    /// torrentID#fileIndex → in-memory FavouriteDTO.
+    private var fakeFavourites: [String: FavouriteDTO] = [:]
+
+    func listFavourites() -> [FavouriteDTO] {
+        queue.sync { Array(fakeFavourites.values) }
+    }
+
+    func setFavourite(torrentID: String, fileIndex: Int, isFavourite: Bool) throws {
+        let key = "\(torrentID)#\(fileIndex)"
+        let nowMs = Int64(Date().timeIntervalSince1970 * 1000)
+        let change = queue.sync { () -> FavouriteChangeDTO? in
+            if isFavourite {
+                let dto = FavouriteDTO(
+                    torrentID: torrentID as NSString,
+                    fileIndex: Int32(clamping: fileIndex),
+                    favouritedAt: nowMs
+                )
+                fakeFavourites[key] = dto
+                return FavouriteChangeDTO(favourite: dto, isRemoved: false)
+            } else if let removed = fakeFavourites.removeValue(forKey: key) {
+                return FavouriteChangeDTO(favourite: removed, isRemoved: true)
+            }
+            return nil
+        }
+        guard let change else { return }
+        queue.async { [weak self] in
+            self?.clientProxy?.favouritesChanged(change)
+        }
+    }
+
     // MARK: - Private helpers
 
     private func extractName(from magnet: String) -> String? {

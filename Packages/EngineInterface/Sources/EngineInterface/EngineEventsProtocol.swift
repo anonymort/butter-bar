@@ -13,4 +13,10 @@ import Foundation
     /// playback, stream close, or manual mark-watched / mark-unwatched).
     /// See spec 05 § Update rules and addendum A26.
     func playbackHistoryChanged(_ update: PlaybackHistoryDTO)
+
+    /// Emitted exactly once per `favourites` mutation (set / clear). The
+    /// payload carries the favourite row plus an `isRemoved` flag so the app
+    /// can update its in-memory map without re-fetching the full list.
+    /// See spec 07 § 4 (#36).
+    func favouritesChanged(_ change: FavouriteChangeDTO)
 }
