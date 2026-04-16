@@ -24,7 +24,7 @@ struct LibraryView: View {
         }
         .background(BrandColors.surfaceBase)
         .searchable(text: $searchQuery, placement: .toolbar, prompt: "Filter")
-        .task { await viewModel.refresh() }
+        .task { await viewModel.start() }
         // File selection sheet (multi-file torrents).
         .sheet(item: $fileSheetState) { state in
             FileSelectionSheet(
