@@ -121,7 +121,7 @@ public final class CacheManager {
     /// Deletes a pinned_files row and removes the key from the in-memory set.
     /// No-ops if the file was not pinned.
     public func unpin(torrentId: String, fileIndex: Int) throws {
-        try db.write { conn in
+        _ = try db.write { conn in
             try PinnedFileRecord
                 .filter(Column("torrent_id") == torrentId && Column("file_index") == fileIndex)
                 .deleteAll(conn)

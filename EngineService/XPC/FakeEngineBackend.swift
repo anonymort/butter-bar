@@ -92,7 +92,7 @@ final class FakeEngineBackend: EngineXPCBackend {
             torrents.removeValue(forKey: torrentID)
             files.removeValue(forKey: torrentID)
             // Close any streams for this torrent.
-            streams = streams.filter { $0.value.loopbackURL.range(of: torrentID) == nil }
+            streams = streams.filter { $0.value.loopbackURL.range(of: torrentID).location == NSNotFound }
             if torrents.isEmpty { stopTimer() }
         }
     }
@@ -139,7 +139,7 @@ final class FakeEngineBackend: EngineXPCBackend {
     }
 
     func closeStream(_ streamID: String) {
-        queue.sync { streams.removeValue(forKey: streamID) }
+        queue.sync { _ = streams.removeValue(forKey: streamID) }
     }
 
     /// Stores the client proxy weakly and starts the progress-update timer.
