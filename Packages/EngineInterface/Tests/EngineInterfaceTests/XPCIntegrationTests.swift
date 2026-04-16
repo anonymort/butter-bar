@@ -136,7 +136,8 @@ private final class MockEngineServer: NSObject, EngineXPC {
             streamID: streamID as NSString,
             loopbackURL: "http://127.0.0.1:52100/stream/\(streamID)" as NSString,
             contentType: "video/mp4",
-            contentLength: torrents[id]!.totalBytes
+            contentLength: torrents[id]!.totalBytes,
+            resumeByteOffset: 0  // Mock has no history; mirrors FakeEngineBackend.
         )
         streams[streamID] = descriptor
         reply(descriptor, nil)
@@ -276,12 +277,14 @@ final class XPCIntegrationTests: XCTestCase {
             XCTFail("openStream must return a StreamDescriptorDTO")
             return
         }
-        XCTAssertEqual(streamDesc.schemaVersion, 1)
+        XCTAssertEqual(streamDesc.schemaVersion, 2)
         XCTAssertFalse((streamDesc.streamID as String).isEmpty)
         XCTAssertTrue((streamDesc.loopbackURL as String).hasPrefix("http://127.0.0.1:"),
                       "loopback URL must point at localhost")
         XCTAssertFalse((streamDesc.contentType as String).isEmpty)
         XCTAssertGreaterThan(streamDesc.contentLength, 0)
+        XCTAssertEqual(streamDesc.resumeByteOffset, 0,
+                       "Mock backend has no history; resumeByteOffset must be 0")
 
         // 5. subscribe succeeds; simulated tick delivers torrentUpdated events.
         var subscribeError: NSError?
@@ -435,5 +438,46 @@ final class XPCIntegrationTests: XCTestCase {
         XCTAssertEqual(decoded?.name, original.name)
         XCTAssertEqual(decoded?.state, original.state)
         XCTAssertEqual(decoded?.progressQ16, original.progressQ16)
+    }
+
+    // MARK: - StreamDescriptorDTO round-trip (schema v2, resumeByteOffset included)
+
+    func testStreamDescriptorDTO_roundTripSecureCoding() throws {
+        let original = StreamDescriptorDTO(
+            streamID: "test-stream-1" as NSString,
+            loopbackURL: "http://127.0.0.1:52100/stream/test-stream-1" as NSString,
+            contentType: "video/mp4",
+            contentLength: 1_073_741_824,
+            resumeByteOffset: 4_096_000
+        )
+
+        XCTAssertEqual(original.schemaVersion, 2)
+        XCTAssertEqual(original.resumeByteOffset, 4_096_000)
+
+        let data = try NSKeyedArchiver.archivedData(withRootObject: original, requiringSecureCoding: true)
+        let decoded = try NSKeyedUnarchiver.unarchivedObject(ofClass: StreamDescriptorDTO.self, from: data)
+
+        XCTAssertEqual(decoded?.schemaVersion, 2)
+        XCTAssertEqual(decoded?.streamID, original.streamID)
+        XCTAssertEqual(decoded?.loopbackURL, original.loopbackURL)
+        XCTAssertEqual(decoded?.contentType, original.contentType)
+        XCTAssertEqual(decoded?.contentLength, original.contentLength)
+        XCTAssertEqual(decoded?.resumeByteOffset, 4_096_000)
+    }
+
+    func testStreamDescriptorDTO_zeroResumeOffset_roundTrips() throws {
+        let original = StreamDescriptorDTO(
+            streamID: "no-history" as NSString,
+            loopbackURL: "http://127.0.0.1:52100/stream/no-history" as NSString,
+            contentType: "video/mp4",
+            contentLength: 500_000_000
+        )
+
+        XCTAssertEqual(original.resumeByteOffset, 0, "Default resumeByteOffset must be 0")
+
+        let data = try NSKeyedArchiver.archivedData(withRootObject: original, requiringSecureCoding: true)
+        let decoded = try NSKeyedUnarchiver.unarchivedObject(ofClass: StreamDescriptorDTO.self, from: data)
+
+        XCTAssertEqual(decoded?.resumeByteOffset, 0)
     }
 }

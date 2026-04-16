@@ -110,7 +110,8 @@ final class FakeEngineBackend {
                 streamID: streamID as NSString,
                 loopbackURL: "http://127.0.0.1:52100/stream/\(streamID)" as NSString,
                 contentType: "video/mp4",
-                contentLength: torrent.totalBytes
+                contentLength: torrent.totalBytes,
+                resumeByteOffset: 0  // Fake backend has no history storage; real backend populates from CacheManager.fetchHistory.
             )
             streams[streamID] = descriptor
             return descriptor

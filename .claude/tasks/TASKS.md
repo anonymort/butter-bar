@@ -275,7 +275,7 @@ Spike and then implement `CacheManager` with the eviction ordering from `05-cach
 ### T-CACHE-RESUME `[sonnet]` · DONE
 Wire resume offset tracking: update every 15 seconds during playback, on stream close, and on clean shutdown. Restore on next open.
 **Depends on:** `T-CACHE-SCHEMA`.
-**Completed:** `ResumeTracker` with deadline-based 15s throttle + injectable time source; wired into `PlaybackSession` (tick path + stop) and `StreamRegistry` (creates tracker per stream). Five self-tests pass (`--resume-tracker-self-test`).
+**Completed:** `ResumeTracker` with deadline-based 15s throttle + injectable time source; wired into `PlaybackSession` (tick path + stop) and `StreamRegistry` (creates tracker per stream). Five self-tests pass (`--resume-tracker-self-test`). `StreamDescriptorDTO` extended with `resumeByteOffset: Int64` (schema v2, additive/backward-compatible) for v1 XPC contract readiness; `StreamDescriptor` domain type and both mapping directions updated; `FakeEngineBackend` passes 0; real backend will populate from `CacheManager.fetchHistory` when wired.
 
 ### T-BRAND-ASSETS `[sonnet]` · TODO
 Author the `AppIcon.icon` bundle by importing the supplied Liquid Glass prep package into Apple's Icon Composer.

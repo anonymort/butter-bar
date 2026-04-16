@@ -135,11 +135,12 @@ final class StreamDescriptorDTOTests: XCTestCase {
         )
         let decoded = try roundTrip(dto)
 
-        XCTAssertEqual(decoded.schemaVersion, 1)
+        XCTAssertEqual(decoded.schemaVersion, 2)
         XCTAssertEqual(decoded.streamID, "stream-xyz")
         XCTAssertEqual(decoded.loopbackURL, "http://127.0.0.1:49152/stream/stream-xyz")
         XCTAssertEqual(decoded.contentType, "video/mp4")
         XCTAssertEqual(decoded.contentLength, 1_073_741_824)
+        XCTAssertEqual(decoded.resumeByteOffset, 0)
     }
 }
 

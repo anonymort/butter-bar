@@ -75,7 +75,8 @@ extension StreamDescriptorDTO {
             streamID: domain.streamID as NSString,
             loopbackURL: domain.loopbackURL as NSString,
             contentType: domain.contentType as NSString,
-            contentLength: domain.contentLength
+            contentLength: domain.contentLength,
+            resumeByteOffset: domain.resumeByteOffset
         )
     }
 }
@@ -86,7 +87,8 @@ extension StreamDescriptor {
             streamID: dto.streamID as String,
             loopbackURL: dto.loopbackURL as String,
             contentType: dto.contentType as String,
-            contentLength: dto.contentLength
+            contentLength: dto.contentLength,
+            resumeByteOffset: dto.resumeByteOffset
         )
     }
 }

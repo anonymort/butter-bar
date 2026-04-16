@@ -11,18 +11,27 @@ public final class StreamDescriptorDTO: NSObject, NSSecureCoding {
     /// e.g. "video/mp4"
     public let contentType: NSString
     public let contentLength: Int64
+    /// Last byte offset successfully served to the player during a prior session, or 0 if no
+    /// prior play history. The app may use this to seek AVPlayer to a reasonable keyframe near
+    /// this offset. See spec 05 § Resume offset persistence.
+    ///
+    /// Schema v2 addition. Decoders reading a v1 archive will receive 0 via NSCoder's
+    /// default-zero behaviour for missing Int64 keys — backward compatible.
+    public let resumeByteOffset: Int64
 
     public init(
         streamID: NSString,
         loopbackURL: NSString,
         contentType: NSString,
-        contentLength: Int64
+        contentLength: Int64,
+        resumeByteOffset: Int64 = 0
     ) {
-        self.schemaVersion = 1
+        self.schemaVersion = 2
         self.streamID = streamID
         self.loopbackURL = loopbackURL
         self.contentType = contentType
         self.contentLength = contentLength
+        self.resumeByteOffset = resumeByteOffset
     }
 
     public func encode(with coder: NSCoder) {
@@ -31,6 +40,7 @@ public final class StreamDescriptorDTO: NSObject, NSSecureCoding {
         coder.encode(loopbackURL, forKey: "loopbackURL")
         coder.encode(contentType, forKey: "contentType")
         coder.encode(contentLength, forKey: "contentLength")
+        coder.encode(resumeByteOffset, forKey: "resumeByteOffset")
     }
 
     public required init?(coder: NSCoder) {
@@ -39,6 +49,7 @@ public final class StreamDescriptorDTO: NSObject, NSSecureCoding {
         guard let loopbackURL = coder.decodeObject(of: NSString.self, forKey: "loopbackURL") else { return nil }
         guard let contentType = coder.decodeObject(of: NSString.self, forKey: "contentType") else { return nil }
         contentLength = coder.decodeInt64(forKey: "contentLength")
+        resumeByteOffset = coder.decodeInt64(forKey: "resumeByteOffset")
         self.streamID = streamID
         self.loopbackURL = loopbackURL
         self.contentType = contentType

@@ -78,17 +78,22 @@ public struct StreamDescriptor: Sendable, Hashable {
     public let loopbackURL: String
     public let contentType: String
     public let contentLength: Int64
+    /// Last byte offset successfully served to the player during a prior session, or 0 if no
+    /// prior play history. See spec 05 § Resume offset persistence.
+    public let resumeByteOffset: Int64
 
     public init(
         streamID: String,
         loopbackURL: String,
         contentType: String,
-        contentLength: Int64
+        contentLength: Int64,
+        resumeByteOffset: Int64 = 0
     ) {
         self.streamID = streamID
         self.loopbackURL = loopbackURL
         self.contentType = contentType
         self.contentLength = contentLength
+        self.resumeByteOffset = resumeByteOffset
     }
 }
 
