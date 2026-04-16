@@ -85,7 +85,8 @@ final class PlayerHUDSnapshotTests: XCTestCase {
     // in both modes. Background is `cream` in light mode (matches what the
     // HUD would sit on if ever composed into a light-scheme surface).
 
-    func testHUDHealthyTier_lightMode() {
+    func testHUDHealthyTier_lightMode() throws {
+        try XCTSkipIf(true, "Skipped pending #121 — NSHostingView appearance pinning; see https://github.com/anonymort/butter-bar/issues/121")
         let view = StreamHealthHUD(health: .healthy)
             .environment(\.colorScheme, .light)
             .frame(width: snapshotSize.width, height: snapshotSize.height)
@@ -98,7 +99,8 @@ final class PlayerHUDSnapshotTests: XCTestCase {
         )
     }
 
-    func testHUDMarginalTier_lightMode() {
+    func testHUDMarginalTier_lightMode() throws {
+        try XCTSkipIf(true, "Skipped pending #121 — NSHostingView appearance pinning; see https://github.com/anonymort/butter-bar/issues/121")
         let view = StreamHealthHUD(health: .marginal)
             .environment(\.colorScheme, .light)
             .frame(width: snapshotSize.width, height: snapshotSize.height)
@@ -111,7 +113,8 @@ final class PlayerHUDSnapshotTests: XCTestCase {
         )
     }
 
-    func testHUDStarvingTier_lightMode() {
+    func testHUDStarvingTier_lightMode() throws {
+        try XCTSkipIf(true, "Skipped pending #121 — NSHostingView appearance pinning; see https://github.com/anonymort/butter-bar/issues/121")
         let view = StreamHealthHUD(health: .starving)
             .environment(\.colorScheme, .light)
             .frame(width: snapshotSize.width, height: snapshotSize.height)
