@@ -62,12 +62,34 @@ struct StreamHealthHUD: View {
     }
 
     /// "12 s ready" — buffer-ahead value animates continuously across 800 ms.
+    /// Below the text, a 2 pt fill bar represents buffer fill proportional to
+    /// `bufferFillRatio` (capped at 60 s ceiling; v1 default).
     private var bufferLabel: some View {
-        Text(formattedBuffer)
-            .brandCaptionMonospacedNumeric()
-            .foregroundStyle(BrandColors.cocoaSoft)
-            .contentTransition(.numericText())
-            .animation(.easeInOut(duration: 0.8), value: health.secondsBufferedAhead)
+        VStack(alignment: .leading, spacing: 3) {
+            Text(formattedBuffer)
+                .brandCaptionMonospacedNumeric()
+                .foregroundStyle(BrandColors.cocoaSoft)
+                .contentTransition(.numericText())
+                .animation(.easeInOut(duration: 0.8), value: health.secondsBufferedAhead)
+
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Rectangle()
+                        .fill(BrandColors.cocoaFaint)
+                    Rectangle()
+                        .fill(BrandColors.butter)
+                        .frame(width: geo.size.width * bufferFillRatio)
+                }
+            }
+            .frame(height: 2)
+            .clipShape(Capsule())
+            .animation(.easeInOut(duration: 0.8), value: bufferFillRatio)
+        }
+    }
+
+    /// Fill ratio for the buffer indicator, capped at 60 s (v1 default ceiling).
+    private var bufferFillRatio: Double {
+        min(health.secondsBufferedAhead, 60) / 60
     }
 
     /// "4.2 MB/s"
@@ -84,6 +106,7 @@ struct StreamHealthHUD: View {
         Text(formattedPeers)
             .brandCaptionMonospacedNumeric()
             .foregroundStyle(BrandColors.cocoaSoft)
+            .contentTransition(.numericText())
             .animation(.easeInOut(duration: 0.25), value: health.peerCount)
     }
 

@@ -79,8 +79,11 @@ struct PlayerView: View {
         hudVisible = true
         hideTask?.cancel()
         hideTask = Task {
-            try? await Task.sleep(for: .seconds(3))
-            guard !Task.isCancelled else { return }
+            do {
+                try await Task.sleep(for: .seconds(3))
+            } catch {
+                return  // cancelled — do nothing
+            }
             await MainActor.run { hudVisible = false }
         }
     }

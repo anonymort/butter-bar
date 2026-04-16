@@ -82,8 +82,16 @@ final class PlayerViewModel: ObservableObject {
 
     // MARK: - Private helpers
 
+    /// Subscribe to StreamHealth events for this stream.
+    ///
+    /// Known limitation: if the engine XPC connection is invalidated and reconnected
+    /// while the player is open, the captured `EngineEventHandler` reference becomes
+    /// stale and health updates stop. The player does not auto-re-subscribe in v1.
+    /// Fix deferred: file follow-up task for the XPC reconnect handler to notify
+    /// active PlayerViewModels so they can re-subscribe.
     private func subscribeToHealth() async {
         guard let events = await engineClient.events else { return }
+        guard !isClosed else { return }
         let targetID = streamDescriptor.streamID as String
 
         events.streamHealthChangedSubject
