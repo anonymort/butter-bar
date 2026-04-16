@@ -159,8 +159,10 @@ struct StreamHealthHUD: View {
 
 private extension View {
     func hudSurface() -> some View {
-        // Glass picks up tint from underlying video content, per spec 06.
+        // Explicit butter tint keeps the glass surface warm rather than
+        // inheriting generic Apple-default chroma (spec 06 § Colour palette).
         self
+            .tint(BrandColors.butter)
             .glassEffect(.regular.interactive())
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
