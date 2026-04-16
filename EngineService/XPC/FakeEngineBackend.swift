@@ -150,6 +150,56 @@ final class FakeEngineBackend: EngineXPCBackend {
         }
     }
 
+    // MARK: - Watch state (A26)
+    //
+    // The fake backend is in-memory only — no GRDB. It tracks a small map of
+    // "fake" playback rows keyed by "\(torrentID)#\(fileIndex)". Engine write
+    // semantics (completed_at on 0→1, preserved on re-watch, etc.) are mirrored
+    // here so the app sees a realistic XPC contract under `--fake-backend`.
+
+    /// torrentID#fileIndex → in-memory PlaybackHistoryDTO.
+    private var fakePlaybackHistory: [String: PlaybackHistoryDTO] = [:]
+
+    func listPlaybackHistory() -> [PlaybackHistoryDTO] {
+        queue.sync { Array(fakePlaybackHistory.values) }
+    }
+
+    func setWatchedState(torrentID: String, fileIndex: Int, watched: Bool) throws {
+        let key = "\(torrentID)#\(fileIndex)"
+        let nowMs = Int64(Date().timeIntervalSince1970 * 1000)
+        let dto = queue.sync { () -> PlaybackHistoryDTO in
+            let existing = fakePlaybackHistory[key]
+            let next: PlaybackHistoryDTO
+            if watched {
+                next = PlaybackHistoryDTO(
+                    torrentID: torrentID as NSString,
+                    fileIndex: Int32(clamping: fileIndex),
+                    resumeByteOffset: 0,
+                    lastPlayedAt: nowMs,
+                    totalWatchedSeconds: existing?.totalWatchedSeconds ?? 0,
+                    completed: true,
+                    completedAt: NSNumber(value: nowMs)
+                )
+            } else {
+                next = PlaybackHistoryDTO(
+                    torrentID: torrentID as NSString,
+                    fileIndex: Int32(clamping: fileIndex),
+                    resumeByteOffset: 0,
+                    lastPlayedAt: existing?.lastPlayedAt ?? nowMs,
+                    totalWatchedSeconds: existing?.totalWatchedSeconds ?? 0,
+                    completed: false,
+                    completedAt: nil
+                )
+            }
+            fakePlaybackHistory[key] = next
+            return next
+        }
+        // Mirror RealEngineBackend: emit the change event off the serial queue.
+        queue.async { [weak self] in
+            self?.clientProxy?.playbackHistoryChanged(dto)
+        }
+    }
+
     // MARK: - Private helpers
 
     private func extractName(from magnet: String) -> String? {

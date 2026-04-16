@@ -327,6 +327,53 @@ public actor EngineClient {
         }
     }
 
+    // MARK: - Watch state (A26 — Epic #5 Phase 1 foundation)
+
+    /// Returns the engine's current `playback_history` snapshot.
+    public func listPlaybackHistory() async throws -> [PlaybackHistoryDTO] {
+        return try await withCheckedThrowingContinuation { cont in
+            let resumer = ContinuationResumer(cont)
+
+            let p: any EngineXPC
+            do {
+                p = try proxy(method: "listPlaybackHistory", resumer: resumer)
+            } catch {
+                resumer.resume(throwing: error)
+                return
+            }
+
+            p.listPlaybackHistory { rows in
+                resumer.resume(returning: rows)
+            }
+        }
+    }
+
+    /// Manually mark a file as watched or unwatched. The engine writes the
+    /// canonical row state and emits `playbackHistoryChanged`.
+    public func setWatchedState(torrentID: NSString,
+                                fileIndex: NSNumber,
+                                watched: Bool) async throws {
+        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+            let resumer = ContinuationResumer(cont)
+
+            let p: any EngineXPC
+            do {
+                p = try proxy(method: "setWatchedState", resumer: resumer)
+            } catch {
+                resumer.resume(throwing: error)
+                return
+            }
+
+            p.setWatchedState(torrentID, fileIndex: fileIndex, watched: watched) { error in
+                if let error {
+                    resumer.resume(throwing: EngineClientError.serviceError(error))
+                } else {
+                    resumer.resume(returning: ())
+                }
+            }
+        }
+    }
+
     // MARK: - Event stream access
 
     /// The event handler that receives engine-pushed events.

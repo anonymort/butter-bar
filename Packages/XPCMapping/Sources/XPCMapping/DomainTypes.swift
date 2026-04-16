@@ -156,3 +156,37 @@ public enum DiskPressureLevel: String, Sendable, Hashable, CaseIterable {
     case warn
     case critical
 }
+
+// MARK: - PlaybackHistorySnapshot (A26)
+
+/// Engine-internal projection of a `playback_history` row. Crosses the XPC
+/// boundary as `PlaybackHistoryDTO`. See spec 05 rev 5 § Schema and addendum
+/// A26.
+public struct PlaybackHistorySnapshot: Sendable, Hashable {
+    public let torrentID: String
+    public let fileIndex: Int
+    public let resumeByteOffset: Int64
+    public let lastPlayedAtMillis: Int64
+    public let totalWatchedSeconds: Double
+    public let completed: Bool
+    /// Unix milliseconds of the most recent completion; `nil` if never completed.
+    public let completedAtMillis: Int64?
+
+    public init(
+        torrentID: String,
+        fileIndex: Int,
+        resumeByteOffset: Int64,
+        lastPlayedAtMillis: Int64,
+        totalWatchedSeconds: Double,
+        completed: Bool,
+        completedAtMillis: Int64?
+    ) {
+        self.torrentID = torrentID
+        self.fileIndex = fileIndex
+        self.resumeByteOffset = resumeByteOffset
+        self.lastPlayedAtMillis = lastPlayedAtMillis
+        self.totalWatchedSeconds = totalWatchedSeconds
+        self.completed = completed
+        self.completedAtMillis = completedAtMillis
+    }
+}

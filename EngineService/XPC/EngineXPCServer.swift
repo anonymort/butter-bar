@@ -91,6 +91,28 @@ import EngineInterface
         reply()
     }
 
+    // MARK: - Watch state (A26 — Epic #5 Phase 1 foundation)
+
+    func listPlaybackHistory(_ reply: @escaping ([PlaybackHistoryDTO]) -> Void) {
+        reply(backend.listPlaybackHistory())
+    }
+
+    func setWatchedState(_ torrentID: NSString,
+                         fileIndex: NSNumber,
+                         watched: Bool,
+                         reply: @escaping (NSError?) -> Void) {
+        do {
+            try backend.setWatchedState(
+                torrentID: torrentID as String,
+                fileIndex: fileIndex.intValue,
+                watched: watched
+            )
+            reply(nil)
+        } catch {
+            reply(error as NSError)
+        }
+    }
+
     // MARK: - Event subscription
 
     func subscribe(_ client: EngineEvents,

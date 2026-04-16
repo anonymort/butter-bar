@@ -18,6 +18,10 @@ protocol EngineXPCBackend: AnyObject {
     func openStream(torrentID: String, fileIndex: Int) throws -> StreamDescriptorDTO
     func closeStream(_ streamID: String)
     func subscribe(client: EngineEvents & NSObjectProtocol)
+
+    // Watch state (A26 — Epic #5 Phase 1 foundation)
+    func listPlaybackHistory() -> [PlaybackHistoryDTO]
+    func setWatchedState(torrentID: String, fileIndex: Int, watched: Bool) throws
 }
 
 // MARK: - RealEngineBackend
@@ -255,6 +259,52 @@ final class RealEngineBackend: EngineXPCBackend {
         eventProxy = client
         alertDispatcher.setClient(client)
         alertDispatcher.startListening()
+    }
+
+    // MARK: - Watch state (A26 — Epic #5 Phase 1 foundation)
+
+    func listPlaybackHistory() -> [PlaybackHistoryDTO] {
+        guard let cm = cacheManager else { return [] }
+        let rows = (try? cm.fetchAllHistory()) ?? []
+        return rows.map { dto(from: $0) }
+    }
+
+    func setWatchedState(torrentID: String, fileIndex: Int, watched: Bool) throws {
+        guard let cm = cacheManager else {
+            throw NSError(
+                domain: EngineErrorDomain,
+                code: EngineErrorCode.notImplemented.rawValue,
+                userInfo: [NSLocalizedDescriptionKey: "Cache manager unavailable"]
+            )
+        }
+        let written: PlaybackHistoryRecord?
+        if watched {
+            written = try cm.markWatched(torrentId: torrentID, fileIndex: fileIndex)
+        } else {
+            written = try cm.markUnwatched(torrentId: torrentID, fileIndex: fileIndex)
+        }
+        if let record = written {
+            // Emit on the same queue the rest of the engine writes from so
+            // observers see the event after the DB has settled.
+            queue.async { [weak self] in
+                guard let self = self else { return }
+                self.eventProxy?.playbackHistoryChanged(self.dto(from: record))
+            }
+        }
+    }
+
+    /// Build a `PlaybackHistoryDTO` from an `EngineStore` record. Local helper to
+    /// avoid pulling `XPCMapping` into this file's import surface twice.
+    private func dto(from record: PlaybackHistoryRecord) -> PlaybackHistoryDTO {
+        PlaybackHistoryDTO(
+            torrentID: record.torrentId as NSString,
+            fileIndex: Int32(clamping: record.fileIndex),
+            resumeByteOffset: record.resumeByteOffset,
+            lastPlayedAt: record.lastPlayedAt,
+            totalWatchedSeconds: record.totalWatchedSeconds,
+            completed: record.completed,
+            completedAt: record.completedAt.map { NSNumber(value: $0) }
+        )
     }
 
     // MARK: - Eviction timer

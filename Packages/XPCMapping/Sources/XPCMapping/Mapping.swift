@@ -207,6 +207,36 @@ extension DiskPressure {
     }
 }
 
+// MARK: - PlaybackHistorySnapshot ↔ PlaybackHistoryDTO (A26)
+
+extension PlaybackHistoryDTO {
+    public convenience init(from domain: PlaybackHistorySnapshot) {
+        self.init(
+            torrentID: domain.torrentID as NSString,
+            fileIndex: Int32(clamping: domain.fileIndex),
+            resumeByteOffset: domain.resumeByteOffset,
+            lastPlayedAt: domain.lastPlayedAtMillis,
+            totalWatchedSeconds: domain.totalWatchedSeconds,
+            completed: domain.completed,
+            completedAt: domain.completedAtMillis.map { NSNumber(value: $0) }
+        )
+    }
+}
+
+extension PlaybackHistorySnapshot {
+    public init(from dto: PlaybackHistoryDTO) {
+        self.init(
+            torrentID: dto.torrentID as String,
+            fileIndex: Int(dto.fileIndex),
+            resumeByteOffset: dto.resumeByteOffset,
+            lastPlayedAtMillis: dto.lastPlayedAt,
+            totalWatchedSeconds: dto.totalWatchedSeconds,
+            completed: dto.completed,
+            completedAtMillis: dto.completedAt?.int64Value
+        )
+    }
+}
+
 // MARK: - Helpers
 
 private extension Double {

@@ -17,3 +17,4 @@ extension FileAvailabilityDTO: @unchecked @retroactive Sendable {}
 extension StreamHealthDTO: @unchecked @retroactive Sendable {}
 extension DiskPressureDTO: @unchecked @retroactive Sendable {}
 extension ByteRangeDTO: @unchecked @retroactive Sendable {}
+extension PlaybackHistoryDTO: @unchecked @retroactive Sendable {}

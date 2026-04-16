@@ -28,6 +28,10 @@ public final class EngineEventHandler: NSObject, EngineEvents, @unchecked Sendab
     /// Fires whenever the cache disk-pressure level changes.
     public let diskPressureChangedSubject = PassthroughSubject<DiskPressureDTO, Never>()
 
+    /// Fires whenever a `playback_history` row is written (15 s tick during
+    /// playback, stream close, or manual mark-watched/unwatched). See A26.
+    public let playbackHistoryChangedSubject = PassthroughSubject<PlaybackHistoryDTO, Never>()
+
     // MARK: EngineEvents conformance
 
     public func torrentUpdated(_ snapshot: TorrentSummaryDTO) {
@@ -44,5 +48,9 @@ public final class EngineEventHandler: NSObject, EngineEvents, @unchecked Sendab
 
     public func diskPressureChanged(_ update: DiskPressureDTO) {
         diskPressureChangedSubject.send(update)
+    }
+
+    public func playbackHistoryChanged(_ update: PlaybackHistoryDTO) {
+        playbackHistoryChangedSubject.send(update)
     }
 }

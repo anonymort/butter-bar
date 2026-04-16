@@ -27,9 +27,16 @@ private final class MockEngineServer: NSObject, EngineXPC {
     private var torrents: [String: TorrentSummaryDTO] = [:]
     private var files: [String: [TorrentFileDTO]] = [:]
     private var streams: [String: StreamDescriptorDTO] = [:]
+    /// Keyed by "\(torrentID)#\(fileIndex)".
+    private var playbackHistory: [String: PlaybackHistoryDTO] = [:]
+    /// Injected for the watch-state tests so `setWatchedState` is deterministic.
+    var nowMillis: Int64 = 1_700_000_000_000
 
     // Collected events for test assertion.
     var receivedUpdates: [TorrentSummaryDTO] = []
+    /// Subscribed clients for the in-process pump (mirrors how the real backend
+    /// retains a single weak proxy; a single-element array suffices here).
+    private weak var subscribedClient: EngineEvents?
 
     // MARK: EngineXPC conformance
 
@@ -151,6 +158,48 @@ private final class MockEngineServer: NSObject, EngineXPC {
 
     func subscribe(_ client: EngineEvents,
                    reply: @escaping (NSError?) -> Void) {
+        subscribedClient = client
+        reply(nil)
+    }
+
+    // MARK: Watch state (A26)
+
+    func listPlaybackHistory(_ reply: @escaping ([PlaybackHistoryDTO]) -> Void) {
+        reply(Array(playbackHistory.values))
+    }
+
+    func setWatchedState(_ torrentID: NSString,
+                         fileIndex: NSNumber,
+                         watched: Bool,
+                         reply: @escaping (NSError?) -> Void) {
+        let id = torrentID as String
+        let fi = fileIndex.int32Value
+        let key = "\(id)#\(fi)"
+        let existing = playbackHistory[key]
+        let dto: PlaybackHistoryDTO
+        if watched {
+            dto = PlaybackHistoryDTO(
+                torrentID: torrentID,
+                fileIndex: fi,
+                resumeByteOffset: 0,
+                lastPlayedAt: nowMillis,
+                totalWatchedSeconds: existing?.totalWatchedSeconds ?? 0,
+                completed: true,
+                completedAt: NSNumber(value: nowMillis)
+            )
+        } else {
+            dto = PlaybackHistoryDTO(
+                torrentID: torrentID,
+                fileIndex: fi,
+                resumeByteOffset: 0,
+                lastPlayedAt: existing?.lastPlayedAt ?? nowMillis,
+                totalWatchedSeconds: existing?.totalWatchedSeconds ?? 0,
+                completed: false,
+                completedAt: nil
+            )
+        }
+        playbackHistory[key] = dto
+        subscribedClient?.playbackHistoryChanged(dto)
         reply(nil)
     }
 
@@ -197,6 +246,7 @@ private final class FakeEventReceiver: NSObject, EngineEvents {
     var fileAvailabilityUpdates: [FileAvailabilityDTO] = []
     var streamHealthUpdates: [StreamHealthDTO] = []
     var diskPressureUpdates: [DiskPressureDTO] = []
+    var playbackHistoryUpdates: [PlaybackHistoryDTO] = []
 
     func torrentUpdated(_ snapshot: TorrentSummaryDTO) {
         torrentUpdates.append(snapshot)
@@ -212,6 +262,10 @@ private final class FakeEventReceiver: NSObject, EngineEvents {
 
     func diskPressureChanged(_ update: DiskPressureDTO) {
         diskPressureUpdates.append(update)
+    }
+
+    func playbackHistoryChanged(_ update: PlaybackHistoryDTO) {
+        playbackHistoryUpdates.append(update)
     }
 }
 
@@ -479,5 +533,80 @@ final class XPCIntegrationTests: XCTestCase {
         let decoded = try NSKeyedUnarchiver.unarchivedObject(ofClass: StreamDescriptorDTO.self, from: data)
 
         XCTAssertEqual(decoded?.resumeByteOffset, 0)
+    }
+}
+
+// MARK: - XPCPlaybackHistoryTests (A26)
+
+/// Verifies the listPlaybackHistory / setWatchedState / playbackHistoryChanged
+/// trio at the protocol surface. Mirrors the contract the real engine implements.
+final class XPCPlaybackHistoryTests: XCTestCase {
+
+    func testListPlaybackHistory_emptyByDefault() {
+        let server = MockEngineServer()
+        var result: [PlaybackHistoryDTO] = []
+        server.listPlaybackHistory { result = $0 }
+        XCTAssertTrue(result.isEmpty,
+                      "fresh server must report no playback history")
+    }
+
+    func testSetWatchedState_markWatched_insertsRowAndEmitsEvent() {
+        let server = MockEngineServer()
+        let receiver = FakeEventReceiver()
+        server.subscribe(receiver) { _ in }
+        server.nowMillis = 1_700_000_500_000
+
+        var setError: NSError?
+        server.setWatchedState(
+            "torrent-A" as NSString,
+            fileIndex: NSNumber(value: 3),
+            watched: true
+        ) { setError = $0 }
+
+        XCTAssertNil(setError)
+        XCTAssertEqual(receiver.playbackHistoryUpdates.count, 1,
+                       "exactly one playbackHistoryChanged must fire per write")
+
+        let dto = receiver.playbackHistoryUpdates[0]
+        XCTAssertEqual(dto.torrentID, "torrent-A")
+        XCTAssertEqual(dto.fileIndex, 3)
+        XCTAssertEqual(dto.completed, true)
+        XCTAssertEqual(dto.completedAt?.int64Value, 1_700_000_500_000)
+        XCTAssertEqual(dto.resumeByteOffset, 0)
+        XCTAssertEqual(dto.lastPlayedAt, 1_700_000_500_000)
+
+        // listPlaybackHistory now returns the inserted row.
+        var listed: [PlaybackHistoryDTO] = []
+        server.listPlaybackHistory { listed = $0 }
+        XCTAssertEqual(listed.count, 1)
+    }
+
+    func testSetWatchedState_markUnwatched_clearsCompletedAtAndResume() {
+        let server = MockEngineServer()
+        let receiver = FakeEventReceiver()
+        server.subscribe(receiver) { _ in }
+
+        // Seed a watched row.
+        server.nowMillis = 1_700_000_600_000
+        server.setWatchedState("torrent-B" as NSString,
+                               fileIndex: NSNumber(value: 0),
+                               watched: true) { _ in }
+
+        // Then mark it unwatched.
+        server.nowMillis = 1_700_000_700_000
+        server.setWatchedState("torrent-B" as NSString,
+                               fileIndex: NSNumber(value: 0),
+                               watched: false) { _ in }
+
+        XCTAssertEqual(receiver.playbackHistoryUpdates.count, 2,
+                       "one event per write — watched + unwatched")
+
+        let last = receiver.playbackHistoryUpdates[1]
+        XCTAssertEqual(last.completed, false)
+        XCTAssertNil(last.completedAt)
+        XCTAssertEqual(last.resumeByteOffset, 0)
+        // last_played_at preserved per spec 05 § Update rules.
+        XCTAssertEqual(last.lastPlayedAt, 1_700_000_600_000,
+                       "mark-unwatched must preserve last_played_at")
     }
 }

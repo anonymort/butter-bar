@@ -73,6 +73,7 @@ jobs:
           swift test --package-path Packages/EngineInterface
           swift test --package-path Packages/XPCMapping
           swift test --package-path Packages/EngineStore
+          swift test --package-path Packages/LibraryDomain
 
       - name: Snapshot tests (advisory — pixel drift on CI vs local)
         # CI runners don't have the owner's personal signing certificate for

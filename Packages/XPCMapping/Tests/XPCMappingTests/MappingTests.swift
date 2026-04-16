@@ -382,3 +382,50 @@ final class MappingTests: XCTestCase {
         XCTAssertEqual(dto1.availableRanges.first?.startByte, dto2.availableRanges.first?.startByte)
     }
 }
+
+// MARK: - PlaybackHistorySnapshot ↔ PlaybackHistoryDTO (A26)
+
+final class PlaybackHistoryMappingTests: XCTestCase {
+
+    func test_playbackHistory_roundTrip_completedAtSet() {
+        let domain = PlaybackHistorySnapshot(
+            torrentID: "ph-1",
+            fileIndex: 2,
+            resumeByteOffset: 9_500_000,
+            lastPlayedAtMillis: 1_700_000_010_000,
+            totalWatchedSeconds: 0,
+            completed: true,
+            completedAtMillis: 1_700_000_012_345
+        )
+        let reconstructed = PlaybackHistorySnapshot(from: PlaybackHistoryDTO(from: domain))
+        XCTAssertEqual(reconstructed, domain)
+    }
+
+    func test_playbackHistory_roundTrip_completedAtNil() {
+        let domain = PlaybackHistorySnapshot(
+            torrentID: "ph-2",
+            fileIndex: 0,
+            resumeByteOffset: 1024,
+            lastPlayedAtMillis: 1_700_000_011_000,
+            totalWatchedSeconds: 0,
+            completed: false,
+            completedAtMillis: nil
+        )
+        let reconstructed = PlaybackHistorySnapshot(from: PlaybackHistoryDTO(from: domain))
+        XCTAssertEqual(reconstructed, domain)
+    }
+
+    func test_playbackHistory_unwatched_roundTrip() {
+        let domain = PlaybackHistorySnapshot(
+            torrentID: "ph-3",
+            fileIndex: 5,
+            resumeByteOffset: 0,
+            lastPlayedAtMillis: 1_700_000_012_000,
+            totalWatchedSeconds: 0,
+            completed: false,
+            completedAtMillis: nil
+        )
+        let reconstructed = PlaybackHistorySnapshot(from: PlaybackHistoryDTO(from: domain))
+        XCTAssertEqual(reconstructed, domain)
+    }
+}

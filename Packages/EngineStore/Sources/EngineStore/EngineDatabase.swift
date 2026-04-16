@@ -31,6 +31,9 @@ public enum EngineDatabase {
         migrator.registerMigration(V1Migration.identifier) { db in
             try V1Migration.perform(db)
         }
+        migrator.registerMigration(V2Migration.identifier) { db in
+            try V2Migration.perform(db)
+        }
         try migrator.migrate(queue)
     }
 }
