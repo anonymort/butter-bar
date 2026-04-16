@@ -41,4 +41,14 @@ enum BrandColors {
     static let surfaceRaised  = creamRaised
     /// Modal scrims, popovers without glass treatment.
     static let surfaceOverlay: Color = cocoa.opacity(0.4)
+
+    // MARK: - Player tokens
+
+    /// Fill behind the video frame (letterbox / pillarbox bars).
+    ///
+    /// Always pure black regardless of system appearance. Video content is
+    /// colour-managed and must be surrounded by absolute black — not a
+    /// warm cream or a near-black — so that the perceived contrast and
+    /// colour accuracy of the image are unaffected by the surrounding surface.
+    static let videoLetterbox = Color.black
 }

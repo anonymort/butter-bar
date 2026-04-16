@@ -28,7 +28,7 @@ struct PlayerView: View {
     var body: some View {
         ZStack {
             // Solid black behind the video — always dark regardless of system theme.
-            Color.black
+            BrandColors.videoLetterbox
                 .ignoresSafeArea()
 
             if let player = viewModel.player {
