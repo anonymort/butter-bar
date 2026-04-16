@@ -38,7 +38,7 @@
 		C3A4B5D6E7F8C3A4B5D6E7F8 /* PlaybackSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1E2F3B4C5D6A1E2F3B4C5D6 /* PlaybackSession.swift */; };
 		D4B5C6E7F8A9D4B5C6E7F8A9 /* StreamRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F3A4C5D6E7B2F3A4C5D6E7 /* StreamRegistry.swift */; };
 		E5F6A7B8C9D0E5F6A7B8C9D0 /* GatewayPlannerSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6A7B8C9D0E1F6A7B8C9D0E1 /* GatewayPlannerSelfTest.swift */; };
-		A7B8C9D1E2F3A7B8C9D1E2F3 /* StreamE2ESelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8C9D0E1F2A3B8C9D0E1F2A3 /* StreamE2ESelfTest.swift */; };
+		A7B8C9D1E2F3A7B8C9D1E2F3 /* StreamE2ESelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8C9D0E1F2A3B8C9D0E1F2A4 /* StreamE2ESelfTest.swift */; };
 		AA11BB33CC55DD77EE99FF11 /* EngineStore in Frameworks */ = {isa = PBXBuildFile; productRef = FF66AA88BB00CC22DD44EE66 /* EngineStore */; };
 		BB22CC44DD66EE88FF00AA22 /* CacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA77BB99CC11DD33EE55FF77 /* CacheManager.swift */; };
 		CC33DD55EE77FF99AA11BB33 /* CacheManagerSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB88CC00DD22EE44FF66AA88 /* CacheManagerSelfTest.swift */; };
@@ -123,7 +123,7 @@
 		A1E2F3B4C5D6A1E2F3B4C5D6 /* PlaybackSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackSession.swift; sourceTree = "<group>"; };
 		B2F3A4C5D6E7B2F3A4C5D6E7 /* StreamRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamRegistry.swift; sourceTree = "<group>"; };
 		F6A7B8C9D0E1F6A7B8C9D0E1 /* GatewayPlannerSelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GatewayPlannerSelfTest.swift; sourceTree = "<group>"; };
-		B8C9D0E1F2A3B8C9D0E1F2A3 /* StreamE2ESelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamE2ESelfTest.swift; sourceTree = "<group>"; };
+		B8C9D0E1F2A3B8C9D0E1F2A4 /* StreamE2ESelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamE2ESelfTest.swift; sourceTree = "<group>"; };
 		EB3FC12896B9622317749428 /* LibrarySnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySnapshotTests.swift; sourceTree = "<group>"; };
 		3A4B5C6D7E8F3A4B5C6D7E8F /* ButterBarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ButterBarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B1000001000000000000BB01 /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
@@ -320,7 +320,7 @@
 				A1E2F3B4C5D6A1E2F3B4C5D6 /* PlaybackSession.swift */,
 				B2F3A4C5D6E7B2F3A4C5D6E7 /* StreamRegistry.swift */,
 				F6A7B8C9D0E1F6A7B8C9D0E1 /* GatewayPlannerSelfTest.swift */,
-				B8C9D0E1F2A3B8C9D0E1F2A3 /* StreamE2ESelfTest.swift */,
+				B8C9D0E1F2A3B8C9D0E1F2A4 /* StreamE2ESelfTest.swift */,
 			);
 			path = Gateway;
 			sourceTree = "<group>";

@@ -12,6 +12,8 @@ Butter Bar is a desktop-native streaming application in the general product cate
 
 **Phases 0–6 complete, app↔engine XPC runtime-verified.** Phase 5 `T-STREAM-E2E` runs end-to-end against the Internet Archive "Big Buck Bunny" torrent (276 MB MP4) with HTTP bytes matching `TorrentBridge.readBytes` byte-for-byte. All supporting unit tests pass: 158 SPM tests (PlannerCore, EngineInterface, XPCMapping, EngineStore), 10 snapshot tests for LibraryView and StreamHealthHUD in both colour schemes, plus HTTP/CacheManager/ResumeTracker self-tests. Phase 6 cache/resume/library/player/HUD code compiles cleanly and is unit-test covered. `EngineXPCServer` now delegates to `RealEngineBackend` (TorrentBridge + StreamRegistry + GatewayListener + CacheManager), the `.xpc` bundle is embedded in `ButterBar.app`, and the full app→XPC→engine path is runtime-verified — the library loads cleanly when launching the app (GitHub #95 resolved). Known open items: `T-CACHE-EVICTION` probe awaits a user-run observation session against a real magnet; `T-BRAND-ASSETS` requires Icon Composer; the AVPlayer end-to-end acceptance (recorded video of actual playback through the UI) is the remaining v1 milestone.
 
+**Latest hardening (2026-04-16):** every continuation-backed `EngineClient` wrapper now uses a per-call XPC proxy error handler and single-shot continuation resumer, so XPC invalidation during an in-flight request completes the Swift task instead of leaking it. The Debug app build is warning-free and the latest runtime launch check produced no visible or logged errors.
+
 ## Documentation
 
 Start with [`CLAUDE.md`](./CLAUDE.md). It is the orchestration root and points at everything else in the right reading order.
