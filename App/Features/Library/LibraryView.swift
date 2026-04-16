@@ -108,7 +108,7 @@ struct LibraryView: View {
     }
 
     private func errorBanner(_ message: String) -> some View {
-        Text("Could not load library: \(message)")
+        Text(message)
             .brandCaption()
             .padding(.horizontal, 12)
             .padding(.vertical, 8)

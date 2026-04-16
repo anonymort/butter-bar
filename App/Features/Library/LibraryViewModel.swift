@@ -39,7 +39,7 @@ final class LibraryViewModel: ObservableObject {
             torrents = try await engineClient.listTorrents()
             loadError = nil
         } catch {
-            loadError = error.localizedDescription
+            loadError = "Could not load library: \(error.localizedDescription)"
         }
     }
 
