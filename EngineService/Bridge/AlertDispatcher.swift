@@ -85,18 +85,55 @@ final class AlertDispatcher {
     }
 
     private func emitFileAvailabilityChanged(torrentID: String, to proxy: EngineEvents) {
-        guard (try? bridge.havePieces(torrentID)) != nil else {
+        let havePiecesArray: [NSNumber]
+        do {
+            havePiecesArray = try bridge.havePieces(torrentID)
+        } catch {
             NSLog("[AlertDispatcher] havePieces failed for %@", torrentID)
             return
         }
 
-        // Full file→piece range mapping is deferred to the gateway wiring task.
-        // Emit a minimal DTO so the event type flows end-to-end.
-        let dto = FileAvailabilityDTO(
-            torrentID: torrentID as NSString,
-            fileIndex: 0,
-            availableRanges: []
-        )
-        proxy.fileAvailabilityChanged(dto)
+        let pieceLength = bridge.pieceLength(torrentID)
+        guard pieceLength > 0 else {
+            NSLog("[AlertDispatcher] pieceLength unavailable for %@", torrentID)
+            return
+        }
+
+        let havePieces = havePiecesArray.map { $0.intValue }
+
+        let files: [NSDictionary]
+        do {
+            files = try bridge.listFiles(torrentID) as? [NSDictionary] ?? []
+        } catch {
+            NSLog("[AlertDispatcher] listFiles failed for %@", torrentID)
+            return
+        }
+
+        for file in files {
+            guard let fileIndex = (file["index"] as? NSNumber)?.int32Value else { continue }
+
+            var fileStart: Int64 = 0
+            var fileEnd:   Int64 = 0
+            do {
+                try bridge.fileByteRange(torrentID, fileIndex: fileIndex, start: &fileStart, end: &fileEnd)
+            } catch {
+                NSLog("[AlertDispatcher] fileByteRange failed for %@ file %d", torrentID, fileIndex)
+                continue
+            }
+
+            let ranges = PieceByteMapping.availableRanges(
+                havePieces: havePieces,
+                pieceLength: pieceLength,
+                fileStart: fileStart,
+                fileEnd: fileEnd
+            )
+
+            let dto = FileAvailabilityDTO(
+                torrentID: torrentID as NSString,
+                fileIndex: fileIndex,
+                availableRanges: ranges
+            )
+            proxy.fileAvailabilityChanged(dto)
+        }
     }
 }
