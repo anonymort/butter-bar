@@ -184,7 +184,7 @@ private extension View {
     ))
     .preferredColorScheme(.dark)
     .padding()
-    .background(Color.black)
+    .background(BrandColors.videoLetterbox)
 }
 
 #Preview("HUD — marginal, dark") {
@@ -200,7 +200,7 @@ private extension View {
     ))
     .preferredColorScheme(.dark)
     .padding()
-    .background(Color.black)
+    .background(BrandColors.videoLetterbox)
 }
 
 #Preview("HUD — starving, dark") {
@@ -216,5 +216,5 @@ private extension View {
     ))
     .preferredColorScheme(.dark)
     .padding()
-    .background(Color.black)
+    .background(BrandColors.videoLetterbox)
 }
