@@ -39,7 +39,7 @@ struct StreamHealthHUD: View {
             .fill(tierColour)
             .frame(width: 4)
             .clipShape(Capsule())
-            .animation(.easeInOut(duration: 0.4), value: health.tier as String)
+            .animation(.easeInOut(duration: 0.4), value: health.tierValue)
     }
 
     // MARK: - Stats row
@@ -58,7 +58,7 @@ struct StreamHealthHUD: View {
         Text(tierDisplayName)
             .brandBodyEmphasis()
             .foregroundStyle(tierColour)
-            .animation(.easeInOut(duration: 0.4), value: health.tier as String)
+            .animation(.easeInOut(duration: 0.4), value: health.tierValue)
     }
 
     /// "12 s ready" — buffer-ahead value animates continuously across 800 ms.
@@ -113,21 +113,19 @@ struct StreamHealthHUD: View {
     // MARK: - Formatters
 
     private var tierColour: Color {
-        switch health.tier as String {
-        case "healthy":  return BrandColors.tierHealthy
-        case "marginal": return BrandColors.tierMarginal
-        case "starving": return BrandColors.tierStarving
-        default:         return BrandColors.tierStarving
+        switch health.tierValue {
+        case .healthy:  return BrandColors.tierHealthy
+        case .marginal: return BrandColors.tierMarginal
+        case .starving: return BrandColors.tierStarving
         }
     }
 
     /// British English tier names per 06-brand.md § Voice.
     private var tierDisplayName: String {
-        switch health.tier as String {
-        case "healthy":  return "Healthy"
-        case "marginal": return "Marginal"
-        case "starving": return "Starving"
-        default:         return "Unknown"
+        switch health.tierValue {
+        case .healthy:  return "Healthy"
+        case .marginal: return "Marginal"
+        case .starving: return "Starving"
         }
     }
 

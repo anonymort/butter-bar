@@ -284,6 +284,35 @@ final class StreamHealthDTOTests: XCTestCase {
         XCTAssertEqual(decoded.requiredBitrateBytesPerSec?.int64Value, 1_800_000)
         XCTAssertEqual(decoded.tier, "marginal")
     }
+
+    func testTierValue_typedProjectionMatchesRawTier() {
+        let dto = StreamHealthDTO(
+            streamID: "sh-typed",
+            secondsBufferedAhead: 1,
+            downloadRateBytesPerSec: 1,
+            requiredBitrateBytesPerSec: nil,
+            peerCount: 0,
+            outstandingCriticalPieces: 0,
+            recentStallCount: 0,
+            tier: .healthy
+        )
+        XCTAssertEqual(dto.tierValue, .healthy)
+        XCTAssertEqual(dto.tier as String, "healthy")
+    }
+
+    func testTierValue_unknownTierFallsBackToStarving() {
+        let dto = StreamHealthDTO(
+            streamID: "sh-unknown",
+            secondsBufferedAhead: 1,
+            downloadRateBytesPerSec: 1,
+            requiredBitrateBytesPerSec: nil,
+            peerCount: 0,
+            outstandingCriticalPieces: 0,
+            recentStallCount: 0,
+            tier: "not-a-tier"
+        )
+        XCTAssertEqual(dto.tierValue, .starving)
+    }
 }
 
 // MARK: - DiskPressureDTO

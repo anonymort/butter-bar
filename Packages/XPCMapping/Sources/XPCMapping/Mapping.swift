@@ -152,6 +152,7 @@ extension FileAvailability {
 extension StreamHealthDTO {
     /// Construct a DTO from a domain health snapshot, attaching the stream context.
     public convenience init(streamID: String, from domain: StreamHealth) {
+        let tier = StreamHealthTier(rawValue: domain.tier.rawValue) ?? .starving
         self.init(
             streamID: streamID as NSString,
             secondsBufferedAhead: domain.secondsBufferedAhead,
@@ -160,7 +161,7 @@ extension StreamHealthDTO {
             peerCount: Int32(clamping: domain.peerCount),
             outstandingCriticalPieces: Int32(clamping: domain.outstandingCriticalPieces),
             recentStallCount: Int32(clamping: domain.recentStallCount),
-            tier: domain.tier.rawValue as NSString
+            tier: tier
         )
     }
 }
@@ -175,7 +176,7 @@ extension StreamHealth {
             peerCount: Int(dto.peerCount),
             outstandingCriticalPieces: Int(dto.outstandingCriticalPieces),
             recentStallCount: Int(dto.recentStallCount),
-            tier: StreamHealth.Tier(rawValue: dto.tier as String) ?? .starving
+            tier: StreamHealth.Tier(rawValue: dto.tierValue.rawValue) ?? .starving
         )
     }
 }

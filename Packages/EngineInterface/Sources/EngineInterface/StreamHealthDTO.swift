@@ -37,6 +37,29 @@ public final class StreamHealthDTO: NSObject, NSSecureCoding {
         self.tier = tier
     }
 
+    /// Convenience constructor for typed tier call sites.
+    public convenience init(
+        streamID: NSString,
+        secondsBufferedAhead: Double,
+        downloadRateBytesPerSec: Int64,
+        requiredBitrateBytesPerSec: NSNumber?,
+        peerCount: Int32,
+        outstandingCriticalPieces: Int32,
+        recentStallCount: Int32,
+        tier: StreamHealthTier
+    ) {
+        self.init(
+            streamID: streamID,
+            secondsBufferedAhead: secondsBufferedAhead,
+            downloadRateBytesPerSec: downloadRateBytesPerSec,
+            requiredBitrateBytesPerSec: requiredBitrateBytesPerSec,
+            peerCount: peerCount,
+            outstandingCriticalPieces: outstandingCriticalPieces,
+            recentStallCount: recentStallCount,
+            tier: tier.rawValue as NSString
+        )
+    }
+
     public func encode(with coder: NSCoder) {
         coder.encode(schemaVersion, forKey: "schemaVersion")
         coder.encode(streamID, forKey: "streamID")
@@ -61,5 +84,10 @@ public final class StreamHealthDTO: NSObject, NSSecureCoding {
         guard let tier = coder.decodeObject(of: NSString.self, forKey: "tier") else { return nil }
         self.streamID = streamID
         self.tier = tier
+    }
+
+    /// Typed projection of `tier` for domain/UI use. Unknown strings map to `.starving`.
+    public var tierValue: StreamHealthTier {
+        StreamHealthTier(rawValue: tier as String) ?? .starving
     }
 }
