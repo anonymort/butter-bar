@@ -38,7 +38,7 @@
     "os_version" : "26.5"
   },
   "measured_at" : "2026-04-16T12:42:11Z",
-  "notes" : "Threshold to be set by opus once SLA is defined. Bench currently advisory.",
+  "notes" : "Advisory only. Threshold applies uniformly as (1 + pct/100) * p90 per fixture. See 00-addendum.md A25 for rationale and CI-gate stance.",
   "planner_commit" : "ae8ce81b93f2c7337b73f71d61786c3e73476e1b",
-  "regression_threshold_pct" : null
+  "regression_threshold_pct" : 50.0
 }

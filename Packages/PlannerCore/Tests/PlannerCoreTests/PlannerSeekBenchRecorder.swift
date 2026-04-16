@@ -71,8 +71,8 @@ final class PlannerSeekBenchRecorder: XCTestCase {
             plannerCommit: gitHead(),
             host: HostInfo(arch: uname_m(), osVersion: swVers()),
             fixtures: fixtureResults,
-            regressionThresholdPct: nil,
-            notes: "Threshold to be set by opus once SLA is defined. Bench currently advisory."
+            regressionThresholdPct: 50.0,
+            notes: "Advisory only. Threshold applies uniformly as (1 + pct/100) * p90 per fixture. See 00-addendum.md A25 for rationale and CI-gate stance."
         )
 
         let outputURL = try outputFileURL()

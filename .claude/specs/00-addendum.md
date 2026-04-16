@@ -381,11 +381,33 @@ Separately, while writing the workflow into spec 06 rev 2 (per A18), two things 
 - `EngineService/Cache/CacheEvictionProbe.swift`: Probe C0 (baseline disk-corrupt recheck, confirms bitmap-updates-without-alerts), Probe C1 (addPiece regression sentinel — expected negative), Probe B moved after C1, punch geometry fixed.
 - `EngineService/Cache/CacheManager.swift`: eviction logic implemented per this spec.
 
+## A25 — Planner-layer seek SLA and regression threshold (resolves #107)
+
+**Context:** T-PERF-SEEK-BENCH (PR #106) shipped the planner seek bench: XCTest performance tests across the four trace fixtures plus a 20-iteration baseline recorder (`docs/benchmarks/seek-baseline.json`). The recorded baseline on arm64 / macOS 26.5 shows p50 0.039–0.058 ms and p90 0.040–0.060 ms per fixture — purely planner overhead, no network, no decode. Specs 02 / 04 / 05 name no numerical seek-to-first-frame SLA, and issue #107 collected the four design calls needed to close the bench loop.
+
+**Decision (v1):** the planner bench is a **regression guard, not a user-facing SLA**. User-visible seek latency is dominated by libtorrent piece fetch and AVFoundation decode — neither is measured by this bench, and measuring them would require a real-network harness on top of `T-STREAM-E2E`. The v1 architectural seek SLA is the synchronous-deadline guarantee already in spec 04:
+
+> On seek, the planner emits `setDeadlines(critical=[…], deadlineMs=0)` synchronously inside `handle(event:)`.
+
+That property is verified by the correctness tests (fixture replay, byte-for-byte against expected-actions files). The bench's job is to catch *regressions* of that guarantee — an accidental O(N²) path, an allocation storm, a sync-to-async split — all of which would move the replay time by a large multiple.
+
+**Numerical threshold:** **50% over the committed p90** per fixture, applied uniformly. Tight enough to catch the regression classes above (each would move replay ≥ 10×); generous enough to absorb sub-ms measurement noise and host-drift between local arm64 and CI macos-26 runners. Written into `docs/benchmarks/seek-baseline.json` as `regression_threshold_pct: 50.0`.
+
+**CI gate:** **advisory only, do not gate merges**. Sub-ms measurements across heterogeneous silicon + scheduling produce flaky CI signal unrelated to code quality. The bench runs on PRs for visibility; Opus triages any headline regression manually. Revisit this stance if and when we have a dedicated bench runner with stable hardware.
+
+**End-to-end seek SLA:** **deferred to v1.5+**. Requires a real-network harness (T-STREAM-E2E-style) with a controlled peer set and a known-good magnet, and a decoder-side measurement (`AVPlayerItem.timebase` rate change from 0 → 1). Not in scope for v1.
+
+**Affected files:**
+- `docs/benchmarks/seek-baseline.json` — `regression_threshold_pct` set to `50.0`; `notes` updated to reference A25.
+- `Packages/PlannerCore/Tests/PlannerCoreTests/PlannerSeekBenchRecorder.swift` — recorder defaults bumped to match (so re-recording preserves the threshold).
+- `docs/benchmarks/README.md` — § Deferred: regression gate threshold rewritten to "Regression threshold" and pointed at A25.
+- `TASKS.md` — `T-PERF-SEEK-BENCH` follow-up note marks #107 resolved.
+
 ## Summary of file changes in this revision
 
 (extends earlier summaries)
 
-- `00-addendum.md` — A16–A19 appended in earlier revision; A20–A22 appended from Phase 1 review; A23 appended from 2026-04-16 API surface investigation; A24 appended same-day after probe run #3 disproved A23's hot path.
+- `00-addendum.md` — A16–A19 appended in earlier revision; A20–A22 appended from Phase 1 review; A23 appended from 2026-04-16 API surface investigation; A24 appended same-day after probe run #3 disproved A23's hot path; A25 appended 2026-04-16 to resolve #107 (planner seek SLA + 50% regression threshold, advisory-only, E2E SLA deferred to v1.5+).
 - `06-brand.md` — rev 3: § Asset specifications and § Tahoe icon workflow rewritten around the Liquid Glass prep package. Layer model corrected (background + up to 4 foreground groups). `.icon` placement corrected to `App/AppIcon.icon` (sibling of Assets.xcassets, not nested). Step-by-step Icon Composer workflow added. (A19.) Rev 2 introduced Tahoe targeting (A18); rev 1 was the initial brand spec.
 - `07-product-surface.md` — authoritative product surface spec for catalogue, sync, providers, etc. (A17.)
 - `08-issue-workflow.md` — GitHub issue/branch/PR conventions. (A17.)
