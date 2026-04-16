@@ -55,10 +55,15 @@ final class StreamRegistry {
         }
 
         // Log any existing resume offset for this file (app reads it at open time via XPC).
-        if let cm = cacheManager,
-           let record = try? cm.fetchHistory(torrentId: torrentID, fileIndex: fileIndex),
-           record.resumeByteOffset > 0 {
-            NSLog("[StreamRegistry] resume offset for stream %@: %lld", streamID, record.resumeByteOffset)
+        if let cm = cacheManager {
+            do {
+                if let record = try cm.fetchHistory(torrentId: torrentID, fileIndex: fileIndex),
+                   record.resumeByteOffset > 0 {
+                    NSLog("[StreamRegistry] resume offset for stream %@: %lld", streamID, record.resumeByteOffset)
+                }
+            } catch {
+                NSLog("[StreamRegistry] fetchHistory error: %@", "\(error)")
+            }
         }
 
         let session = try PlaybackSession(

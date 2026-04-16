@@ -1,0 +1,41 @@
+{
+  "fill" : {
+    "automatic-gradient" : "extended-srgb:0.00000,0.53333,1.00000,1.00000"
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "image-name" : "02-bar.png",
+          "name" : "02-bar"
+        },
+        {
+          "image-name" : "04-glyph-gloss.png",
+          "name" : "04-glyph-gloss"
+        },
+        {
+          "image-name" : "03-butter.png",
+          "name" : "03-butter"
+        },
+        {
+          "image-name" : "01-background.png",
+          "name" : "01-background"
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}

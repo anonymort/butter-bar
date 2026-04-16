@@ -28,7 +28,7 @@ final class ResumeTracker {
 
     /// Returns the current time. Defaults to `DispatchTime.now()`.
     /// Tests replace this with a controllable closure to avoid sleeping.
-    let now: () -> DispatchTime
+    private let now: () -> DispatchTime
 
     // MARK: - Internal state
 
