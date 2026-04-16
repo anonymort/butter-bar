@@ -10,10 +10,10 @@ import EngineInterface
 // If EngineInterface ever adds `@unchecked Sendable` conformances to the DTOs
 // directly, this file can be deleted.
 
-extension TorrentSummaryDTO: @unchecked Sendable {}
-extension TorrentFileDTO: @unchecked Sendable {}
-extension StreamDescriptorDTO: @unchecked Sendable {}
-extension FileAvailabilityDTO: @unchecked Sendable {}
-extension StreamHealthDTO: @unchecked Sendable {}
-extension DiskPressureDTO: @unchecked Sendable {}
-extension ByteRangeDTO: @unchecked Sendable {}
+extension TorrentSummaryDTO: @unchecked @retroactive Sendable {}
+extension TorrentFileDTO: @unchecked @retroactive Sendable {}
+extension StreamDescriptorDTO: @unchecked @retroactive Sendable {}
+extension FileAvailabilityDTO: @unchecked @retroactive Sendable {}
+extension StreamHealthDTO: @unchecked @retroactive Sendable {}
+extension DiskPressureDTO: @unchecked @retroactive Sendable {}
+extension ByteRangeDTO: @unchecked @retroactive Sendable {}
