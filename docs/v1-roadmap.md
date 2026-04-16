@@ -117,20 +117,20 @@ Every phase follows the same protocol:
 
 ### Phase 4 — Discovery and metadata (Epic #2)
 
-**Why last:** largest surface (browse hierarchy, search, detail pages, season/episode selectors), touches external network services (TMDB + Trakt per memory), and provides the inputs that Phase 3's tail (#20, #21) and Phase 1's #35 (continue-watching) consume fully.
+**Why last:** largest surface (browse hierarchy, search, detail pages, season/episode selectors), touches an external network service (TMDB), and provides the inputs that Phase 3's tail (#20, #21) and Phase 1's #35 (continue-watching) consume fully.
 
-**Foundation:** **#11** — define metadata schema for movie, show, season, episode. Resolves the long-standing "needs-design (which metadata source?)" note on the ticket (decision recorded: TMDB for metadata and artwork, Trakt for trending/popular/recently-released rows and later sync). Produces the Swift types used by every other Discovery ticket plus the cache layer for metadata TTLs.
+**Foundation:** **#11** — define metadata schema for movie, show, season, episode. The long-standing "needs-design (which metadata source?)" note on the ticket is **resolved (2026-04-16)** by the spike at [`docs/spike-metadata-sources.md`](spike-metadata-sources.md) plus the Phase 4 design pass at [`docs/design/discovery-metadata-foundation.md`](design/discovery-metadata-foundation.md): **TMDB primary** for metadata, browse rows, search, and artwork; **Trakt is reserved for Module 5 (Account Sync, p1)** and is not a Phase 4 concern. Produces the Swift types, the new `Packages/MetadataDomain` package, the `MetadataProvider` protocol + `TMDBProvider` impl, the on-disk JSON cache with TTLs, and the pure name-parser + match-ranker that downstream "torrent file → TMDB title" flows consume.
 
 **Dependent tickets (merge after foundation):**
-- **#13** design browse hierarchy and navigation (sidebar + home screen rows; depends on #11).
-- **#14** implement search index and result ranking (depends on #11 + in-memory filtering over summaries per CLAUDE.md "No FTS5 in v1").
+- **#13** design browse hierarchy and navigation (sidebar + home screen rows; depends on #11). Row set per `discovery-metadata-foundation.md § D11`.
+- **#14** implement search and result ranking — **TMDB-backed via `/search/multi` per `discovery-metadata-foundation.md § D10`**, debounced; not a local index. Depends on #11.
 - **#15** build title detail page UI (depends on #11, #14 for entry, and `06-brand.md` for chrome).
 - **#16** build season/episode selector UI (depends on #15 + #11 episode schema).
-- **#17** continue-watching row from local state (depends on #11 for metadata projection + **#35** from Phase 1 for the data).
+- **#17** continue-watching row from local state (depends on #11 for metadata projection + matching seam per `discovery-metadata-foundation.md § D9`, plus **#35** from Phase 1 for the underlying `playback_history` feed).
 
-**Phase 3 tail (if Option A chosen):**
-- **#20** end-of-episode detection.
-- **#21** next-episode auto-play.
+**Phase 3 tail (Option A confirmed 2026-04-16):**
+- **#20** end-of-episode detection — needs episode schema from #11.
+- **#21** next-episode auto-play — needs #20 + episode schema from #11.
 
 **Out of scope for Phase 4:**
 - Related / recommended titles beyond what Trakt's stock endpoints provide (richer recommendations are p2).
