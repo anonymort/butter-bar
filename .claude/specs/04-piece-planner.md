@@ -1,6 +1,6 @@
 # 04 — PiecePlanner
 
-> **Revision 3** — expected-actions example rewritten to derive correctly from deadline-spacing rules (addendum A13); § Tick gains explicit `emitHealth` emission rules (addendum A15). Rev 2 introduced "deterministic state machine" language (addendum A3); `.seek` removed from public `PlayerEvent` and derived internally from GET patterns (addendum A4); explicit zero/unknown-rate fallback for deadline spacing added (addendum A5). Baseline revision was rev 1.
+> **Revision 4** — § Seek and § Mid-play GET clarified: "most recently served byte" means `range.end` of most recent GET event processed, not delivered bytes (addendum A20). Rev 3 had expected-actions example rewritten to derive correctly from deadline-spacing rules (addendum A13); § Tick gains explicit `emitHealth` emission rules (addendum A15). Rev 2 introduced "deterministic state machine" language (addendum A3); `.seek` removed from public `PlayerEvent` and derived internally from GET patterns (addendum A4); explicit zero/unknown-rate fallback for deadline spacing added (addendum A5). Baseline revision was rev 1.
 
 The planner is the project's highest-risk component. Build it first, build it deterministic, build it from traces.
 
@@ -125,7 +125,7 @@ On first `get` after `head`:
 
 ### Mid-play GET
 
-On a `get` whose range starts within `pieceLength * 2` of the most recent served byte (i.e. sequential):
+On a `get` whose range starts within `pieceLength * 2` of the most recent GET's `range.end` (i.e. sequential):
 
 1. Confirm covering pieces are still on the deadline list.
 2. Extend the readahead window if it has slipped.
@@ -133,7 +133,7 @@ On a `get` whose range starts within `pieceLength * 2` of the most recent served
 
 ### Seek (internally detected)
 
-When a `get` arrives whose range starts **more than** `pieceLength * 4` away from the most recent served byte, the planner classifies it as a seek and:
+When a `get` arrives whose range starts **more than** `pieceLength * 4` away from the most recent GET's `range.end`, the planner classifies it as a seek and:
 
 1. Emits `clearDeadlinesExcept` covering the new window only. Do not keep old deadlines around — they compete for peer slots.
 2. Emits `setDeadlines` for the new window with critical priority on the first 4 pieces (spacing per the deadline-spacing rules above).
