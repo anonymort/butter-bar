@@ -102,9 +102,9 @@ Every phase follows the same protocol:
 - **#24** design player overlay controls per `06-brand.md` (needs #18).
 - **#26** failure states and retry paths (needs #18 + engine event contract from spec 03).
 
-**Cross-phase dependency note:** #20 and #21 depend on episode metadata that only exists after Phase 4's foundation (#11). Two options — decide during Phase 3's Opus design pass:
-- **Option A (preferred):** land #18, #19, #22, #23, #24, #26 in Phase 3; defer #20 + #21 to a Phase 3 tail that runs after Phase 4's #11 lands. Keeps Phase 3 shippable without movies-only being a regression.
-- **Option B:** stub episode metadata in Phase 3 with a minimal inline type, then migrate to the real schema in Phase 4. Higher refactor cost but unblocks Phase 3 fully.
+**Cross-phase dependency note:** #20 and #21 depend on episode metadata that only exists after Phase 4's foundation (#11). Two options were considered during Phase 3's Opus design pass:
+- **Option A (chosen, 2026-04-16):** land #18, #19, #22, #23, #24, #26 in Phase 3; defer #20 + #21 to a Phase 3 tail that runs after Phase 4's #11 lands. Keeps Phase 3 shippable without movies-only being a regression. Rationale: #21 is fundamentally a metadata feature; stubbing leaks into the foundation type and forces a migration when #11 lands. Full reasoning in [`docs/design/player-state-foundation.md § D1`](design/player-state-foundation.md).
+- ~~**Option B:** stub episode metadata in Phase 3 with a minimal inline type, then migrate to the real schema in Phase 4. Higher refactor cost but unblocks Phase 3 fully.~~ Rejected.
 
 **Out of scope for Phase 3:**
 - Keyboard shortcuts beyond space/arrow/F (rest is v1.5+).
