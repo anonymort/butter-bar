@@ -30,6 +30,7 @@
 		AA11BB22CC33DD44EE55FF66 /* EngineClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF66EE55DD44CC33BB22AA11 /* EngineClient.swift */; };
 		AA11BB33CC55DD77EE99FF11 /* EngineStore in Frameworks */ = {isa = PBXBuildFile; productRef = FF66AA88BB00CC22DD44EE66 /* EngineStore */; };
 		FACE0001AAAA0000BBBB0001 /* LibraryDomain in Frameworks */ = {isa = PBXBuildFile; productRef = FACE0004AAAA0000BBBB0004 /* LibraryDomain */; };
+		B11E0001000000000000BB01 /* PlayerDomain in Frameworks */ = {isa = PBXBuildFile; productRef = B11E0004000000000000BB04 /* PlayerDomain */; };
 		AA33BB55CC77DD99EE11FF33 /* ResumeTrackerSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF6600889900AABB11CC2233 /* ResumeTrackerSelfTest.swift */; };
 		AA77889900BBCCDD11AA7788 /* HTTPSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8899AA00CCDDEE22BB8899 /* HTTPSelfTest.swift */; };
 		B5C7D9E1F3A2048A67B9C0D1 /* TorrentBridgeSmokeTest.mm in Sources */ = {isa = PBXBuildFile; fileRef = F8C1D5A3B2E497640F3A5B02 /* TorrentBridgeSmokeTest.mm */; };
@@ -156,6 +157,7 @@
 		DD44EE55FF6677AA88BB99CC /* DTOSendable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTOSendable.swift; sourceTree = "<group>"; };
 		DD44EE66FF88AA00BB22CC44 /* EngineStore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = EngineStore; path = Packages/EngineStore; sourceTree = "<group>"; };
 		FACE0002AAAA0000BBBB0002 /* LibraryDomain */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LibraryDomain; path = Packages/LibraryDomain; sourceTree = "<group>"; };
+		B11E0002000000000000BB02 /* PlayerDomain */ = {isa = PBXFileReference; lastKnownFileType = folder; name = PlayerDomain; path = Packages/PlayerDomain; sourceTree = "<group>"; };
 		E1000002000000000000EE02 /* CacheEvictionProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheEvictionProbe.swift; sourceTree = "<group>"; };
 		E1F2A3B4C5D6E1F2A3B4C5D6 /* ByteReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ByteReader.swift; sourceTree = "<group>"; };
 		E2000002000000000000EE02 /* CacheEviction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheEviction.swift; sourceTree = "<group>"; };
@@ -184,6 +186,7 @@
 				5449C4D2390E0AAD7914583D /* EngineInterface in Frameworks */,
 				97D6C5379559B125DE089050 /* PlannerCore in Frameworks */,
 				FACE0001AAAA0000BBBB0001 /* LibraryDomain in Frameworks */,
+				B11E0001000000000000BB01 /* PlayerDomain in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -391,6 +394,7 @@
 				1785E418002BEE10CA7FEDC0 /* TestFixtures */,
 				DD44EE66FF88AA00BB22CC44 /* EngineStore */,
 				FACE0002AAAA0000BBBB0002 /* LibraryDomain */,
+				B11E0002000000000000BB02 /* PlayerDomain */,
 			);
 			name = Packages;
 			sourceTree = "<group>";
@@ -449,6 +453,7 @@
 				29ED0EA0014C4BEC558549BB /* EngineInterface */,
 				BDA7E17795E9B0C29D6E029A /* PlannerCore */,
 				FACE0004AAAA0000BBBB0004 /* LibraryDomain */,
+				B11E0004000000000000BB04 /* PlayerDomain */,
 			);
 			productName = ButterBar;
 			productReference = 67921BA991E985B2A97454A8 /* ButterBar.app */;
@@ -533,6 +538,7 @@
 				2E61653CC56FA54DED6A53B7 /* XCLocalSwiftPackageReference "Packages/TestFixtures" */,
 				EE55FF77AA99BB11CC33DD55 /* XCLocalSwiftPackageReference "Packages/EngineStore" */,
 				FACE0003AAAA0000BBBB0003 /* XCLocalSwiftPackageReference "Packages/LibraryDomain" */,
+				B11E0003000000000000BB03 /* XCLocalSwiftPackageReference "Packages/PlayerDomain" */,
 				390C8C7D7247342CD8100F2F /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
 			);
 			productRefGroup = 21A59A6D24B4DEA9DB9C5973 /* Products */;
@@ -1316,6 +1322,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/LibraryDomain;
 		};
+		B11E0003000000000000BB03 /* XCLocalSwiftPackageReference "Packages/PlayerDomain" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/PlayerDomain;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
@@ -1364,6 +1374,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = FACE0003AAAA0000BBBB0003 /* XCLocalSwiftPackageReference "Packages/LibraryDomain" */;
 			productName = LibraryDomain;
+		};
+		B11E0004000000000000BB04 /* PlayerDomain */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B11E0003000000000000BB03 /* XCLocalSwiftPackageReference "Packages/PlayerDomain" */;
+			productName = PlayerDomain;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
