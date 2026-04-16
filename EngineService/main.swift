@@ -33,13 +33,28 @@ if CommandLine.arguments.contains("--resume-tracker-self-test") {
 }
 #endif
 
+// XPCDelegate owns the shared backend for the process lifetime.
+// All per-connection EngineXPCServer instances delegate to this single instance.
+// The backend is stored on the delegate (not as a top-level let) to avoid Swift 6
+// main-actor isolation issues with top-level stored properties.
 final class XPCDelegate: NSObject, NSXPCListenerDelegate {
+    let backend: any EngineXPCBackend
+
+    override init() {
+        if CommandLine.arguments.contains("--fake-backend") {
+            backend = FakeEngineBackend()
+        } else {
+            backend = RealEngineBackend()
+        }
+        super.init()
+    }
+
     func listener(
         _ listener: NSXPCListener,
         shouldAcceptNewConnection connection: NSXPCConnection
     ) -> Bool {
         connection.exportedInterface = XPCInterfaceFactory.engineInterface()
-        connection.exportedObject = EngineXPCServer()
+        connection.exportedObject = EngineXPCServer(backend: backend)
 
         // Log connection lifecycle events; do not crash on either.
         connection.invalidationHandler = {

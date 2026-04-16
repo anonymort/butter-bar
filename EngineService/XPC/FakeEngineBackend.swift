@@ -10,7 +10,7 @@ import EngineInterface
 ///
 /// Thread safety contract: all public methods are called on XPC's internal dispatch
 /// queue; the backend serialises access internally via `queue`.
-final class FakeEngineBackend {
+final class FakeEngineBackend: EngineXPCBackend {
 
     // MARK: Private state
 
@@ -32,7 +32,7 @@ final class FakeEngineBackend {
 
     /// Creates a synthetic torrent from a magnet URI.
     /// Derives a display name from the `dn=` parameter if present; falls back to the hash.
-    func addMagnet(_ magnet: String) -> TorrentSummaryDTO {
+    func addMagnet(_ magnet: String) throws -> TorrentSummaryDTO {
         let torrentID = UUID().uuidString
         let name = extractName(from: magnet) ?? "Unknown-\(torrentID.prefix(8))"
 
@@ -58,7 +58,7 @@ final class FakeEngineBackend {
     }
 
     /// Creates a synthetic torrent from a .torrent bookmark (name is synthesised).
-    func addTorrentFile(_ bookmarkData: NSData) -> TorrentSummaryDTO {
+    func addTorrentFile(_ bookmarkData: NSData) throws -> TorrentSummaryDTO {
         let torrentID = UUID().uuidString
         let name = "TorrentFile-\(torrentID.prefix(8))"
 
@@ -87,7 +87,7 @@ final class FakeEngineBackend {
         queue.sync { Array(torrents.values) }
     }
 
-    func removeTorrent(_ torrentID: String) {
+    func removeTorrent(_ torrentID: String, deleteData: Bool) {
         queue.sync {
             torrents.removeValue(forKey: torrentID)
             files.removeValue(forKey: torrentID)
@@ -97,13 +97,25 @@ final class FakeEngineBackend {
         }
     }
 
-    func listFiles(for torrentID: String) -> [TorrentFileDTO]? {
-        queue.sync { files[torrentID] }
+    func listFiles(for torrentID: String) throws -> [TorrentFileDTO] {
+        let result: [TorrentFileDTO]? = queue.sync { files[torrentID] }
+        guard let fileDTOs = result else {
+            throw NSError(
+                domain: EngineErrorDomain,
+                code: EngineErrorCode.torrentNotFound.rawValue,
+                userInfo: [NSLocalizedDescriptionKey: "torrent \(torrentID) not found"]
+            )
+        }
+        return fileDTOs
+    }
+
+    func setWantedFiles(torrentID: String, fileIndexes: [Int]) throws {
+        // No-op: fake backend downloads everything.
     }
 
     /// Opens a fake stream for any known torrent + file combination.
-    func openStream(torrentID: String, fileIndex: Int) -> StreamDescriptorDTO? {
-        queue.sync {
+    func openStream(torrentID: String, fileIndex: Int) throws -> StreamDescriptorDTO {
+        let result: StreamDescriptorDTO? = queue.sync {
             guard let torrent = torrents[torrentID] else { return nil }
             let streamID = UUID().uuidString
             let descriptor = StreamDescriptorDTO(
@@ -116,6 +128,14 @@ final class FakeEngineBackend {
             streams[streamID] = descriptor
             return descriptor
         }
+        guard let descriptor = result else {
+            throw NSError(
+                domain: EngineErrorDomain,
+                code: EngineErrorCode.torrentNotFound.rawValue,
+                userInfo: [NSLocalizedDescriptionKey: "torrent \(torrentID) not found"]
+            )
+        }
+        return descriptor
     }
 
     func closeStream(_ streamID: String) {
