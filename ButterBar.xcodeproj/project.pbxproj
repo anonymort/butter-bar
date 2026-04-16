@@ -855,7 +855,7 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/opt/homebrew/include,
-					"/opt/homebrew/Cellar/libtorrent-rasterbar/2.0.12/include",
+					"/opt/homebrew/opt/libtorrent-rasterbar/include",
 					"/opt/homebrew/opt/openssl@3/include",
 				);
 				INFOPLIST_FILE = EngineService/Info.plist;
@@ -867,7 +867,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/opt/homebrew/lib,
-					"/opt/homebrew/Cellar/libtorrent-rasterbar/2.0.12/lib",
+					"/opt/homebrew/opt/libtorrent-rasterbar/lib",
 					"/opt/homebrew/opt/openssl@3/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
@@ -1138,7 +1138,7 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/opt/homebrew/include,
-					"/opt/homebrew/Cellar/libtorrent-rasterbar/2.0.12/include",
+					"/opt/homebrew/opt/libtorrent-rasterbar/include",
 					"/opt/homebrew/opt/openssl@3/include",
 				);
 				INFOPLIST_FILE = EngineService/Info.plist;
@@ -1150,7 +1150,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/opt/homebrew/lib,
-					"/opt/homebrew/Cellar/libtorrent-rasterbar/2.0.12/lib",
+					"/opt/homebrew/opt/libtorrent-rasterbar/lib",
 					"/opt/homebrew/opt/openssl@3/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;

@@ -37,6 +37,13 @@ jobs:
       - name: Placeholder
         run: echo "CI scaffolded; actual build steps come online with T-REPO-INIT."
 
+      - name: Install libtorrent-rasterbar
+        run: |
+          brew update
+          brew install libtorrent-rasterbar
+          # Verify the opt/ symlink exists for consistent include paths
+          ls /opt/homebrew/opt/libtorrent-rasterbar/include/libtorrent/session.hpp
+
       - name: Snapshot tests
         # CI runners don't have the owner's personal signing certificate for
         # team 6633CLRXPK (set in 1483bcc). Disable signing for this step —
