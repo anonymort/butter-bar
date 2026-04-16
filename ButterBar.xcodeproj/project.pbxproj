@@ -63,6 +63,7 @@
 		F2A3B4C5D6E7F2A3B4C5D6E7 /* ByteReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F2A3B4C5D6E1F2A3B4C5D6 /* ByteReader.swift */; };
 		F3A4B5C6D7E8F3A4B5C6D7E8 /* RealTorrentSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E9F0A1B2C3D8E9F0A1B2C3 /* RealTorrentSession.swift */; };
 		F4249ADDF3CC568FD40A915F /* BrandTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85244C3556DDB6DB1831AAB0 /* BrandTypography.swift */; };
+		F9F417F62F912246005E8A2B /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = F9F417F52F912246005E8A2B /* AppIcon.icon */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -156,6 +157,7 @@
 		F5A6B7C8D9E0F5A6B7C8D9E0 /* BridgeSelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeSelfTest.swift; sourceTree = "<group>"; };
 		F6A7B8C9D0E1F6A7B8C9D0E1 /* GatewayPlannerSelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GatewayPlannerSelfTest.swift; sourceTree = "<group>"; };
 		F8C1D5A3B2E497640F3A5B02 /* TorrentBridgeSmokeTest.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = TorrentBridgeSmokeTest.mm; sourceTree = "<group>"; };
+		F9F417F52F912246005E8A2B /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		FF6600889900AABB11CC2233 /* ResumeTrackerSelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeTrackerSelfTest.swift; sourceTree = "<group>"; };
 		FF66778899AABBCC0011FF66 /* HTTPSerializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPSerializer.swift; sourceTree = "<group>"; };
 		FF66EE55DD44CC33BB22AA11 /* EngineClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineClient.swift; sourceTree = "<group>"; };
@@ -264,6 +266,7 @@
 		3DFE442710E429386E53D077 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				F9F417F52F912246005E8A2B /* AppIcon.icon */,
 				826BF60EE071DBC8D4F2F526 /* ButterBarApp.swift */,
 				D6219FBB50A4AF5FF44C0F8C /* ContentView.swift */,
 				C222EFA217B7E511B654BEEB /* Brand */,
@@ -529,6 +532,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8BE818E590240FD88380781A /* Assets.xcassets in Resources */,
+				F9F417F62F912246005E8A2B /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -695,7 +699,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_INIT = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -1155,7 +1161,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_INIT = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
