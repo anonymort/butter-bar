@@ -3,6 +3,8 @@
 Engine build queue for ButterBar v1. Tasks are picked top-down within an unblocked phase. Do not skip phases.
 
 > **Two-tracker model (per addendum A17).** This file tracks **engine work only** — the playback substrate described in specs 01–05. **Product surface work** (catalogue, sync, providers, watch state, settings, macOS polish — described in spec 07) is tracked as **GitHub issues** per spec 08, not here. The two trackers connect at well-defined seams; both are authoritative within their scope. If you find yourself wanting to add a third tracker, stop.
+>
+> **Product-surface roadmap:** see `docs/v1-roadmap.md` for the phased execution plan across the four p0 epics (Watch state → Subtitles → Playback UX → Discovery). Epic tracker issues are #2, #3, #4, #5; foundation tickets are #11, #18, #27, #34.
 
 > **Platform target (per addendum A18).** All engine work targets **macOS Tahoe (26.0) minimum**, built with **Xcode 26 / SDK 26**. See `09-platform-tahoe.md` for the full picture. Do not introduce code paths or build settings that lower this floor.
 
