@@ -403,11 +403,43 @@ That property is verified by the correctness tests (fixture replay, byte-for-byt
 - `docs/benchmarks/README.md` — § Deferred: regression gate threshold rewritten to "Regression threshold" and pointed at A25.
 - `TASKS.md` — `T-PERF-SEEK-BENCH` follow-up note marks #107 resolved.
 
+## A26 — `playback_history.completed_at` for watch state foundation (Epic #5 Phase 1)
+
+**Context:** Epic #5 Phase 1 foundation (#34) defines the app-side `WatchStatus` enum, with `.watched(completedAt: Date)` and `.reWatching(_, _, previouslyCompletedAt: Date)` cases. Spec 05 rev 4 stores `completed: Bool` on `playback_history` but no completion timestamp. The library UI needs that timestamp to show honest "Watched X days ago" copy and to preserve the original completion date across re-watches. Approximating from `last_played_at` was rejected during the design pass: re-watching mutates `last_played_at`, which would silently overwrite the original completion time.
+
+**Decision:** Add `completed_at INTEGER NULL` (unix milliseconds) to the `playback_history` table. Write rules:
+
+- Engine sets `completed_at = now()` whenever `completed` transitions 0 → 1 (either by the spec 05 § Update rules byte criterion `resume_byte_offset >= 0.95 * file_size`, or by manual mark-watched via the new XPC method introduced in #34).
+- Subsequent re-completions during a re-watch (the byte criterion re-firing while `completed` is already 1) **also** update `completed_at = now()`. Most-recent-completion-wins; the original completion date is unrecoverable in v1, by design.
+- Manual mark-unwatched (XPC) sets `completed = 0`, `completed_at = NULL`, `resume_byte_offset = 0`. `last_played_at` is preserved so library ordering does not jump.
+- The next stream open after completion still resets `resume_byte_offset = 0` per spec 05 unchanged; it does **not** clear `completed` or `completed_at`.
+
+**Migration:** new GRDB migration `v2_add_completed_at` is additive and backward-compatible. Rows created under V1 carry `completed_at = NULL`; the engine fills the column at the next completion. Loss of historical completion timestamps for already-completed rows is acceptable for v1.
+
+**XPC contract additions** (also part of #34):
+- New DTO `PlaybackHistoryDTO` (`schemaVersion = 1`, NSSecureCoding) carrying every column of `playback_history` including the new `completedAt` (nullable).
+- New method `EngineXPC.listPlaybackHistory(reply: ([PlaybackHistoryDTO]) -> Void)` — the app's first read path into the table. Returns `[]` when empty.
+- New event `EngineEvents.playbackHistoryChanged(_ dto: PlaybackHistoryDTO)` — emitted exactly once per write (15 s tick, stream close, manual toggle). Coalescing is the engine's responsibility.
+
+Both follow the response/event versioning rule from A1.
+
+**Affected files:**
+- `05-cache-policy.md` — rev 5: § Schema gains the new column; § Update rules gain the `completed_at` write semantics; § Resume offset persistence gains a manual-toggle reference.
+- `Packages/EngineStore/Sources/EngineStore/V1Migration.swift` — companion `V2Migration` added; `EngineDatabase` registers both.
+- `Packages/EngineStore/Sources/EngineStore/PlaybackHistoryRecord.swift` — `completedAt: Int64?` field added.
+- `Packages/EngineInterface/Sources/EngineInterface/PlaybackHistoryDTO.swift` — new file.
+- `Packages/EngineInterface/Sources/EngineInterface/EngineXPCProtocol.swift` — `listPlaybackHistory` added.
+- `Packages/EngineInterface/Sources/EngineInterface/EngineEventsProtocol.swift` — `playbackHistoryChanged` added.
+- `EngineService/Cache/CacheManager.swift` — write rules above implemented; event emitted after every write.
+- `EngineService/XPC/EngineXPCServer.swift` (and `RealEngineBackend`) — `listPlaybackHistory` wired.
+- `Packages/LibraryDomain/` — new local SPM package containing `WatchStatus`, `WatchEvent`, `WatchStateMachine`, and the derivation helpers.
+- `docs/design/watch-state-foundation.md` — full design record (transition matrix, write rules, test shape).
+
 ## Summary of file changes in this revision
 
 (extends earlier summaries)
 
-- `00-addendum.md` — A16–A19 appended in earlier revision; A20–A22 appended from Phase 1 review; A23 appended from 2026-04-16 API surface investigation; A24 appended same-day after probe run #3 disproved A23's hot path; A25 appended 2026-04-16 to resolve #107 (planner seek SLA + 50% regression threshold, advisory-only, E2E SLA deferred to v1.5+).
+- `00-addendum.md` — A16–A19 appended in earlier revision; A20–A22 appended from Phase 1 review; A23 appended from 2026-04-16 API surface investigation; A24 appended same-day after probe run #3 disproved A23's hot path; A25 appended 2026-04-16 to resolve #107 (planner seek SLA + 50% regression threshold, advisory-only, E2E SLA deferred to v1.5+); A26 appended 2026-04-16 to add `playback_history.completed_at` plus the `listPlaybackHistory` / `playbackHistoryChanged` XPC surface for Epic #5 Phase 1 foundation (#34).
 - `06-brand.md` — rev 3: § Asset specifications and § Tahoe icon workflow rewritten around the Liquid Glass prep package. Layer model corrected (background + up to 4 foreground groups). `.icon` placement corrected to `App/AppIcon.icon` (sibling of Assets.xcassets, not nested). Step-by-step Icon Composer workflow added. (A19.) Rev 2 introduced Tahoe targeting (A18); rev 1 was the initial brand spec.
 - `07-product-surface.md` — authoritative product surface spec for catalogue, sync, providers, etc. (A17.)
 - `08-issue-workflow.md` — GitHub issue/branch/PR conventions. (A17.)
