@@ -78,14 +78,19 @@ public struct SubtitleTrack: Equatable, Identifiable, Sendable {
     public let source: SubtitleSource
     public let language: String?      // BCP-47 (e.g. "en", "pt-BR"), nil if unknown
     public let label: String          // human-readable, UI-ready
-    public let cues: [SubtitleCue]?   // non-nil for .sidecar, nil for .embedded
 }
 
 public enum SubtitleSource: Equatable, Sendable {
-    case embedded(identifier: String)                 // opaque handle
-    case sidecar(url: URL, format: SubtitleFormat)
+    case embedded(identifier: String)                              // opaque handle
+    case sidecar(url: URL, format: SubtitleFormat, cues: [SubtitleCue])
 }
 ```
+
+Cues are inseparable from sidecars and absent from embedded tracks — so
+they live in the `.sidecar` case payload rather than as a correlated
+`Optional` on `SubtitleTrack`. This eliminates the "parallel variant"
+shape where `source == .embedded` and `cues == nil` have to be kept in
+sync by convention.
 
 The UI (`SubtitleSelectionMenu`, #29) and the resolver
 (`LanguagePreferenceResolver`, this ticket) range over `[SubtitleTrack]`
@@ -187,15 +192,18 @@ nor any other package depends on it.
    chosen; don't auto-enable.
 2. If `pref == "off"` → return `nil`. User has explicitly chosen off;
    respect it.
-3. Partition `tracks` into embedded-first order (already the natural order
-   from `tracks`).
-4. For each track, compare `track.language` to `pref` via BCP-47 prefix
-   matching (case-insensitive primary-tag match: `"en"` matches `"en-US"`,
-   `"pt"` matches `"pt-BR"`).
-5. Return the first match. Embedded hits come before sidecar hits only
-   because embedded tracks are listed first — there is no explicit tier
-   preference, just order preservation.
-6. No match → `nil`.
+3. **Partition internally by source type**: the resolver itself splits
+   `tracks` into the embedded subset and the sidecar subset (stable order
+   preserved within each). This is the resolver's responsibility, not the
+   caller's — callers pass the tracks they have in any order they like.
+4. **Embedded wins on a tie.** Walk the embedded subset first; return the
+   first track whose `language` matches `pref`. If none match, walk the
+   sidecar subset; return the first match. No match in either → `nil`.
+5. Language matching is **BCP-47 case-insensitive primary-subtag match**:
+   `"en"` matches `"en-US"`, `"pt"` matches `"pt-BR"`, `"pt-BR"` matches
+   `"pt-PT"` (both share primary subtag `pt`). Region/script subtags do
+   not prevent a match in v1 — deliberately permissive because
+   user-supplied sidecars rarely carry precise region tags.
 
 Manual selection via #29 overrides the resolver for the session and
 writes `pref` back to the store (#30) — including `.off`, which persists
@@ -263,7 +271,7 @@ public enum SubtitleFormat: String, Equatable, Sendable, CaseIterable {
 
 public enum SubtitleSource: Equatable, Sendable {
     case embedded(identifier: String)
-    case sidecar(url: URL, format: SubtitleFormat)
+    case sidecar(url: URL, format: SubtitleFormat, cues: [SubtitleCue])
 }
 
 public struct SubtitleTrack: Equatable, Identifiable, Sendable {
@@ -271,7 +279,6 @@ public struct SubtitleTrack: Equatable, Identifiable, Sendable {
     public let source: SubtitleSource
     public let language: String?       // BCP-47
     public let label: String
-    public let cues: [SubtitleCue]?    // nil for .embedded, non-nil for .sidecar
 }
 
 public enum SubtitleLoadError: Error, Equatable, Sendable {
@@ -311,11 +318,12 @@ public enum LanguagePreferenceResolver {
 | `"pt-BR"`      | track with `"pt"`     | that track (reverse prefix also matches)           |
 | `"pt-BR"`      | track with `"pt-PT"`  | that track (shared primary tag)                    |
 | `"en"`         | no match              | `nil`                                              |
-| any            | embedded and sidecar both match | first in natural order (embedded listed first) |
+| any            | embedded and sidecar both match | embedded wins (resolver partitions internally and tries embedded first) |
+| `"en"`         | sidecar matches, no embedded match | sidecar track                                |
+| `"en"`         | input order: sidecar first, embedded second, both match | embedded (resolver partitions; input order does not matter) |
 
-BCP-47 comparison is case-insensitive on the primary tag. Region/subtag
-differences do not prevent a match in v1; this is deliberately permissive
-because user-supplied sidecars rarely carry precise region tags.
+BCP-47 matching is specified in D8 step 5; the resolver does not depend
+on caller ordering (D8 step 3).
 
 ## Ingestion pipeline
 
@@ -340,9 +348,9 @@ Examples:
 - `Movie.en.srt` → `"en"`.
 - `Movie.pt-BR.srt` → `"pt-BR"`.
 - `Movie.srt` → `nil`.
-- `Movie.English.srt` → `"English"` (passes the regex; resolver will fail
-  to match against BCP-47 preferences but that's correct — it's what the
-  file says).
+- `Movie.English.srt` → `nil` (primary subtag must be 2–3 letters per the
+  regex; the track is still ingested, it just carries no language).
+- `Movie.zh-Hans.srt` → `"zh-Hans"` (script subtag matches `[A-Za-z0-9]{2,8}`).
 
 ## Test shape
 
@@ -352,10 +360,11 @@ tickets reuse the harnesses.
 ### `Packages/SubtitleDomain/Tests`
 
 - `SRTParserTests`:
-  - Single cue, multi-cue, CRLF line endings, UTF-8 BOM, HTML entities
-    (`<i>`, `<b>`, `&amp;`), missing index (recoverable),
-    bad timecode (`.decoding`), empty input (empty array), overlapping
-    cues preserved in order, gaps preserved, trailing whitespace tolerated.
+  - Single cue, multi-cue, CRLF line endings, UTF-8 BOM, HTML tags
+    (`<i>`, `<b>` — light tag stripping), HTML entities (`&amp;`, `&lt;`),
+    missing index (recoverable), bad timecode (`.decoding`),
+    empty input (empty array), overlapping cues preserved in order, gaps
+    preserved, trailing whitespace tolerated.
 - `SubtitleTextDecoderTests`:
   - UTF-8, UTF-8 with BOM, ISO-8859-1, Windows-1252, binary (rejected).
 - `LanguagePreferenceResolverTests`:
