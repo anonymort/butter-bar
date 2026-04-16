@@ -36,7 +36,8 @@ final class PlayerHUDSnapshotTests: XCTestCase {
 
     // MARK: - Healthy tier
 
-    func testHUDHealthyTier() {
+    func testHUDHealthyTier() throws {
+        try XCTSkipIf(true, "Skipped pending #121 — headless NSHostingView produces transparent bitmap after #128 .glassEffect-only code path; re-enable once test host is fixed. See https://github.com/anonymort/butter-bar/issues/121")
         let view = StreamHealthHUD(health: .healthy)
             .environment(\.colorScheme, .dark)
             .frame(width: snapshotSize.width, height: snapshotSize.height)
@@ -51,7 +52,8 @@ final class PlayerHUDSnapshotTests: XCTestCase {
 
     // MARK: - Marginal tier
 
-    func testHUDMarginalTier() {
+    func testHUDMarginalTier() throws {
+        try XCTSkipIf(true, "Skipped pending #121 — headless NSHostingView produces transparent bitmap after #128 .glassEffect-only code path; re-enable once test host is fixed. See https://github.com/anonymort/butter-bar/issues/121")
         let view = StreamHealthHUD(health: .marginal)
             .environment(\.colorScheme, .dark)
             .frame(width: snapshotSize.width, height: snapshotSize.height)
@@ -66,7 +68,8 @@ final class PlayerHUDSnapshotTests: XCTestCase {
 
     // MARK: - Starving tier
 
-    func testHUDStarvingTier() {
+    func testHUDStarvingTier() throws {
+        try XCTSkipIf(true, "Skipped pending #121 — headless NSHostingView produces transparent bitmap after #128 .glassEffect-only code path; re-enable once test host is fixed. See https://github.com/anonymort/butter-bar/issues/121")
         let view = StreamHealthHUD(health: .starving)
             .environment(\.colorScheme, .dark)
             .frame(width: snapshotSize.width, height: snapshotSize.height)
