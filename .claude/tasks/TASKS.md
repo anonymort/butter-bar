@@ -380,7 +380,7 @@ Benchmark: measure seek-to-first-frame time across the four trace fixtures. Reco
 
 Engine seams discovered during product-surface execution (per `docs/v1-roadmap.md § Missing engine seams`). Each seam is small, additive, and unblocks one or more product-surface issues.
 
-### T-STORE-FAVOURITES `[sonnet]` · TODO
+### T-STORE-FAVOURITES `[sonnet]` · DONE — `Packages/EngineStore` adds `V2FavouritesMigration` (named `v2_add_favourites`) creating the additive `favourites` table; `FavouriteRecord` value type with Codable/FetchableRecord/PersistableRecord conformances. 7 new tests: 4 covering the record (insert/fetch round-trip, save-replaces-on-PK-conflict, delete, table-exists) plus 3 covering migration ordering (idempotent, independent of `v2_add_completed_at`, fresh DB applies all three). Total EngineStore tests: 27. No XPC / DTO surface added — that's #36's scope.
 Add a GRDB additive migration for the `favourites` table per spec 07 § 4 (Watch state and local library). Schema:
 
 ```sql
