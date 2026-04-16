@@ -29,7 +29,8 @@ enum TorrentAlert {
         case "stats_alert", "status_notification_alert":
             return .statsUpdated(torrentID: torrentID ?? "")
         case "piece_finished_alert":
-            return .pieceFinished(torrentID: torrentID ?? "", pieceIndex: extractPieceIndex(from: message))
+            let pieceIndex = (dict["pieceIndex"] as? Int) ?? -1
+            return .pieceFinished(torrentID: torrentID ?? "", pieceIndex: pieceIndex)
         case "metadata_received_alert":
             return .metadataReceived(torrentID: torrentID ?? "")
         case "torrent_finished_alert":
@@ -39,15 +40,5 @@ enum TorrentAlert {
         default:
             return .unknown(type: type, message: message)
         }
-    }
-
-    // libtorrent piece_finished_alert message contains the piece index as a decimal number.
-    // Returns -1 if no integer can be parsed.
-    private static func extractPieceIndex(from message: String) -> Int {
-        let components = message.components(separatedBy: CharacterSet.decimalDigits.inverted)
-        for component in components where !component.isEmpty {
-            if let index = Int(component) { return index }
-        }
-        return -1
     }
 }
