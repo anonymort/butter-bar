@@ -128,6 +128,92 @@ final class PlayerHUDSnapshotTests: XCTestCase {
     }
 }
 
+@MainActor
+final class PlayerViewModelReconnectTests: XCTestCase {
+
+    func testPlayerViewModelResubscribesAfterEngineReconnect() async throws {
+        let engineClient = EngineClient()
+        let streamID = "stream-reconnect-1"
+        let descriptor = StreamDescriptorDTO(
+            streamID: streamID as NSString,
+            loopbackURL: "http://127.0.0.1:52100/stream/\(streamID)" as NSString,
+            contentType: "video/mp4",
+            contentLength: 10_000
+        )
+        let viewModel = PlayerViewModel(streamDescriptor: descriptor, engineClient: engineClient)
+
+        let firstHandler = EngineEventHandler()
+        await engineClient._replaceEventHandlerForTesting(firstHandler)
+        try await Task.sleep(for: .milliseconds(50))
+
+        firstHandler.streamHealthChanged(
+            StreamHealthDTO(
+                streamID: streamID as NSString,
+                secondsBufferedAhead: 12,
+                downloadRateBytesPerSec: 500_000,
+                requiredBitrateBytesPerSec: nil,
+                peerCount: 4,
+                outstandingCriticalPieces: 0,
+                recentStallCount: 0,
+                tier: "healthy"
+            )
+        )
+        try await assertEventually("initial health should arrive") {
+            (viewModel.health?.tier as String?) == "healthy"
+        }
+
+        let secondHandler = EngineEventHandler()
+        await engineClient._replaceEventHandlerForTesting(secondHandler)
+        try await Task.sleep(for: .milliseconds(50))
+
+        secondHandler.streamHealthChanged(
+            StreamHealthDTO(
+                streamID: streamID as NSString,
+                secondsBufferedAhead: 2,
+                downloadRateBytesPerSec: 90_000,
+                requiredBitrateBytesPerSec: nil,
+                peerCount: 1,
+                outstandingCriticalPieces: 3,
+                recentStallCount: 3,
+                tier: "starving"
+            )
+        )
+        try await assertEventually("health should resume from replacement handler") {
+            (viewModel.health?.tier as String?) == "starving"
+        }
+
+        firstHandler.streamHealthChanged(
+            StreamHealthDTO(
+                streamID: streamID as NSString,
+                secondsBufferedAhead: 6,
+                downloadRateBytesPerSec: 200_000,
+                requiredBitrateBytesPerSec: nil,
+                peerCount: 2,
+                outstandingCriticalPieces: 1,
+                recentStallCount: 1,
+                tier: "marginal"
+            )
+        )
+        try await Task.sleep(for: .milliseconds(50))
+        XCTAssertEqual(viewModel.health?.tier as String?, "starving")
+    }
+
+    private func assertEventually(
+        _ message: String,
+        timeout: Duration = .seconds(1),
+        poll: Duration = .milliseconds(10),
+        condition: @escaping () -> Bool
+    ) async throws {
+        let clock = ContinuousClock()
+        let deadline = clock.now + timeout
+        while clock.now < deadline {
+            if condition() { return }
+            try await Task.sleep(for: poll)
+        }
+        XCTFail("Timed out: \(message)")
+    }
+}
+
 // MARK: - StreamHealthDTO test fixtures
 
 private extension StreamHealthDTO {
