@@ -400,6 +400,21 @@ overwriteExisting:(BOOL)overwriteExisting
             return;
         }
 
+        // Validate data length against the exact piece size. The last piece is
+        // typically shorter than the rest; libtorrent's behaviour is undefined if
+        // the buffer length is wrong (torrent_info::piece_size is authoritative).
+        int expectedSize = ti->piece_size(lt::piece_index_t(piece));
+        if ((int)data.length != expectedSize) {
+            opError = [NSError errorWithDomain:TorrentBridgeErrorDomain
+                                          code:TorrentBridgeErrorInvalidArgument
+                                      userInfo:@{
+                NSLocalizedDescriptionKey: [NSString stringWithFormat:
+                    @"addPiece data length %lu does not match piece size %d for piece %d",
+                    (unsigned long)data.length, expectedSize, piece]
+            }];
+            return;
+        }
+
         // libtorrent's std::vector overload is async (non-blocking). Copy the
         // bytes once here; libtorrent owns the vector from this point.
         std::vector<char> buf(

@@ -348,6 +348,9 @@ private func runCacheEvictionProbe(probeArgs: ProbeArgs) -> [String] {
     var hashFailedPieces: Set<Int> = []
     var pieceFinishedPieces: Set<Int> = []
 
+    // Safe to replace the setup-time alert callback here: TorrentBridge serialises
+    // both subscribeAlerts installation and alert drain on the same internal queue,
+    // so we cannot miss or double-fire an alert during handover.
     bridge.subscribeAlerts { alert in
         let type = alert["type"] as? String ?? "?"
         let msg  = alert["message"] as? String ?? ""
@@ -693,12 +696,13 @@ private func runCacheEvictionProbe(probeArgs: ProbeArgs) -> [String] {
     note("Key questions to answer from the output:")
     note("  1. Did setFilePriority(0) alone change on-disk bytes? (Probe A vs B)")
     note("  2. Did addPiece(zeros, overwrite_existing) produce a hash_failed_alert? (Probe C1)")
-    note("  3. After C1's hash failure, did the targeted piece leave havePieces()? (Probe C1)")
-    note("  4. Did the piece-aligned F_PUNCHHOLE reduce on-disk bytes by roughly pieceLength? (Probe C1)")
-    note("  5. Did force_recheck() complete and produce a coherent havePieces() bitmap? (Probe C2)")
-    note("  6. After C1 + priority restore, did libtorrent re-download the cleared piece? (Probe C3)")
-    note("  7. Does file-level setFilePriority(1) trigger full re-fetch of the file? (Probe D)")
-    note("  8. What is the piece length for this torrent? (Setup output)")
+    note("  3. Was the addPiece path processed at all given the target file's priority=0 set in Probe B, i.e. did the hash check actually run? (Probe C1 — a silent timeout suggests priority=0 blocks addPiece processing.)")
+    note("  4. After C1's hash failure, did the targeted piece leave havePieces()? (Probe C1)")
+    note("  5. Did the piece-aligned F_PUNCHHOLE reduce on-disk bytes by roughly pieceLength? (Probe C1)")
+    note("  6. Did force_recheck() complete and produce a coherent havePieces() bitmap? (Probe C2)")
+    note("  7. After C1 + priority restore, did libtorrent re-download the cleared piece? (Probe C3)")
+    note("  8. Does file-level setFilePriority(1) trigger full re-fetch of the file? (Probe D)")
+    note("  9. What is the piece length for this torrent? (Setup output)")
 
     return log
 }
