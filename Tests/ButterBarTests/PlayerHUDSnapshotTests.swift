@@ -13,7 +13,11 @@ import EngineInterface
 // First run: set record: .all to write baselines.
 // Subsequent runs diff against the committed PNGs.
 //
-// Colour scheme is pinned to dark (per spec — player is always dark).
+// Both colour schemes are covered (per spec 06 § Test obligations: "Snapshot
+// tests for tier colour rendering at all three tiers in both light and dark
+// modes"). The player window is always dark in production, but the HUD is
+// tested in both modes to verify the light/dark tier colour variants render
+// correctly as standalone components.
 
 @MainActor
 final class PlayerHUDSnapshotTests: XCTestCase {
@@ -63,6 +67,51 @@ final class PlayerHUDSnapshotTests: XCTestCase {
             of: view,
             as: .image(layout: .fixed(width: snapshotSize.width, height: snapshotSize.height)),
             named: "dark-starving"
+        )
+    }
+
+    // MARK: - Light mode variants
+    //
+    // Per spec 06 § Test obligations, tier colour rendering must be verified
+    // in both modes. Background is `cream` in light mode (matches what the
+    // HUD would sit on if ever composed into a light-scheme surface).
+
+    func testHUDHealthyTier_lightMode() {
+        let view = StreamHealthHUD(health: .healthy)
+            .environment(\.colorScheme, .light)
+            .frame(width: snapshotSize.width, height: snapshotSize.height)
+            .background(BrandColors.cream)
+
+        assertSnapshot(
+            of: view,
+            as: .image(layout: .fixed(width: snapshotSize.width, height: snapshotSize.height)),
+            named: "light-healthy"
+        )
+    }
+
+    func testHUDMarginalTier_lightMode() {
+        let view = StreamHealthHUD(health: .marginal)
+            .environment(\.colorScheme, .light)
+            .frame(width: snapshotSize.width, height: snapshotSize.height)
+            .background(BrandColors.cream)
+
+        assertSnapshot(
+            of: view,
+            as: .image(layout: .fixed(width: snapshotSize.width, height: snapshotSize.height)),
+            named: "light-marginal"
+        )
+    }
+
+    func testHUDStarvingTier_lightMode() {
+        let view = StreamHealthHUD(health: .starving)
+            .environment(\.colorScheme, .light)
+            .frame(width: snapshotSize.width, height: snapshotSize.height)
+            .background(BrandColors.cream)
+
+        assertSnapshot(
+            of: view,
+            as: .image(layout: .fixed(width: snapshotSize.width, height: snapshotSize.height)),
+            named: "light-starving"
         )
     }
 }

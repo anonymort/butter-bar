@@ -327,16 +327,7 @@ SwiftUI player view with `AVPlayerView` (via `NSViewRepresentable`), `StreamHeal
 **Depends on:** `T-UI-LIBRARY`, `T-STREAM-E2E`.
 **Acceptance:** Player window opens dark regardless of system appearance. HUD floats over video with `cocoa` 60% opacity background. Buffer-ahead indicator animates continuously, not in steps.
 
-### T-UI-HEALTH-HUD `[sonnet]` · TODO
-Render `StreamHealth.tier` with the brand tier colours. No tier recomputation in the UI layer.
-
-**Spec:** `02-stream-health.md` § UI rendering contract, `06-brand.md` § Tier colours, § Motion.
-**Depends on:** `T-UI-PLAYER`.
-**Acceptance:**
-- Each tier uses exactly the brand token: `tierHealthy` / `tierMarginal` / `tierStarving`.
-- 400 ms cross-fade between tier colours on transition (per brand motion spec).
-- Every tier is paired with a text label — colour is never the sole signal.
-- Snapshot tests for all three tiers in both light and dark modes.
+### T-UI-HEALTH-HUD `[sonnet]` · DONE — Largely subsumed by `StreamHealthHUD` in T-UI-PLAYER: brand tier tokens (`tierHealthy`/`tierMarginal`/`tierStarving`), 400 ms cross-fade, 4 pt left colour strip paired with text label (colour never sole signal), 800 ms buffer-fill animation, glass surface with cocoa fallback. Residual work landed here: light-mode snapshot tests added (3 variants) alongside the existing 3 dark-mode snapshots — 6 total per spec 06 § Test obligations. No tier computation in UI; tier comes from `StreamHealthDTO.tier` as assigned by the engine.
 
 ---
 
