@@ -18,8 +18,8 @@ Default install paths:
 
 | Artifact | Path |
 |---|---|
-| Headers | `/opt/homebrew/Cellar/libtorrent-rasterbar/<version>/include/libtorrent/` |
-| Dylib | `/opt/homebrew/Cellar/libtorrent-rasterbar/<version>/lib/libtorrent-rasterbar.dylib` |
+| Headers | `/opt/homebrew/opt/libtorrent-rasterbar/include/libtorrent/` |
+| Dylib | `/opt/homebrew/opt/libtorrent-rasterbar/lib/libtorrent-rasterbar.dylib` |
 | OpenSSL headers | `/opt/homebrew/opt/openssl@3/include` |
 | OpenSSL libs | `/opt/homebrew/opt/openssl@3/lib` |
 
@@ -37,14 +37,14 @@ The `EngineService` target (both Debug and Release configurations) has these bui
 **`HEADER_SEARCH_PATHS`**
 ```
 /opt/homebrew/include
-/opt/homebrew/Cellar/libtorrent-rasterbar/2.0.12/include
+/opt/homebrew/opt/libtorrent-rasterbar/include
 /opt/homebrew/opt/openssl@3/include
 ```
 
 **`LIBRARY_SEARCH_PATHS`**
 ```
 /opt/homebrew/lib
-/opt/homebrew/Cellar/libtorrent-rasterbar/2.0.12/lib
+/opt/homebrew/opt/libtorrent-rasterbar/lib
 /opt/homebrew/opt/openssl@3/lib
 ```
 
@@ -67,7 +67,7 @@ The ObjC++ bridge files live in `EngineService/Bridge/`. The Swift-ObjC bridging
 
 ## Upgrading libtorrent
 
-When upgrading the Homebrew formula, update the version-pinned paths in the `HEADER_SEARCH_PATHS` and `LIBRARY_SEARCH_PATHS` build settings for both Debug and Release configs in `ButterBar.xcodeproj/project.pbxproj`.
+The Xcode project uses Homebrew's stable `opt` symlink for libtorrent-rasterbar. Do not pin versioned `Cellar/libtorrent-rasterbar/<version>` paths in `HEADER_SEARCH_PATHS` or `LIBRARY_SEARCH_PATHS`; the `opt` symlink tracks formula upgrades and keeps CI stable.
 
 ## Verifying the setup
 
@@ -82,5 +82,5 @@ A successful build ends with `** BUILD SUCCEEDED **`. The `TorrentBridgeSmokeTes
 If you see linker errors about missing `-ltorrent-rasterbar`, confirm:
 
 1. `brew list libtorrent-rasterbar` shows the expected version.
-2. The version in `LIBRARY_SEARCH_PATHS` matches the Homebrew Cellar path.
-3. `ls /opt/homebrew/Cellar/libtorrent-rasterbar/2.0.12/lib/` lists the dylib.
+2. `LIBRARY_SEARCH_PATHS` contains `/opt/homebrew/opt/libtorrent-rasterbar/lib`.
+3. `ls /opt/homebrew/opt/libtorrent-rasterbar/lib/` lists the dylib.

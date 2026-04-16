@@ -304,14 +304,19 @@ private func runCacheEvictionProbe(probeArgs: ProbeArgs) -> [String] {
         let msg  = alert["message"] as? String ?? ""
         NSLog("[CacheEvictionProbe:alert] type=%@ msg=%@", type, msg)
 
-        if let idx = (alert["pieceIndex"] as? NSNumber)?.intValue {
+        switch TorrentAlert.from(alert as NSDictionary) {
+        case .hashFailed(_, let pieceIndex):
+            guard let idx = pieceIndex else { return }
             alertLock.lock()
-            if type == "hash_failed_alert" {
-                hashFailedPieces.insert(idx)
-            } else if type == "piece_finished_alert" {
-                pieceFinishedPieces.insert(idx)
-            }
+            hashFailedPieces.insert(idx)
             alertLock.unlock()
+        case .pieceFinished(_, let pieceIndex):
+            guard let idx = pieceIndex else { return }
+            alertLock.lock()
+            pieceFinishedPieces.insert(idx)
+            alertLock.unlock()
+        default:
+            break
         }
     }
 

@@ -7,7 +7,9 @@ enum TorrentAlert {
     /// Torrent stats updated (periodic from libtorrent)
     case statsUpdated(torrentID: String)
     /// A piece finished downloading
-    case pieceFinished(torrentID: String, pieceIndex: Int)
+    case pieceFinished(torrentID: String, pieceIndex: Int?)
+    /// A piece failed hash validation
+    case hashFailed(torrentID: String, pieceIndex: Int?)
     /// Torrent metadata received (magnet resolved)
     case metadataReceived(torrentID: String)
     /// Torrent finished downloading all pieces
@@ -29,8 +31,9 @@ enum TorrentAlert {
         case "stats_alert", "status_notification_alert":
             return .statsUpdated(torrentID: torrentID ?? "")
         case "piece_finished_alert":
-            let pieceIndex = (dict["pieceIndex"] as? Int) ?? -1
-            return .pieceFinished(torrentID: torrentID ?? "", pieceIndex: pieceIndex)
+            return .pieceFinished(torrentID: torrentID ?? "", pieceIndex: pieceIndex(from: dict))
+        case "hash_failed_alert":
+            return .hashFailed(torrentID: torrentID ?? "", pieceIndex: pieceIndex(from: dict))
         case "metadata_received_alert":
             return .metadataReceived(torrentID: torrentID ?? "")
         case "torrent_finished_alert":
@@ -40,5 +43,12 @@ enum TorrentAlert {
         default:
             return .unknown(type: type, message: message)
         }
+    }
+
+    private static func pieceIndex(from dict: NSDictionary) -> Int? {
+        if let number = dict["pieceIndex"] as? NSNumber {
+            return number.intValue
+        }
+        return dict["pieceIndex"] as? Int
     }
 }

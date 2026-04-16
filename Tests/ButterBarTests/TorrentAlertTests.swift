@@ -52,17 +52,48 @@ final class TorrentAlertParsingTests: XCTestCase {
         }
     }
 
-    func testPieceFinished_missingPieceIndex_fallsBackToMinusOne() {
-        // pieceIndex absent — bridge contract violation; we return -1 as sentinel.
+    func testPieceFinished_missingPieceIndexReturnsNil() {
+        // pieceIndex absent — bridge contract violation; keep absence explicit.
         let dict: NSDictionary = [
             "type": "piece_finished_alert",
             "torrentID": "t-missing",
             "message": "piece finished",
         ]
         if case .pieceFinished(_, let idx) = TorrentAlert.from(dict) {
-            XCTAssertEqual(idx, -1)
+            XCTAssertNil(idx)
         } else {
             XCTFail("Expected .pieceFinished")
+        }
+    }
+
+    // MARK: - hash_failed_alert: typed pieceIndex
+
+    func testHashFailed_readsPieceIndexFromDict() {
+        let dict: NSDictionary = [
+            "type": "hash_failed_alert",
+            "torrentID": "t-hash",
+            "message": "hash failed",
+            "pieceIndex": NSNumber(value: 17),
+        ]
+        let alert = TorrentAlert.from(dict)
+        guard case .hashFailed(let tid, let idx) = alert else {
+            XCTFail("Expected .hashFailed, got \(alert)")
+            return
+        }
+        XCTAssertEqual(tid, "t-hash")
+        XCTAssertEqual(idx, 17)
+    }
+
+    func testHashFailed_missingPieceIndexReturnsNil() {
+        let dict: NSDictionary = [
+            "type": "hash_failed_alert",
+            "torrentID": "t-hash-missing",
+            "message": "hash failed",
+        ]
+        if case .hashFailed(_, let idx) = TorrentAlert.from(dict) {
+            XCTAssertNil(idx)
+        } else {
+            XCTFail("Expected .hashFailed")
         }
     }
 
