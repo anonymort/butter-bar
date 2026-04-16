@@ -40,5 +40,5 @@ enum BrandColors {
     /// Cards, sheets, content panels under glass chrome.
     static let surfaceRaised  = creamRaised
     /// Modal scrims, popovers without glass treatment.
-    static var surfaceOverlay: Color { cocoa.opacity(0.4) }
+    static let surfaceOverlay: Color = cocoa.opacity(0.4)
 }

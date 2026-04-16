@@ -26,6 +26,13 @@ enum BrandTypography {
     /// SF Pro Text 12pt, weight 400. Captions and metadata.
     /// Pair with `.foregroundStyle(BrandColors.cocoaSoft)`.
     static let caption: Font = .system(size: 12, weight: .regular, design: .default)
+
+    /// SF Pro Text 12pt with monospaced digits. For numeric metadata at caption scale
+    /// (e.g. progress percentages, per-file rates). Prevents layout jitter on rapidly
+    /// updating values without losing the caption size.
+    static let captionMonospacedNumeric: Font = Font
+        .system(size: 12, weight: .regular, design: .default)
+        .monospacedDigit()
 }
 
 // MARK: - View modifiers
@@ -57,5 +64,11 @@ extension View {
     func brandCaption() -> some View {
         self.font(BrandTypography.caption)
             .foregroundStyle(BrandColors.cocoaSoft)
+    }
+
+    /// SF Pro Text 12pt with monospaced digits. For numeric metadata at caption scale.
+    /// Does not set a foreground colour — apply `.foregroundStyle(...)` separately.
+    func brandCaptionMonospacedNumeric() -> some View {
+        self.font(BrandTypography.captionMonospacedNumeric)
     }
 }

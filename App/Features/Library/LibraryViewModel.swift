@@ -12,12 +12,22 @@ final class LibraryViewModel: ObservableObject {
     @Published var loadError: String?
 
     private let client: EngineClient
+    private(set) var isRefreshing: Bool = false
+
+    /// Set `true` in preview/snapshot factory methods to prevent `.task` from
+    /// firing a real `EngineClient` call and overwriting pre-populated state.
+    /// For Canvas / snapshot-test use only — do not set in production code paths.
+    var skipRefresh: Bool = false
 
     init(client: EngineClient) {
         self.client = client
     }
 
     func refresh() async {
+        guard !skipRefresh else { return }
+        guard !isRefreshing else { return }
+        isRefreshing = true
+        defer { isRefreshing = false }
         do {
             torrents = try await client.listTorrents()
             loadError = nil
@@ -26,8 +36,8 @@ final class LibraryViewModel: ObservableObject {
         }
     }
 
-    func listFiles(torrentID: NSString) async throws -> [TorrentFileDTO] {
-        try await client.listFiles(torrentID)
+    func listFiles(torrentID: String) async throws -> [TorrentFileDTO] {
+        try await client.listFiles(torrentID as NSString)
     }
 
     /// Connects the underlying `EngineClient`. Safe to call from any async context.
@@ -40,9 +50,12 @@ final class LibraryViewModel: ObservableObject {
 
 extension LibraryViewModel {
 
-    /// A view model pre-populated with sample data for Xcode Previews.
+    /// A view model pre-populated with sample data for Xcode Previews and snapshot tests.
+    /// `skipRefresh` is set so `.task { await viewModel.refresh() }` does not overwrite
+    /// the pre-populated state during Canvas rendering or snapshot capture.
     static var previewWithData: LibraryViewModel {
         let vm = LibraryViewModel(client: EngineClient())
+        vm.skipRefresh = true
         vm.torrents = [
             TorrentSummaryDTO(
                 torrentID: "abc123",
@@ -82,7 +95,10 @@ extension LibraryViewModel {
     }
 
     /// A view model with no torrents — shows the empty state.
+    /// `skipRefresh` is set so snapshot tests see a stable empty state.
     static var previewEmpty: LibraryViewModel {
-        LibraryViewModel(client: EngineClient())
+        let vm = LibraryViewModel(client: EngineClient())
+        vm.skipRefresh = true
+        return vm
     }
 }

@@ -117,6 +117,24 @@
 		3A4B5C6D7E8F3A4B5C6D7E8F /* ButterBarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ButterBarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXContainerItemProxy section */
+		AA11BB22CC33DD44EE55FF66 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1781F676DEDF5767F3243DB0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 147982BEBBBCF1EA792C8730;
+			remoteInfo = ButterBar;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXTargetDependency section */
+		FF99AA11BB22CC33DD44EE55 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 147982BEBBBCF1EA792C8730 /* ButterBar */;
+			targetProxy = AA11BB22CC33DD44EE55FF66 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		7E62B6ED8D099F78575FBBFD /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -389,6 +407,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				FF99AA11BB22CC33DD44EE55 /* PBXTargetDependency */,
 			);
 			name = ButterBarTests;
 			packageProductDependencies = (

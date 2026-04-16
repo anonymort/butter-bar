@@ -82,11 +82,9 @@ struct LibraryView: View {
     }
 
     private var noResultsOverlay: some View {
-        VStack {
-            Text("No torrents match that filter.")
-                .brandBodyRegular()
-                .foregroundStyle(BrandColors.cocoaSoft)
-        }
+        Text("No torrents match that filter.")
+            .brandBodyRegular()
+            .foregroundStyle(BrandColors.cocoaSoft)
     }
 
     private func errorBanner(_ message: String) -> some View {
@@ -104,14 +102,13 @@ struct LibraryView: View {
         selectedTorrentID = torrent.torrentID as String
         Task {
             do {
-                let files = try await viewModel.listFiles(torrentID: torrent.torrentID)
+                let files = try await viewModel.listFiles(torrentID: torrent.torrentID as String)
                 if files.count > 1 {
                     fileSheetState = FileSheetState(torrentName: torrent.name as String, files: files)
                 }
                 // Single-file: row is selected; no sheet.
             } catch {
-                // Non-fatal — engine may not support file listing yet.
-                // Silently ignore; user can retry.
+                viewModel.loadError = "Could not load files: \(error.localizedDescription)"
             }
         }
     }
@@ -147,15 +144,13 @@ private struct TorrentRow: View {
                 Text("·")
                     .brandCaption()
                 Text(formattedProgress)
-                    .brandMonospacedNumeric()
-                    .font(.system(size: 12))
+                    .brandCaptionMonospacedNumeric()
                     .foregroundStyle(BrandColors.cocoaSoft)
                 if torrent.downRateBytesPerSec > 0 {
                     Text("·")
                         .brandCaption()
                     Text(formattedDownRate)
-                        .brandMonospacedNumeric()
-                        .font(.system(size: 12))
+                        .brandCaptionMonospacedNumeric()
                         .foregroundStyle(BrandColors.cocoaSoft)
                 }
             }

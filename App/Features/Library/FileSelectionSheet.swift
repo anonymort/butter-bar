@@ -49,7 +49,6 @@ struct FileSelectionSheet: View {
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .background(BrandColors.surfaceRaised)
-        .animation(.easeInOut(duration: 0.25), value: files.count)
     }
 }
 
