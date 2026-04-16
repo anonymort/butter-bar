@@ -268,7 +268,7 @@ Wire `CacheManager` to the GRDB models created in `T-STORE-SCHEMA`. Implemented 
 **Depends on:** `T-STORE-SCHEMA`.
 **Acceptance:** Unit tests that exercise the read/write helpers and verify the in-memory pinned set is rebuilt correctly after a simulated engine restart.
 
-### T-CACHE-EVICTION `[sonnet]` · BLOCKED: probe accepts real magnet, awaiting user run with real torrent · SPIKE
+### T-CACHE-EVICTION `[sonnet]` · IN-PROGRESS: mechanism decided (A23), bridge + probe rewrite landing on `engine/T-CACHE-EVICTION` · SPIKE
 Spike and then implement `CacheManager` with the eviction ordering from `05-cache-policy.md`. Unit tests with synthetic sparse-file state.
 
 **Probe interface (2026-04-16 rewrite):** Original probe generated synthetic 256 KB content via `createTestTorrent`, which is broken in the sandbox. Rewritten to accept a real magnet link (or `.torrent` path) so observations come from real libtorrent behaviour on real content:
@@ -291,7 +291,11 @@ Downloaded content is left in `NSTemporaryDirectory()` for iterative reruns. Pas
 .build/debug/EngineService --cache-eviction-probe 2>&1 | tee docs/libtorrent-eviction-notes.md
 ```
 
-**TorrentBridge gap noted:** `TorrentBridge` exposes `setFilePriority` (file granularity) but NOT `setPiecePriority` (piece granularity). The probe uses file-level priority as the coarsest available lever. If empirical results show that per-piece eviction is required, a `setPiecePriority` method must be added to `TorrentBridge.h/.mm` before step 5.
+**TorrentBridge mechanism (2026-04-16 decision, addendum A23):** libtorrent 2.0.12 does NOT expose `torrent_handle::clear_piece`; `grep` of the Homebrew headers confirmed the method is internal to `disk_interface` only. Eviction is therefore built from two public methods:
+- `addPiece(torrentID:, piece:, data:, overwriteExisting:)` — primary, per-piece. Writing 256 KB of zeros with `overwrite_existing` triggers a hash failure, which causes libtorrent to internally call `async_clear_piece` and remove the piece from the have-bitmap. Paired with a piece-aligned `F_PUNCHHOLE` *after* the `hash_failed_alert` arrives to reclaim APFS blocks.
+- `forceRecheck(torrentID:)` — fallback, whole-torrent. Reserved for idle-time bulk reconciliation and recovery if the add_piece trick ever stops working.
+
+Both methods are being added to `TorrentBridge.h/.mm` on `engine/T-CACHE-EVICTION`. The revised probe exercises both in a single run so observations come from the real library.
 
 **Depends on:** `T-CACHE-SCHEMA`, `T-BRIDGE-API` (need real libtorrent to probe).
 **Acceptance:** Probe notes committed, CacheManager implemented against observed behaviour, unit tests green, spec 05 updated with concrete mechanism (remove the "where possible / mark for future overwrite" hedge).

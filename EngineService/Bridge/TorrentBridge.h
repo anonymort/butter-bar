@@ -12,6 +12,7 @@ typedef NS_ERROR_ENUM(TorrentBridgeErrorDomain, TorrentBridgeError) {
     TorrentBridgeErrorFileNotFound     = 3,
     TorrentBridgeErrorReadError        = 4,
     TorrentBridgeErrorMetadataNotReady = 5,
+    TorrentBridgeErrorInvalidArgument  = 6,
 };
 
 /// Narrow ObjC++ wrapper over a single lt::session.
@@ -71,6 +72,57 @@ typedef NS_ERROR_ENUM(TorrentBridgeErrorDomain, TorrentBridgeError) {
                exceptPieces:(NSArray<NSNumber *> *)exceptPieces
                       error:(NSError **)error;
 
+/// Requests libtorrent to re-verify the entire torrent against what's on disk.
+/// Equivalent to `lt::torrent_handle::force_recheck()`. This is a heavy operation:
+/// libtorrent will disconnect all peers, read every existing file, and re-hash
+/// every piece. Completion is asynchronous — observe via `torrent_checked_alert`
+/// or by polling `statusSnapshot` for the `checkingFiles` state to clear.
+///
+/// Side effects (per libtorrent torrent_handle.hpp:664-672):
+///   - Resume-data state is reset; libtorrent treats the torrent as having no
+///     resume data after the call.
+///   - All peers are disconnected before checking begins.
+///   - The torrent stops announcing to the tracker during the check.
+///   - The torrent is placed at the end of the session queue (last queue position).
+///
+/// Calling while the torrent is already in `checkingFiles` or `checkingResumeData`
+/// state may restart the check; exact behaviour is libtorrent-internal.
+///
+/// Used as the cache-eviction fallback path (see `05-cache-policy.md` § Fallback).
+/// Not intended for streaming-hot-path use.
+- (BOOL)forceRecheck:(NSString *)torrentID
+               error:(NSError **)error;
+
+/// Writes `data` to the torrent's storage as piece `piece` and schedules a hash
+/// check. If `overwriteExisting` is YES, libtorrent will overwrite any bytes
+/// already on disk for that piece (mapped to `add_piece_flags_t::overwrite_existing`).
+/// The hash check result arrives asynchronously via `piece_finished_alert` (pass)
+/// or `hash_failed_alert` (fail).
+///
+/// Primary use: the cache-eviction hot path per spec 05 rev 3. Passing zeros with
+/// `overwriteExisting: YES` triggers a deliberate hash failure which libtorrent
+/// resolves by internally calling `async_clear_piece`, removing the piece from
+/// the have-bitmap.
+///
+/// `data` length must equal `piece_size(piece)` for the target piece — NOT
+/// uniformly `pieceLength:`, because the last piece of a torrent is typically
+/// shorter. The bridge validates this and returns `TorrentBridgeErrorInvalidArgument`
+/// on mismatch.
+///
+/// Caller constraints:
+///   - Calling while the torrent is in `checkingFiles` state is unsupported by
+///     libtorrent (per torrent_handle.hpp:286-287); the caller (CacheManager) must
+///     ensure this state is not active.
+///   - With `overwriteExisting: YES` on a piece that is actively being downloaded
+///     from peers, libtorrent docs (torrent_handle.hpp:266-270) note that in-flight
+///     blocks may not be replaced. For the eviction use case this is not a concern
+///     (we target fully-downloaded pieces), but direct callers should be aware.
+- (BOOL)addPiece:(NSString *)torrentID
+           piece:(int)piece
+            data:(NSData *)data
+overwriteExisting:(BOOL)overwriteExisting
+           error:(NSError **)error;
+
 // MARK: - Status
 
 /// Returns a snapshot of the torrent's current status.
@@ -103,7 +155,8 @@ typedef NS_ERROR_ENUM(TorrentBridgeErrorDomain, TorrentBridgeError) {
 // MARK: - Alert subscription
 
 /// Registers a callback that is invoked (on an internal serial queue) for every alert.
-/// Alert dict: @{ @"type": NSString, @"torrentID": NSString (if applicable), @"message": NSString }
+/// Alert dict: @{ @"type": NSString, @"torrentID": NSString (if applicable), @"message": NSString,
+///                @"pieceIndex": NSNumber (int, only for hash_failed_alert and piece_finished_alert) }
 /// Pass nil to clear the callback.
 - (void)subscribeAlerts:(nullable void (^)(NSDictionary *alert))callback;
 

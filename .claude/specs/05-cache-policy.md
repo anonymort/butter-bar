@@ -1,6 +1,6 @@
 # 05 — Cache Policy
 
-> **Revision 2** — resume offset weakened to byte-last-served (addendum A6, no byte→time map in v1); `settings` and `pinned_files` table schemas added (addendum A7). Baseline revision was rev 1.
+> **Revision 3** — § Piece eviction mechanism rewritten around the libtorrent 2.0.12 public API (addendum A23). Rev 2 weakened resume offset to byte-last-served (A6) and added `settings` + `pinned_files` schemas (A7).
 
 Cache eviction is piece-granular, not file-granular. The unit of value is "pieces the user is likely to need next," not "whole torrents."
 
@@ -42,13 +42,35 @@ At no point does eviction touch a pinned piece.
 
 ## Piece eviction mechanism
 
-libtorrent doesn't have a direct "delete piece" API, but it does have per-piece priority. Eviction works as:
+Per addendum A23. libtorrent 2.0.12's public `torrent_handle` API exposes `force_recheck()` (whole-torrent), `piece_priority()` (gating only, no reconciliation), and `add_piece(..., overwrite_existing)` (per-piece write + hash check). There is no public `clear_piece`. The eviction primitive is built from these.
 
-1. Set priority of target pieces to `0` (do not download).
-2. Call libtorrent's file-level API to truncate regions where possible, or mark them for future overwrite.
-3. Update in-memory `havePieces()` view accordingly so the planner sees the eviction immediately.
+### Hot path — per-piece, surgical
 
-Note: libtorrent may retain some piece data in its buffer cache temporarily. That's fine — the accounting is based on our view of the sparse file, not libtorrent's internal buffers.
+For each piece selected for eviction by the ordering rules above:
+
+1. `TorrentBridge.addPiece(torrentID:, piece: idx, data: <256 KB of zeros>, overwriteExisting: true)`.
+2. Await the `hash_failed_alert` for `idx`. On receipt, libtorrent has internally called `async_clear_piece` and removed `idx` from the have-bitmap.
+3. `fcntl(fd, F_PUNCHHOLE, {offset: pieceStartInFile, length: pieceLength})` on the sparse file to reclaim the APFS blocks that the zero write just re-allocated. `pieceLength` is already an integer multiple of 4 KiB (the APFS allocation unit) for all common torrent piece sizes; no further alignment is required.
+4. Subsequent access under `piece_priority ≥ 1` triggers re-fetch normally.
+
+The punch comes *after* the alert. add_piece writes its buffer to disk before hashing — punching before would be pointless because the zeros would re-fill the hole.
+
+### Fallback — bulk reconciliation
+
+`TorrentBridge.forceRecheck(torrentID:)` is invoked only in two cases:
+
+- **Idle-time reconciliation.** On engine shutdown, or after a batch of evictions, the planner may schedule a recheck to re-sync the have-bitmap with disk across the whole torrent. Runs only while no stream is active.
+- **Recovery.** If `hash_failed_alert` stops arriving after `addPiece(zeros, overwrite)` — e.g., a future libtorrent optimises the write-then-verify path — `CacheManager` falls back to a force-recheck of the affected torrent and logs a one-shot warning.
+
+`force_recheck` is O(on-disk bytes) and pauses peers during the check. It is never used on the streaming hot path.
+
+### In-memory view
+
+After eviction, the in-memory `havePieces()` projection is refreshed by the planner's next tick. The hash_failed_alert also drives an immediate `AlertDispatcher` update so the planner sees the eviction without waiting for the next poll.
+
+### Budget accounting
+
+`CacheManager` tracks `usedBytes` as the sum of on-disk allocated bytes for every sparse file it manages, sampled from `stat().st_blocks * 512` after each eviction batch. Per-piece accounting is not maintained — libtorrent's buffer cache and APFS block-granularity rounding make per-piece byte counts unreliable. The budget is enforced against the aggregate.
 
 ## Disk pressure signalling
 
@@ -108,7 +130,7 @@ CREATE TABLE settings (
 
 - Decide which torrents to add or remove.
 - Serve bytes.
-- Talk to libtorrent for anything other than piece priorities and file truncation.
+- Talk to libtorrent for anything other than piece priorities, add_piece, and force_recheck (see § Piece eviction mechanism).
 - Make UI decisions about "are you sure?" prompts — it just reports pressure.
 
 ## Test obligations
@@ -117,3 +139,4 @@ CREATE TABLE settings (
 - Test that pinned pieces are never selected, regardless of LRU position.
 - Test that crossing thresholds emits exactly one `DiskPressureDTO` per crossing (not a storm).
 - Test resume offset restoration across engine restarts.
+- Test the eviction primitive: addPiece+punch cycle produces hash_failed_alert, removes the piece from havePieces, reduces on-disk bytes by one piece length. Covered by the revised `--cache-eviction-probe` run plus unit tests against a test double.
