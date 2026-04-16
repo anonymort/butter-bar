@@ -495,16 +495,43 @@ func runCacheManagerSelfTests() -> [String] {
         fail("13: unexpected error: \(error)")
     }
 
-    // MARK: - 14. markWatched on already-watched row re-stamps completed_at
+    // MARK: - 14. markWatched preserves completed_at on already-.watched row,
+    //               re-stamps when applied to .reWatching (per design transition matrix).
 
     do {
         let db = try EngineDatabase.openInMemory()
         let cache = try CacheManager(db: db)
 
-        try cache.markWatched(torrentId: "ca-14", fileIndex: 0, nowMillis: 1_000)
-        let r = try cache.markWatched(torrentId: "ca-14", fileIndex: 0, nowMillis: 2_000)
-        expect(r.completedAt == 2_000,
-               "14: a fresh markWatched call must update completed_at, got \(r.completedAt ?? -1)")
+        // 14a: starting from .watched (completed=1, offset=0), a second
+        // markWatched is "I'm just confirming" — preserve original completed_at.
+        try cache.markWatched(torrentId: "ca-14a", fileIndex: 0, nowMillis: 1_000)
+        let r1 = try cache.markWatched(torrentId: "ca-14a", fileIndex: 0, nowMillis: 2_000)
+        expect(r1.completedAt == 1_000,
+               "14a: markWatched on .watched must preserve original completed_at, got \(r1.completedAt ?? -1)")
+
+        // 14b: simulate .reWatching (completed=1 + offset>0), then markWatched.
+        // Per design: "treat as freshly watched right now" — re-stamp.
+        try cache.markWatched(torrentId: "ca-14b", fileIndex: 0, nowMillis: 1_000)
+        // Force the row into a re-watching shape via direct DB write.
+        try db.write { conn in
+            try conn.execute(
+                sql: "UPDATE playback_history SET resume_byte_offset = 100000 WHERE torrent_id = ? AND file_index = ?",
+                arguments: ["ca-14b", 0]
+            )
+        }
+        let r2 = try cache.markWatched(torrentId: "ca-14b", fileIndex: 0, nowMillis: 5_000)
+        expect(r2.completedAt == 5_000,
+               "14b: markWatched on .reWatching must re-stamp completed_at, got \(r2.completedAt ?? -1)")
+
+        // 14c: starting from .inProgress (completed=0 + offset>0), markWatched
+        // creates a fresh completion — completedAt = now.
+        try cache.recordPlayback(torrentId: "ca-14c", fileIndex: 0,
+                                 resumeByteOffset: 250_000,
+                                 fileSize: 1_000_000,
+                                 nowMillis: 1_000)
+        let r3 = try cache.markWatched(torrentId: "ca-14c", fileIndex: 0, nowMillis: 9_000)
+        expect(r3.completedAt == 9_000,
+               "14c: markWatched on .inProgress must set completed_at = now, got \(r3.completedAt ?? -1)")
     } catch {
         fail("14: unexpected error: \(error)")
     }
