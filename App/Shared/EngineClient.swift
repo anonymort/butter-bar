@@ -1,6 +1,16 @@
 import Foundation
 import EngineInterface
 
+// MARK: - Code-signing requirement
+
+/// Requirement string for validating the EngineService peer.
+/// Matches the personal-team OU (`subject.OU = 6633CLRXPK`) of the Apple
+/// Development cert configured at the project's `DEVELOPMENT_TEAM`. A future
+/// migration to a paid Apple Developer Program team will need this updated to
+/// the new team identifier (the new `subject.OU` value).
+private let engineServiceCodeSigningRequirement =
+    "identifier \"com.butterbar.app.EngineService\" and anchor apple generic and certificate leaf[subject.OU] = \"6633CLRXPK\""
+
 // MARK: - Error type
 
 public enum EngineClientError: Error, LocalizedError {
@@ -85,6 +95,12 @@ public actor EngineClient {
         let handler = EngineEventHandler()
         conn.exportedObject = handler
         eventHandler = handler
+
+        // Reject any peer not signed by the same Apple Development team as the app.
+        // macOS 13+ API. Without this, a rogue local binary could impersonate the
+        // engine service. The runtime silently drops messages over a connection
+        // whose peer fails the requirement; no exception is raised here.
+        conn.setCodeSigningRequirement(engineServiceCodeSigningRequirement)
 
         // Capture self weakly so these closures don't keep the actor alive.
         conn.invalidationHandler = { [weak self] in
