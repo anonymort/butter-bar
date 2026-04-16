@@ -1,7 +1,17 @@
 import XCTest
 import SwiftUI
+import AppKit
 import SnapshotTesting
 @testable import ButterBar
+
+// Helper: wrap a SwiftUI view in an NSHostingView sized for snapshotting.
+// The macOS snapshot API takes an NSView, not a SwiftUI View.
+@MainActor
+private func hosted<V: View>(_ view: V, size: CGSize) -> NSHostingView<V> {
+    let host = NSHostingView(rootView: view)
+    host.frame = CGRect(origin: .zero, size: size)
+    return host
+}
 
 // MARK: - LibrarySnapshotTests
 //
@@ -28,8 +38,8 @@ final class LibrarySnapshotTests: XCTestCase {
             .frame(width: snapshotSize.width, height: snapshotSize.height)
 
         assertSnapshot(
-            of: view,
-            as: .image(layout: .fixed(width: snapshotSize.width, height: snapshotSize.height)),
+            of: hosted(view, size: snapshotSize),
+            as: .image,
             named: "light-populated"
         )
     }
@@ -42,8 +52,8 @@ final class LibrarySnapshotTests: XCTestCase {
             .frame(width: snapshotSize.width, height: snapshotSize.height)
 
         assertSnapshot(
-            of: view,
-            as: .image(layout: .fixed(width: snapshotSize.width, height: snapshotSize.height)),
+            of: hosted(view, size: snapshotSize),
+            as: .image,
             named: "dark-populated"
         )
     }
@@ -56,8 +66,8 @@ final class LibrarySnapshotTests: XCTestCase {
             .frame(width: snapshotSize.width, height: snapshotSize.height)
 
         assertSnapshot(
-            of: view,
-            as: .image(layout: .fixed(width: snapshotSize.width, height: snapshotSize.height)),
+            of: hosted(view, size: snapshotSize),
+            as: .image,
             named: "light-empty"
         )
     }
@@ -70,8 +80,8 @@ final class LibrarySnapshotTests: XCTestCase {
             .frame(width: snapshotSize.width, height: snapshotSize.height)
 
         assertSnapshot(
-            of: view,
-            as: .image(layout: .fixed(width: snapshotSize.width, height: snapshotSize.height)),
+            of: hosted(view, size: snapshotSize),
+            as: .image,
             named: "dark-empty"
         )
     }

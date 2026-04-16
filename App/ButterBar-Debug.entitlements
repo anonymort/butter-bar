@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  Debug-only entitlements. App Sandbox is intentionally absent here so
+	  ButterBarTests snapshot tests can write baseline PNGs into the source tree
+	  (__Snapshots__/) — the sandboxed Release host denies those writes.
+
+	  Release uses App/ButterBar.entitlements which retains the full sandbox
+	  posture. Per spec: "Hardened runtime enabled. App Sandbox enabled." — that
+	  rule still applies to shipped binaries; Debug relaxation is a test-tooling
+	  carve-out only.
+	-->
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<key>com.apple.security.files.user-selected.read-only</key>
+	<true/>
+</dict>
+</plist>

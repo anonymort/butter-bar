@@ -135,6 +135,9 @@ func runHTTPSelfTests() -> [String] {
     // MARK: - 8b. 206 response serialises correctly
 
     do {
+        // 0xAB is intentionally invalid UTF-8, so inspect only the header section
+        // (everything up to and including the blank CRLF). The body bytes after
+        // the blank line are binary-safe by design.
         let body = Data(repeating: 0xAB, count: 10)
         let response = HTTPRangeResponse.partialContent(
             contentType: "video/mp4",
@@ -144,10 +147,14 @@ func runHTTPSelfTests() -> [String] {
             body: body
         )
         let data = HTTPSerializer.serialize(response)
-        let str = String(data: data, encoding: .utf8) ?? ""
-        expect(str.hasPrefix("HTTP/1.1 206 Partial Content\r\n"), "206 status line incorrect")
-        expect(str.contains("Content-Range: bytes 100-109/1000\r\n"), "206 Content-Range incorrect")
-        expect(str.contains("Content-Length: 10\r\n"), "206 Content-Length should be range length")
+        let blank = Data("\r\n\r\n".utf8)
+        let headerEnd = data.range(of: blank)?.upperBound ?? data.endIndex
+        let headerData = data.subdata(in: data.startIndex ..< headerEnd)
+        let headerStr = String(data: headerData, encoding: .utf8) ?? ""
+        expect(headerStr.hasPrefix("HTTP/1.1 206 Partial Content\r\n"), "206 status line incorrect")
+        expect(headerStr.contains("Content-Range: bytes 100-109/1000\r\n"), "206 Content-Range incorrect")
+        expect(headerStr.contains("Content-Length: 10\r\n"), "206 Content-Length should be range length")
+        expect(data.count == headerData.count + 10, "206 body should be 10 bytes after header")
     }
 
     // MARK: - 9. HEAD response has no body

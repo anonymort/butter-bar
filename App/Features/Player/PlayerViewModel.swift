@@ -74,9 +74,9 @@ final class PlayerViewModel: ObservableObject {
         cancellables.removeAll()
         player?.pause()
         player = nil
-        let streamID = streamDescriptor.streamID
+        let streamID = streamDescriptor.streamID as String
         Task {
-            try? await engineClient.closeStream(streamID)
+            try? await engineClient.closeStream(streamID as NSString)
         }
     }
 

@@ -1,8 +1,17 @@
 import XCTest
 import SwiftUI
+import AppKit
 import SnapshotTesting
 import EngineInterface
 @testable import ButterBar
+
+// Wrap a SwiftUI view in an NSHostingView for macOS snapshot capture.
+@MainActor
+private func hosted<V: View>(_ view: V, size: CGSize) -> NSHostingView<V> {
+    let host = NSHostingView(rootView: view)
+    host.frame = CGRect(origin: .zero, size: size)
+    return host
+}
 
 // MARK: - PlayerHUDSnapshotTests
 //
@@ -34,8 +43,8 @@ final class PlayerHUDSnapshotTests: XCTestCase {
             .background(Color.black)
 
         assertSnapshot(
-            of: view,
-            as: .image(layout: .fixed(width: snapshotSize.width, height: snapshotSize.height)),
+            of: hosted(view, size: snapshotSize),
+            as: .image,
             named: "dark-healthy"
         )
     }
@@ -49,8 +58,8 @@ final class PlayerHUDSnapshotTests: XCTestCase {
             .background(Color.black)
 
         assertSnapshot(
-            of: view,
-            as: .image(layout: .fixed(width: snapshotSize.width, height: snapshotSize.height)),
+            of: hosted(view, size: snapshotSize),
+            as: .image,
             named: "dark-marginal"
         )
     }
@@ -64,8 +73,8 @@ final class PlayerHUDSnapshotTests: XCTestCase {
             .background(Color.black)
 
         assertSnapshot(
-            of: view,
-            as: .image(layout: .fixed(width: snapshotSize.width, height: snapshotSize.height)),
+            of: hosted(view, size: snapshotSize),
+            as: .image,
             named: "dark-starving"
         )
     }
@@ -83,8 +92,8 @@ final class PlayerHUDSnapshotTests: XCTestCase {
             .background(BrandColors.cream)
 
         assertSnapshot(
-            of: view,
-            as: .image(layout: .fixed(width: snapshotSize.width, height: snapshotSize.height)),
+            of: hosted(view, size: snapshotSize),
+            as: .image,
             named: "light-healthy"
         )
     }
@@ -96,8 +105,8 @@ final class PlayerHUDSnapshotTests: XCTestCase {
             .background(BrandColors.cream)
 
         assertSnapshot(
-            of: view,
-            as: .image(layout: .fixed(width: snapshotSize.width, height: snapshotSize.height)),
+            of: hosted(view, size: snapshotSize),
+            as: .image,
             named: "light-marginal"
         )
     }
@@ -109,8 +118,8 @@ final class PlayerHUDSnapshotTests: XCTestCase {
             .background(BrandColors.cream)
 
         assertSnapshot(
-            of: view,
-            as: .image(layout: .fixed(width: snapshotSize.width, height: snapshotSize.height)),
+            of: hosted(view, size: snapshotSize),
+            as: .image,
             named: "light-starving"
         )
     }
