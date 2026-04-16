@@ -27,6 +27,8 @@ final class PlayerViewModel: ObservableObject {
 
     private let streamDescriptor: StreamDescriptorDTO
     private let engineClient: EngineClient
+    private var healthSubscription: AnyCancellable?
+    private var reconnectSubscription: AnyCancellable?
     private var cancellables = Set<AnyCancellable>()
     private var isClosed = false
 
@@ -52,7 +54,17 @@ final class PlayerViewModel: ObservableObject {
             scheduleResumeSeek(player: avPlayer, item: item)
         }
 
-        // Subscribe to health events.
+        // Re-bind to the active events stream whenever EngineClient reconnects.
+        reconnectSubscription = NotificationCenter.default.publisher(
+            for: EngineClient.eventsDidChangeNotification,
+            object: engineClient
+        )
+        .receive(on: DispatchQueue.main)
+        .sink { [weak self] _ in
+            Task { await self?.subscribeToHealth() }
+        }
+
+        // Subscribe to the current health stream.
         Task { await self.subscribeToHealth() }
     }
 
@@ -71,6 +83,10 @@ final class PlayerViewModel: ObservableObject {
     func close() {
         guard !isClosed else { return }
         isClosed = true
+        healthSubscription?.cancel()
+        reconnectSubscription?.cancel()
+        healthSubscription = nil
+        reconnectSubscription = nil
         cancellables.removeAll()
         player?.pause()
         player = nil
@@ -83,24 +99,18 @@ final class PlayerViewModel: ObservableObject {
     // MARK: - Private helpers
 
     /// Subscribe to StreamHealth events for this stream.
-    ///
-    /// Known limitation: if the engine XPC connection is invalidated and reconnected
-    /// while the player is open, the captured `EngineEventHandler` reference becomes
-    /// stale and health updates stop. The player does not auto-re-subscribe in v1.
-    /// Fix deferred: file follow-up task for the XPC reconnect handler to notify
-    /// active PlayerViewModels so they can re-subscribe.
     private func subscribeToHealth() async {
         guard let events = await engineClient.events else { return }
         guard !isClosed else { return }
         let targetID = streamDescriptor.streamID as String
 
-        events.streamHealthChangedSubject
+        healthSubscription?.cancel()
+        healthSubscription = events.streamHealthChangedSubject
             .filter { ($0.streamID as String) == targetID }
             .receive(on: DispatchQueue.main)
             .sink { [weak self] dto in
                 self?.health = dto
             }
-            .store(in: &cancellables)
     }
 
     /// Once the asset duration is available, seeks to the byte-ratio–derived time.

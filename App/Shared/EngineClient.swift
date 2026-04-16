@@ -70,6 +70,10 @@ private final class ContinuationResumer<Value: Sendable>: @unchecked Sendable {
 ///   the reply-block API to Swift concurrency.
 public actor EngineClient {
 
+    /// Posted whenever this client's active `EngineEventHandler` changes.
+    nonisolated public static let eventsDidChangeNotification =
+        Notification.Name("EngineClient.eventsDidChange")
+
     // MARK: Private state
 
     private var connection: NSXPCConnection?
@@ -95,6 +99,7 @@ public actor EngineClient {
         let handler = EngineEventHandler()
         conn.exportedObject = handler
         eventHandler = handler
+        publishEventsDidChange()
 
         // Reject any peer not signed by the same Apple Development team as the app.
         // macOS 13+ API. Without this, a rogue local binary could impersonate the
@@ -126,6 +131,7 @@ public actor EngineClient {
         connection?.invalidate()
         connection = nil
         eventHandler = nil
+        publishEventsDidChange()
     }
 
     // MARK: - Async wrappers
@@ -362,6 +368,7 @@ public actor EngineClient {
     private func handleInvalidation() {
         connection = nil
         eventHandler = nil
+        publishEventsDidChange()
         NSLog("[EngineClient] XPC connection invalidated — reconnecting in 500 ms")
         Task {
             try? await Task.sleep(for: .milliseconds(500))
@@ -403,4 +410,16 @@ public actor EngineClient {
             }
         }
     }
+
+    private func publishEventsDidChange() {
+        NotificationCenter.default.post(name: Self.eventsDidChangeNotification, object: self)
+    }
+
+#if DEBUG
+    /// Test-only helper that simulates reconnect by replacing the current events handler.
+    internal func _replaceEventHandlerForTesting(_ handler: EngineEventHandler?) {
+        eventHandler = handler
+        publishEventsDidChange()
+    }
+#endif
 }
