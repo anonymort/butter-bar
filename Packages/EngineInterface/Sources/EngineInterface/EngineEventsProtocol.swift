@@ -8,4 +8,9 @@ import Foundation
     func fileAvailabilityChanged(_ update: FileAvailabilityDTO)
     func streamHealthChanged(_ update: StreamHealthDTO)
     func diskPressureChanged(_ update: DiskPressureDTO)
+
+    /// Emitted exactly once per `playback_history` row write (15 s tick during
+    /// playback, stream close, or manual mark-watched / mark-unwatched).
+    /// See spec 05 § Update rules and addendum A26.
+    func playbackHistoryChanged(_ update: PlaybackHistoryDTO)
 }

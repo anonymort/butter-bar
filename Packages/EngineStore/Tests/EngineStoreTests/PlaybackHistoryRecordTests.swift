@@ -86,6 +86,75 @@ final class PlaybackHistoryRecordTests: XCTestCase {
         XCTAssertEqual(fetched?.completed, true)
     }
 
+    // MARK: - completedAt round-trip (A26)
+
+    func testCompletedAtNilByDefault() throws {
+        let record = PlaybackHistoryRecord(
+            torrentId: "ca-nil",
+            fileIndex: 0,
+            resumeByteOffset: 0,
+            lastPlayedAt: 1_700_000_010_000
+        )
+
+        try queue.write { db in try record.insert(db) }
+
+        let fetched = try queue.read { db in
+            try PlaybackHistoryRecord.fetchOne(
+                db,
+                sql: "SELECT * FROM playback_history WHERE torrent_id = ?",
+                arguments: ["ca-nil"]
+            )
+        }
+        XCTAssertNil(fetched?.completedAt)
+    }
+
+    func testCompletedAtRoundTripsWhenSet() throws {
+        let record = PlaybackHistoryRecord(
+            torrentId: "ca-set",
+            fileIndex: 1,
+            resumeByteOffset: 9_500_000,
+            lastPlayedAt: 1_700_000_011_000,
+            completed: true,
+            completedAt: 1_700_000_012_345
+        )
+
+        try queue.write { db in try record.insert(db) }
+
+        let fetched = try queue.read { db in
+            try PlaybackHistoryRecord.fetchOne(
+                db,
+                sql: "SELECT * FROM playback_history WHERE torrent_id = ?",
+                arguments: ["ca-set"]
+            )
+        }
+        XCTAssertEqual(fetched?.completedAt, 1_700_000_012_345)
+        XCTAssertEqual(fetched?.completed, true)
+    }
+
+    func testCompletedAtUpdatesViaSave() throws {
+        var record = PlaybackHistoryRecord(
+            torrentId: "ca-update",
+            fileIndex: 0,
+            resumeByteOffset: 9_500_000,
+            lastPlayedAt: 1_700_000_013_000,
+            completed: true,
+            completedAt: 1_700_000_013_001
+        )
+        try queue.write { db in try record.insert(db) }
+
+        record.completedAt = 1_700_000_999_999 // most-recent-completion-wins
+        try queue.write { db in try record.save(db) }
+
+        let fetched = try queue.read { db in
+            try PlaybackHistoryRecord.fetchOne(
+                db,
+                sql: "SELECT * FROM playback_history WHERE torrent_id = ?",
+                arguments: ["ca-update"]
+            )
+        }
+        XCTAssertEqual(fetched?.completedAt, 1_700_000_999_999)
+    }
+
     // MARK: - Upsert (update existing row)
 
     func testUpsertUpdatesExistingRow() throws {

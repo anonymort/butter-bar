@@ -162,11 +162,12 @@ final class XPCInterfaceFactoryTests: XCTestCase {
 
         // (selector, argIndex, isReply, expectedClass, label)
         let cases: [(sel: Selector, argIdx: Int, isReply: Bool, cls: AnyClass, label: String)] = [
-            (#selector(EngineXPC.addMagnet(_:reply:)),            0, true,  TorrentSummaryDTO.self,  "addMagnet reply"),
-            (#selector(EngineXPC.addTorrentFile(_:reply:)),       0, true,  TorrentSummaryDTO.self,  "addTorrentFile reply"),
-            (#selector(EngineXPC.listTorrents(_:)),               0, true,  TorrentSummaryDTO.self,  "listTorrents reply"),
-            (#selector(EngineXPC.listFiles(_:reply:)),            0, true,  TorrentFileDTO.self,     "listFiles reply"),
-            (#selector(EngineXPC.openStream(_:fileIndex:reply:)), 0, true,  StreamDescriptorDTO.self,"openStream reply"),
+            (#selector(EngineXPC.addMagnet(_:reply:)),                 0, true,  TorrentSummaryDTO.self,    "addMagnet reply"),
+            (#selector(EngineXPC.addTorrentFile(_:reply:)),            0, true,  TorrentSummaryDTO.self,    "addTorrentFile reply"),
+            (#selector(EngineXPC.listTorrents(_:)),                    0, true,  TorrentSummaryDTO.self,    "listTorrents reply"),
+            (#selector(EngineXPC.listFiles(_:reply:)),                 0, true,  TorrentFileDTO.self,       "listFiles reply"),
+            (#selector(EngineXPC.openStream(_:fileIndex:reply:)),      0, true,  StreamDescriptorDTO.self,  "openStream reply"),
+            (#selector(EngineXPC.listPlaybackHistory(_:)),             0, true,  PlaybackHistoryDTO.self,   "listPlaybackHistory reply"),
         ]
 
         for c in cases {
@@ -185,6 +186,7 @@ final class XPCInterfaceFactoryTests: XCTestCase {
             (#selector(EngineEvents.fileAvailabilityChanged(_:)), FileAvailabilityDTO.self, "fileAvailabilityChanged"),
             (#selector(EngineEvents.streamHealthChanged(_:)),     StreamHealthDTO.self,     "streamHealthChanged"),
             (#selector(EngineEvents.diskPressureChanged(_:)),     DiskPressureDTO.self,     "diskPressureChanged"),
+            (#selector(EngineEvents.playbackHistoryChanged(_:)),  PlaybackHistoryDTO.self,  "playbackHistoryChanged"),
         ]
 
         for c in cases {

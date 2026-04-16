@@ -396,6 +396,152 @@ func runCacheManagerSelfTests() -> [String] {
         fail("9: unexpected error: \(error)")
     }
 
+    // MARK: - 10. completed_at set on 0→1 transition (A26)
+
+    do {
+        let db = try EngineDatabase.openInMemory()
+        let cache = try CacheManager(db: db)
+        let fileSize: Int64 = 1_000_000
+
+        // Tick 1: in-progress, no completion.
+        let r1 = try cache.recordPlayback(torrentId: "ca-10", fileIndex: 0,
+                                          resumeByteOffset: 100,
+                                          fileSize: fileSize,
+                                          nowMillis: 1_000_000)
+        expect(!r1.completed, "10: tick 1 should not be completed")
+        expect(r1.completedAt == nil, "10: tick 1 should leave completed_at nil")
+
+        // Tick 2: cross threshold.
+        let r2 = try cache.recordPlayback(torrentId: "ca-10", fileIndex: 0,
+                                          resumeByteOffset: 950_000,
+                                          fileSize: fileSize,
+                                          nowMillis: 2_000_000)
+        expect(r2.completed, "10: tick 2 should be completed")
+        expect(r2.completedAt == 2_000_000,
+               "10: completed_at should be set to now on 0→1 transition, got \(r2.completedAt ?? -1)")
+        expect(r2.resumeByteOffset == 0, "10: offset should reset to 0 on completion")
+    } catch {
+        fail("10: unexpected error: \(error)")
+    }
+
+    // MARK: - 11. Re-watch preserves completed and completed_at (A26)
+
+    do {
+        let db = try EngineDatabase.openInMemory()
+        let cache = try CacheManager(db: db)
+        let fileSize: Int64 = 1_000_000
+
+        // Watch to completion.
+        try cache.recordPlayback(torrentId: "ca-11", fileIndex: 0,
+                                 resumeByteOffset: 950_000,
+                                 fileSize: fileSize,
+                                 nowMillis: 1_000_000)
+
+        // Re-open and progress (well below threshold).
+        let r = try cache.recordPlayback(torrentId: "ca-11", fileIndex: 0,
+                                         resumeByteOffset: 100_000,
+                                         fileSize: fileSize,
+                                         nowMillis: 5_000_000)
+        expect(r.completed, "11: re-watch progress must keep completed=true")
+        expect(r.completedAt == 1_000_000,
+               "11: re-watch progress must preserve completed_at, got \(r.completedAt ?? -1)")
+        expect(r.resumeByteOffset == 100_000,
+               "11: re-watch must track current offset, got \(r.resumeByteOffset)")
+    } catch {
+        fail("11: unexpected error: \(error)")
+    }
+
+    // MARK: - 12. Re-completion updates completed_at (most-recent-wins, A26)
+
+    do {
+        let db = try EngineDatabase.openInMemory()
+        let cache = try CacheManager(db: db)
+        let fileSize: Int64 = 1_000_000
+
+        try cache.recordPlayback(torrentId: "ca-12", fileIndex: 0,
+                                 resumeByteOffset: 950_000,
+                                 fileSize: fileSize,
+                                 nowMillis: 1_000_000)
+        // Some time later, re-watch ends with full completion again.
+        let r = try cache.recordPlayback(torrentId: "ca-12", fileIndex: 0,
+                                         resumeByteOffset: 980_000,
+                                         fileSize: fileSize,
+                                         nowMillis: 9_000_000)
+        expect(r.completed, "12: re-completion must keep completed=true")
+        expect(r.completedAt == 9_000_000,
+               "12: re-completion must update completed_at to now, got \(r.completedAt ?? -1)")
+        expect(r.resumeByteOffset == 0, "12: re-completion resets offset to 0")
+    } catch {
+        fail("12: unexpected error: \(error)")
+    }
+
+    // MARK: - 13. markWatched on absent row inserts the correct shape
+
+    do {
+        let db = try EngineDatabase.openInMemory()
+        let cache = try CacheManager(db: db)
+
+        let r = try cache.markWatched(torrentId: "ca-13", fileIndex: 4,
+                                      nowMillis: 5_555_555)
+        expect(r.completed, "13: marked-watched row must have completed=true")
+        expect(r.completedAt == 5_555_555,
+               "13: completed_at should equal injected now, got \(r.completedAt ?? -1)")
+        expect(r.resumeByteOffset == 0, "13: resume offset must be 0")
+        expect(r.lastPlayedAt == 5_555_555, "13: last_played_at must be set on insert")
+
+        let fetched = try cache.fetchHistory(torrentId: "ca-13", fileIndex: 4)
+        expect(fetched != nil, "13: row should be persisted")
+    } catch {
+        fail("13: unexpected error: \(error)")
+    }
+
+    // MARK: - 14. markWatched on already-watched row re-stamps completed_at
+
+    do {
+        let db = try EngineDatabase.openInMemory()
+        let cache = try CacheManager(db: db)
+
+        try cache.markWatched(torrentId: "ca-14", fileIndex: 0, nowMillis: 1_000)
+        let r = try cache.markWatched(torrentId: "ca-14", fileIndex: 0, nowMillis: 2_000)
+        expect(r.completedAt == 2_000,
+               "14: a fresh markWatched call must update completed_at, got \(r.completedAt ?? -1)")
+    } catch {
+        fail("14: unexpected error: \(error)")
+    }
+
+    // MARK: - 15. markUnwatched clears completion and preserves last_played_at
+
+    do {
+        let db = try EngineDatabase.openInMemory()
+        let cache = try CacheManager(db: db)
+
+        try cache.markWatched(torrentId: "ca-15", fileIndex: 0, nowMillis: 1_000)
+        let r = try cache.markUnwatched(torrentId: "ca-15", fileIndex: 0)
+        guard let r = r else {
+            fail("15: markUnwatched should return a record when one exists")
+            return failures
+        }
+        expect(!r.completed, "15: completed must flip to false")
+        expect(r.completedAt == nil, "15: completed_at must be cleared")
+        expect(r.resumeByteOffset == 0, "15: resume offset must be 0")
+        expect(r.lastPlayedAt == 1_000,
+               "15: last_played_at must be preserved (was 1000), got \(r.lastPlayedAt)")
+    } catch {
+        fail("15: unexpected error: \(error)")
+    }
+
+    // MARK: - 16. markUnwatched on absent row is a no-op (returns nil)
+
+    do {
+        let db = try EngineDatabase.openInMemory()
+        let cache = try CacheManager(db: db)
+
+        let r = try cache.markUnwatched(torrentId: "ca-16-missing", fileIndex: 0)
+        expect(r == nil, "16: markUnwatched on absent row must return nil")
+    } catch {
+        fail("16: unexpected error: \(error)")
+    }
+
     return failures
 }
 

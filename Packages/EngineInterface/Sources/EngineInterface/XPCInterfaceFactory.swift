@@ -46,6 +46,13 @@ public enum XPCInterfaceFactory {
     /// closeStream(_:reply:)
     ///   (reply is Void — no registration needed)
     ///
+    /// listPlaybackHistory(_:)
+    ///   reply arg 0 — [PlaybackHistoryDTO]  (NSArray<PlaybackHistoryDTO>)
+    ///   PlaybackHistoryDTO.completedAt is NSNumber? — register NSNumber too.
+    ///
+    /// setWatchedState(_:fileIndex:watched:reply:)
+    ///   (reply has only NSError? — no custom class registration needed)
+    ///
     /// subscribe(_:reply:)
     ///   arg 0 — EngineEvents proxy (set via setInterface, not setClasses)
     public static func engineInterface() -> NSXPCInterface {
@@ -99,6 +106,18 @@ public enum XPCInterfaceFactory {
             ofReply: true
         )
 
+        // listPlaybackHistory(_:) — reply arg 0: [PlaybackHistoryDTO]
+        // PlaybackHistoryDTO carries an NSNumber? for completedAt.
+        interface.setClasses(
+            [h(NSArray.self), h(PlaybackHistoryDTO.self), h(NSNumber.self)],
+            for: #selector(EngineXPC.listPlaybackHistory(_:)),
+            argumentIndex: 0,
+            ofReply: true
+        )
+
+        // setWatchedState(_:fileIndex:watched:reply:) — reply only carries
+        // NSError?. No custom-class registration needed.
+
         // subscribe(_:reply:) — arg 0: EngineEvents proxy
         // Use setInterface so XPC knows to create a proxy object rather than deserialise a plain value.
         interface.setInterface(
@@ -119,6 +138,7 @@ public enum XPCInterfaceFactory {
     /// fileAvailabilityChanged(_:) — arg 0: FileAvailabilityDTO (contains [ByteRangeDTO])
     /// streamHealthChanged(_:)     — arg 0: StreamHealthDTO
     /// diskPressureChanged(_:)     — arg 0: DiskPressureDTO
+    /// playbackHistoryChanged(_:)  — arg 0: PlaybackHistoryDTO (contains NSNumber? for completedAt)
     public static func eventsInterface() -> NSXPCInterface {
         let interface = NSXPCInterface(with: EngineEvents.self)
 
@@ -152,6 +172,15 @@ public enum XPCInterfaceFactory {
         interface.setClasses(
             [h(DiskPressureDTO.self)],
             for: #selector(EngineEvents.diskPressureChanged(_:)),
+            argumentIndex: 0,
+            ofReply: false
+        )
+
+        // playbackHistoryChanged(_:) — arg 0: PlaybackHistoryDTO
+        // PlaybackHistoryDTO carries an NSNumber? for completedAt.
+        interface.setClasses(
+            [h(PlaybackHistoryDTO.self), h(NSNumber.self)],
+            for: #selector(EngineEvents.playbackHistoryChanged(_:)),
             argumentIndex: 0,
             ofReply: false
         )

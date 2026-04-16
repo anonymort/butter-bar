@@ -362,3 +362,64 @@ final class DiskPressureDTOTests: XCTestCase {
         XCTAssertEqual(decoded.evictableBytes, 0)
     }
 }
+
+// MARK: - PlaybackHistoryDTO (A26)
+
+final class PlaybackHistoryDTOTests: XCTestCase {
+
+    func testRoundTrip_allFields_completedAtSet() throws {
+        let dto = PlaybackHistoryDTO(
+            torrentID: "ph-watched",
+            fileIndex: 0,
+            resumeByteOffset: 9_500_000,
+            lastPlayedAt: 1_700_000_010_000,
+            totalWatchedSeconds: 0,
+            completed: true,
+            completedAt: 1_700_000_012_345
+        )
+        let decoded = try roundTrip(dto)
+
+        XCTAssertEqual(decoded.schemaVersion, 1)
+        XCTAssertEqual(decoded.torrentID, "ph-watched")
+        XCTAssertEqual(decoded.fileIndex, 0)
+        XCTAssertEqual(decoded.resumeByteOffset, 9_500_000)
+        XCTAssertEqual(decoded.lastPlayedAt, 1_700_000_010_000)
+        XCTAssertEqual(decoded.completed, true)
+        XCTAssertEqual(decoded.completedAt?.int64Value, 1_700_000_012_345)
+    }
+
+    func testRoundTrip_completedAtNil() throws {
+        let dto = PlaybackHistoryDTO(
+            torrentID: "ph-in-progress",
+            fileIndex: 2,
+            resumeByteOffset: 1024,
+            lastPlayedAt: 1_700_000_011_000,
+            totalWatchedSeconds: 0,
+            completed: false,
+            completedAt: nil
+        )
+        let decoded = try roundTrip(dto)
+
+        XCTAssertEqual(decoded.completed, false)
+        XCTAssertNil(decoded.completedAt)
+        XCTAssertEqual(decoded.fileIndex, 2)
+        XCTAssertEqual(decoded.resumeByteOffset, 1024)
+    }
+
+    func testRoundTrip_zeroResumeWithCompleted() throws {
+        // Watched + reset on next open: completed=1, completedAt=T, resume=0.
+        let dto = PlaybackHistoryDTO(
+            torrentID: "ph-fresh-watched",
+            fileIndex: 0,
+            resumeByteOffset: 0,
+            lastPlayedAt: 1_700_000_020_000,
+            totalWatchedSeconds: 0,
+            completed: true,
+            completedAt: 1_700_000_021_000
+        )
+        let decoded = try roundTrip(dto)
+        XCTAssertEqual(decoded.resumeByteOffset, 0)
+        XCTAssertEqual(decoded.completed, true)
+        XCTAssertEqual(decoded.completedAt?.int64Value, 1_700_000_021_000)
+    }
+}
