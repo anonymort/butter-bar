@@ -25,6 +25,18 @@ struct LibraryView: View {
         }
         .background(BrandColors.surfaceBase)
         .searchable(text: $searchQuery, placement: .toolbar, prompt: "Filter")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Toggle(isOn: $viewModel.favouritesOnly) {
+                    Image(systemName: viewModel.favouritesOnly ? "heart.fill" : "heart")
+                        .foregroundStyle(
+                            viewModel.favouritesOnly ? BrandColors.butter : BrandColors.cocoaSoft
+                        )
+                }
+                .toggleStyle(.button)
+                .help(viewModel.favouritesOnly ? "Showing favourites only" : "Show favourites only")
+            }
+        }
         .task { await viewModel.start() }
         // File selection sheet (multi-file torrents).
         .sheet(item: $fileSheetState) { state in
@@ -56,8 +68,10 @@ struct LibraryView: View {
     // MARK: - Filtered data
 
     private var filteredTorrents: [TorrentSummaryDTO] {
-        guard !searchQuery.isEmpty else { return viewModel.torrents }
-        return viewModel.torrents.filter {
+        // displayedTorrents applies the favouritesOnly filter (#36).
+        let base = viewModel.displayedTorrents
+        guard !searchQuery.isEmpty else { return base }
+        return base.filter {
             (($0.name as String)).localizedStandardContains(searchQuery)
         }
     }
@@ -107,7 +121,19 @@ struct LibraryView: View {
                             torrentID: torrent.torrentID as String,
                             fileIndex: 0,
                             totalBytes: torrent.totalBytes
-                        )
+                        ),
+                        isFavourite: viewModel.isFavourite(
+                            torrentID: torrent.torrentID as String,
+                            fileIndex: 0
+                        ),
+                        onToggleFavourite: {
+                            Task {
+                                await viewModel.toggleFavourite(
+                                    torrentID: torrent.torrentID as String,
+                                    fileIndex: 0
+                                )
+                            }
+                        }
                     )
                     .tag(torrent.torrentID as String)
                     .contentShape(Rectangle())
@@ -252,6 +278,10 @@ private struct TorrentRow: View {
     let torrent: TorrentSummaryDTO
     /// Watch status of file index 0 for this torrent. Drives the badge.
     let watchStatus: WatchStatus
+    /// Favourite state of file index 0 for this torrent (#36).
+    let isFavourite: Bool
+    /// Tapped when the user clicks the heart icon.
+    let onToggleFavourite: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -269,6 +299,16 @@ private struct TorrentRow: View {
                         .background(BrandColors.cocoaFaint)
                         .clipShape(Capsule())
                 }
+                Spacer(minLength: 4)
+                Button(action: onToggleFavourite) {
+                    Image(systemName: isFavourite ? "heart.fill" : "heart")
+                        .foregroundStyle(
+                            isFavourite ? BrandColors.butter : BrandColors.cocoaSoft
+                        )
+                }
+                .buttonStyle(.plain)
+                .help(isFavourite ? "Remove from favourites" : "Add to favourites")
+                .accessibilityLabel(isFavourite ? "Favourited" : "Not favourited")
             }
 
             HStack(spacing: 8) {
@@ -382,6 +422,20 @@ private struct TorrentRow: View {
 
 #Preview("Library — continue watching, dark") {
     LibraryView(viewModel: .previewWithContinueWatching)
+        .preferredColorScheme(.dark)
+        .frame(width: 800, height: 500)
+}
+
+// #36 — Favourites toggle visible
+
+#Preview("Library — favourites, light") {
+    LibraryView(viewModel: .previewWithFavourites)
+        .preferredColorScheme(.light)
+        .frame(width: 800, height: 500)
+}
+
+#Preview("Library — favourites, dark") {
+    LibraryView(viewModel: .previewWithFavourites)
         .preferredColorScheme(.dark)
         .frame(width: 800, height: 500)
 }

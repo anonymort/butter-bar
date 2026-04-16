@@ -137,4 +137,30 @@ final class LibrarySnapshotTests: XCTestCase {
             named: "dark-continue-watching"
         )
     }
+
+    // MARK: - Favourites (#36)
+
+    func testLibraryViewLightFavourites() {
+        let view = LibraryView(viewModel: .previewWithFavourites)
+            .environment(\.colorScheme, .light)
+            .frame(width: snapshotSize.width, height: snapshotSize.height)
+
+        assertSnapshot(
+            of: hosted(view, size: snapshotSize),
+            as: .image,
+            named: "light-favourites"
+        )
+    }
+
+    func testLibraryViewDarkFavourites() {
+        let view = LibraryView(viewModel: .previewWithFavourites)
+            .environment(\.colorScheme, .dark)
+            .frame(width: snapshotSize.width, height: snapshotSize.height)
+
+        assertSnapshot(
+            of: hosted(view, size: snapshotSize),
+            as: .image,
+            named: "dark-favourites"
+        )
+    }
 }

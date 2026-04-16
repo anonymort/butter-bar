@@ -242,4 +242,50 @@ public final class CacheManager {
     public func allPinnedKeys() -> Set<PinnedKey> {
         _pinnedKeys
     }
+
+    // MARK: - Favourites (#36, T-STORE-FAVOURITES)
+
+    /// Set the favourite flag for `(torrentId, fileIndex)` to `true`. Upserts
+    /// `favourited_at = now` so re-favouriting refreshes the timestamp.
+    @discardableResult
+    public func addFavourite(
+        torrentId: String,
+        fileIndex: Int,
+        nowMillis: Int64? = nil
+    ) throws -> FavouriteRecord {
+        let now = nowMillis ?? Int64(Date().timeIntervalSince1970 * 1000)
+        let record = FavouriteRecord(torrentId: torrentId, fileIndex: fileIndex, favouritedAt: now)
+        try db.write { conn in try record.save(conn) }
+        return record
+    }
+
+    /// Clear the favourite flag for `(torrentId, fileIndex)`. Returns the
+    /// deleted record so the caller can emit `favouritesChanged(isRemoved: true)`,
+    /// or `nil` if there was no row to delete (no event should be emitted).
+    @discardableResult
+    public func removeFavourite(
+        torrentId: String,
+        fileIndex: Int
+    ) throws -> FavouriteRecord? {
+        try db.write { conn -> FavouriteRecord? in
+            guard let existing = try FavouriteRecord
+                .filter(Column("torrent_id") == torrentId && Column("file_index") == fileIndex)
+                .fetchOne(conn) else {
+                return nil
+            }
+            _ = try FavouriteRecord
+                .filter(Column("torrent_id") == torrentId && Column("file_index") == fileIndex)
+                .deleteAll(conn)
+            return existing
+        }
+    }
+
+    /// Fetches all `favourites` rows ordered by `favourited_at DESC`.
+    public func fetchAllFavourites() throws -> [FavouriteRecord] {
+        try db.read { conn in
+            try FavouriteRecord
+                .order(Column("favourited_at").desc)
+                .fetchAll(conn)
+        }
+    }
 }

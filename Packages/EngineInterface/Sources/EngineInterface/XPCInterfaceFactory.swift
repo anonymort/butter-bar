@@ -118,6 +118,17 @@ public enum XPCInterfaceFactory {
         // setWatchedState(_:fileIndex:watched:reply:) — reply only carries
         // NSError?. No custom-class registration needed.
 
+        // listFavourites(_:) — reply arg 0: [FavouriteDTO]
+        interface.setClasses(
+            [h(NSArray.self), h(FavouriteDTO.self)],
+            for: #selector(EngineXPC.listFavourites(_:)),
+            argumentIndex: 0,
+            ofReply: true
+        )
+
+        // setFavourite(_:fileIndex:isFavourite:reply:) — reply only carries
+        // NSError?. No custom-class registration needed.
+
         // subscribe(_:reply:) — arg 0: EngineEvents proxy
         // Use setInterface so XPC knows to create a proxy object rather than deserialise a plain value.
         interface.setInterface(
@@ -181,6 +192,14 @@ public enum XPCInterfaceFactory {
         interface.setClasses(
             [h(PlaybackHistoryDTO.self), h(NSNumber.self)],
             for: #selector(EngineEvents.playbackHistoryChanged(_:)),
+            argumentIndex: 0,
+            ofReply: false
+        )
+
+        // favouritesChanged(_:) — arg 0: FavouriteChangeDTO (contains FavouriteDTO).
+        interface.setClasses(
+            [h(FavouriteChangeDTO.self), h(FavouriteDTO.self)],
+            for: #selector(EngineEvents.favouritesChanged(_:)),
             argumentIndex: 0,
             ofReply: false
         )

@@ -18,6 +18,14 @@ final class LibraryViewModel: ObservableObject {
     /// `start()` and kept in sync via `playbackHistoryChanged` events.
     @Published var playbackHistory: [String: PlaybackHistoryDTO] = [:]
 
+    /// Map of `"\(torrentID)#\(fileIndex)"` → `FavouriteDTO`. Populated on
+    /// `start()` from `listFavourites` and kept in sync via `favouritesChanged`.
+    @Published var favourites: [String: FavouriteDTO] = [:]
+
+    /// When true, only show favourited torrents in the library list. UI binding
+    /// for the toolbar filter introduced by #36.
+    @Published var favouritesOnly: Bool = false
+
     /// Exposed so `LibraryView` can pass the client to `PlayerView` for stream lifecycle.
     let engineClient: EngineClient
     private(set) var isRefreshing: Bool = false
@@ -52,6 +60,13 @@ final class LibraryViewModel: ObservableObject {
             let history = try await engineClient.listPlaybackHistory()
             playbackHistory = Dictionary(
                 uniqueKeysWithValues: history.map {
+                    (Self.key(for: $0.torrentID as String, fileIndex: Int($0.fileIndex)), $0)
+                }
+            )
+            // #36 — favourites map.
+            let favs = try await engineClient.listFavourites()
+            favourites = Dictionary(
+                uniqueKeysWithValues: favs.map {
                     (Self.key(for: $0.torrentID as String, fileIndex: Int($0.fileIndex)), $0)
                 }
             )
@@ -103,6 +118,36 @@ final class LibraryViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Favourites (#36)
+
+    /// Whether `(torrentID, fileIndex)` is currently favourited. v1 surface is
+    /// per-file 0; the projection over the favourites map.
+    func isFavourite(torrentID: String, fileIndex: Int) -> Bool {
+        favourites[Self.key(for: torrentID, fileIndex: fileIndex)] != nil
+    }
+
+    /// Toggle the favourite flag. The engine writes the canonical row state
+    /// and emits `favouritesChanged`, which updates the local map.
+    func toggleFavourite(torrentID: String, fileIndex: Int) async {
+        let current = isFavourite(torrentID: torrentID, fileIndex: fileIndex)
+        do {
+            try await engineClient.setFavourite(
+                torrentID: torrentID as NSString,
+                fileIndex: NSNumber(value: fileIndex),
+                isFavourite: !current
+            )
+        } catch {
+            loadError = "Could not update favourite: \(error.localizedDescription)"
+        }
+    }
+
+    /// Torrents filtered by `favouritesOnly` flag. Used by `LibraryView` to
+    /// build its display list.
+    var displayedTorrents: [TorrentSummaryDTO] {
+        guard favouritesOnly else { return torrents }
+        return torrents.filter { isFavourite(torrentID: $0.torrentID as String, fileIndex: 0) }
+    }
+
     // MARK: - Continue watching (#35)
 
     /// Items to show in the library's "Continue watching" row, sorted most-
@@ -149,8 +194,9 @@ final class LibraryViewModel: ObservableObject {
         "\(torrentID)#\(fileIndex)"
     }
 
-    /// Subscribe to engine `playbackHistoryChanged` events. Updates the
-    /// `playbackHistory` map on the main actor; SwiftUI re-renders affected rows.
+    /// Subscribe to engine `playbackHistoryChanged` and `favouritesChanged`
+    /// events. Updates published maps on the main actor; SwiftUI re-renders
+    /// affected rows.
     private func subscribeToPlaybackHistoryChanges() async {
         guard let events = await engineClient.events else { return }
         events.playbackHistoryChangedSubject
@@ -159,6 +205,21 @@ final class LibraryViewModel: ObservableObject {
                 guard let self else { return }
                 let key = Self.key(for: dto.torrentID as String, fileIndex: Int(dto.fileIndex))
                 self.playbackHistory[key] = dto
+            }
+            .store(in: &cancellables)
+        events.favouritesChangedSubject
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] change in
+                guard let self else { return }
+                let key = Self.key(
+                    for: change.favourite.torrentID as String,
+                    fileIndex: Int(change.favourite.fileIndex)
+                )
+                if change.isRemoved {
+                    self.favourites.removeValue(forKey: key)
+                } else {
+                    self.favourites[key] = change.favourite
+                }
             }
             .store(in: &cancellables)
     }
@@ -281,6 +342,24 @@ extension LibraryViewModel {
             totalWatchedSeconds: 0,
             completed: true,
             completedAt: NSNumber(value: 1_700_000_300_000)
+        )
+        return vm
+    }
+
+    /// Pre-populated with two favourited rows for #36 visual snapshots.
+    /// - Cosmos (abc123#0) and Night of the Living Dead (def456#0): favourited.
+    /// - The General (ghi789#0): NOT favourited.
+    static var previewWithFavourites: LibraryViewModel {
+        let vm = previewWithData
+        vm.favourites["abc123#0"] = FavouriteDTO(
+            torrentID: "abc123",
+            fileIndex: 0,
+            favouritedAt: 1_700_000_400_000
+        )
+        vm.favourites["def456#0"] = FavouriteDTO(
+            torrentID: "def456",
+            fileIndex: 0,
+            favouritedAt: 1_700_000_500_000
         )
         return vm
     }

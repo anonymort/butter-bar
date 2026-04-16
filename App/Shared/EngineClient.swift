@@ -374,6 +374,53 @@ public actor EngineClient {
         }
     }
 
+    // MARK: - Favourites (#36)
+
+    /// Returns the engine's current `favourites` snapshot.
+    public func listFavourites() async throws -> [FavouriteDTO] {
+        return try await withCheckedThrowingContinuation { cont in
+            let resumer = ContinuationResumer(cont)
+
+            let p: any EngineXPC
+            do {
+                p = try proxy(method: "listFavourites", resumer: resumer)
+            } catch {
+                resumer.resume(throwing: error)
+                return
+            }
+
+            p.listFavourites { rows in
+                resumer.resume(returning: rows)
+            }
+        }
+    }
+
+    /// Toggle the favourite flag for a file. Engine writes the canonical row
+    /// state and emits `favouritesChanged`.
+    public func setFavourite(torrentID: NSString,
+                             fileIndex: NSNumber,
+                             isFavourite: Bool) async throws {
+        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+            let resumer = ContinuationResumer(cont)
+
+            let p: any EngineXPC
+            do {
+                p = try proxy(method: "setFavourite", resumer: resumer)
+            } catch {
+                resumer.resume(throwing: error)
+                return
+            }
+
+            p.setFavourite(torrentID, fileIndex: fileIndex, isFavourite: isFavourite) { error in
+                if let error {
+                    resumer.resume(throwing: EngineClientError.serviceError(error))
+                } else {
+                    resumer.resume(returning: ())
+                }
+            }
+        }
+    }
+
     // MARK: - Event stream access
 
     /// The event handler that receives engine-pushed events.
