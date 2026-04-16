@@ -412,7 +412,10 @@ public actor EngineClient {
     }
 
     private func publishEventsDidChange() {
-        NotificationCenter.default.post(name: Self.eventsDidChangeNotification, object: self)
+        let notification = Self.eventsDidChangeNotification
+        Task { @MainActor [notification, object = self] in
+            NotificationCenter.default.post(name: notification, object: object)
+        }
     }
 
 #if DEBUG

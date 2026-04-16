@@ -131,6 +131,23 @@ final class PlayerHUDSnapshotTests: XCTestCase {
 @MainActor
 final class PlayerViewModelReconnectTests: XCTestCase {
 
+    func testEventsDidChangeNotificationIsDeliveredOnMainThread() async {
+        let engineClient = EngineClient()
+        let notificationExpectation = expectation(description: "eventsDidChange notification")
+        let observer = NotificationCenter.default.addObserver(
+            forName: EngineClient.eventsDidChangeNotification,
+            object: engineClient,
+            queue: nil
+        ) { _ in
+            XCTAssertTrue(Thread.isMainThread, "eventsDidChange should be delivered on main thread")
+            notificationExpectation.fulfill()
+        }
+        defer { NotificationCenter.default.removeObserver(observer) }
+
+        await engineClient._replaceEventHandlerForTesting(EngineEventHandler())
+        await fulfillment(of: [notificationExpectation], timeout: 1.0)
+    }
+
     func testPlayerViewModelResubscribesAfterEngineReconnect() async throws {
         let engineClient = EngineClient()
         let streamID = "stream-reconnect-1"
