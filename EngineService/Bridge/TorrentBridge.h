@@ -96,13 +96,14 @@ typedef NS_ERROR_ENUM(TorrentBridgeErrorDomain, TorrentBridgeError) {
 /// Writes `data` to the torrent's storage as piece `piece` and schedules a hash
 /// check. If `overwriteExisting` is YES, libtorrent will overwrite any bytes
 /// already on disk for that piece (mapped to `add_piece_flags_t::overwrite_existing`).
-/// The hash check result arrives asynchronously via `piece_finished_alert` (pass)
-/// or `hash_failed_alert` (fail).
+/// The hash check result is documented to arrive asynchronously via
+/// `piece_finished_alert` (pass) or `hash_failed_alert` (fail).
 ///
-/// Primary use: the cache-eviction hot path per spec 05 rev 3. Passing zeros with
-/// `overwriteExisting: YES` triggers a deliberate hash failure which libtorrent
-/// resolves by internally calling `async_clear_piece`, removing the piece from
-/// the have-bitmap.
+/// **NOT used by cache eviction in libtorrent 2.0.12.** Probe run #3 (2026-04-16)
+/// empirically disproved the addPiece/hash-fail hot path: neither alert fires
+/// after `addPiece(zeros, overwrite_existing)` at any file priority. Eviction
+/// uses `F_PUNCHHOLE` + `forceRecheck` instead (spec 05 rev 4, addendum A24).
+/// This method is retained as a general libtorrent wrapper for future use.
 ///
 /// `data` length must equal `piece_size(piece)` for the target piece — NOT
 /// uniformly `pieceLength:`, because the last piece of a torrent is typically

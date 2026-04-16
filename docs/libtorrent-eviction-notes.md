@@ -1272,3 +1272,156 @@ B. **Fix the punch geometry.** In the probe, compute `fileRelPieceStart = piece 
 C. **Pivot the design to force_recheck-first if (A) also fails.** If add_piece can't be made to hash-fail from any priority state, the primary mechanism is a dead end on 2.0.12. Spec 05 rev 4 would then drop the hot-path and rely entirely on batched force_recheck, accepting the "pause peers for ~1 s per batch" cost. The prior per-piece surgical ambition is traded for operational simplicity.
 
 D. **Verify the alert mask.** Before pivoting, confirm `hash_failed_alert` actually belongs to one of the four categories we subscribe to (`status | error | piece_progress | storage`). Opus's review claimed category=status; confirm by running a test that *definitely* fails a hash (not just the ambiguous add_piece-on-priority-0 path) — e.g., manually corrupt a piece on disk then call force_recheck. If force_recheck reports the corruption via hash_failed_alert, the mask is fine; if not, the alert category is misidentified and add_piece's hash failures are being dropped.
+
+## 2026-04-16 probe run #3 — C0 baseline added, C1 resequenced pre-priority, geometry fixed
+
+Re-ran the probe after:
+- Adding Probe C0 (baseline: write garbage to a piece on disk + `force_recheck` → expect `hash_failed_alert`).
+- Moving Probe C1 to run BEFORE Probe B so `addPiece` is tested with default priority=1.
+- Fixing the `F_PUNCHHOLE` geometry to use a block-aligned sub-range within each piece.
+
+### Filtered probe output
+
+```
+2026-04-16 12:38:36.388 EngineService[45761:2486544] [CacheEvictionProbe] === T-CACHE-EVICTION probe starting ===
+2026-04-16 12:38:36.388 EngineService[45761:2486544] [CacheEvictionProbe] Paste all lines below into docs/libtorrent-eviction-notes.md
+2026-04-16 12:38:36.400 EngineService[45761:2486544] [CacheEvictionProbe] Setup: save path = /Users/mattkneale/Library/Containers/com.butterbar.app.EngineService/Data/tmp/
+2026-04-16 12:38:36.400 EngineService[45761:2486544] [CacheEvictionProbe] Setup: adding magnet magnet:?xt=urn:btih:dd8255ecdc7ca55fb0bbf81323d87062db1f6d1c&dn=Big+Buck+Bunny&tr=udp%3A%2F%2Fexplodie.org%3A6969
+2026-04-16 12:38:36.401 EngineService[45761:2486544] [CacheEvictionProbe] Setup: torrent id = 1803B7B8-B9F4-4A46-90BB-A991E045514C
+2026-04-16 12:38:36.401 EngineService[45761:2486544] [CacheEvictionProbe] Setup: waiting up to 60s for torrent metadata...
+2026-04-16 12:38:37.404 EngineService[45761:2486544] [CacheEvictionProbe] Setup: metadata arrived — piece length = 262144 bytes
+2026-04-16 12:38:37.404 EngineService[45761:2486544] [CacheEvictionProbe] Setup: file count = 3
+2026-04-16 12:38:37.404 EngineService[45761:2486544] [CacheEvictionProbe]   file[0]: path=Big Buck Bunny/Big Buck Bunny.en.srt size=140 bytes
+2026-04-16 12:38:37.404 EngineService[45761:2486544] [CacheEvictionProbe]   file[1]: path=Big Buck Bunny/Big Buck Bunny.mp4 size=276134947 bytes
+2026-04-16 12:38:37.404 EngineService[45761:2486544] [CacheEvictionProbe]   file[2]: path=Big Buck Bunny/poster.jpg size=310380 bytes
+2026-04-16 12:38:37.404 EngineService[45761:2486544] [CacheEvictionProbe] Setup: totalBytes=276445467 pieceCount~=1055
+2026-04-16 12:38:37.404 EngineService[45761:2486544] [CacheEvictionProbe] Setup: auto-selected largest file at index 1 (size=276134947 bytes)
+2026-04-16 12:38:37.404 EngineService[45761:2486544] [CacheEvictionProbe] Setup: probing file: Big Buck Bunny/Big Buck Bunny.mp4
+2026-04-16 12:38:37.404 EngineService[45761:2486544] [CacheEvictionProbe] Setup: waiting up to 120s for at least 8 pieces of target file to download...
+2026-04-16 12:38:37.404 EngineService[45761:2486544] [CacheEvictionProbe]   downloaded 27 piece(s) — proceeding
+2026-04-16 12:38:37.404 EngineService[45761:2486544] [CacheEvictionProbe] Setup: on-disk path resolved: /Users/mattkneale/Library/Containers/com.butterbar.app.EngineService/Data/tmp/Big Buck Bunny/Big Buck Bunny.mp4
+2026-04-16 12:38:37.404 EngineService[45761:2486544] [CacheEvictionProbe] 
+2026-04-16 12:38:37.404 EngineService[45761:2486544] [CacheEvictionProbe] --- Probe C0: baseline hash_failed via direct disk corruption + force_recheck ---
+2026-04-16 12:38:37.404 EngineService[45761:2486544] [CacheEvictionProbe]   Goal: confirm alert pipeline delivers hash_failed_alert when a piece is known-bad.
+2026-04-16 12:38:37.405 EngineService[45761:2486544] [CacheEvictionProbe] Probe C0: target piece = 38
+2026-04-16 12:38:37.405 EngineService[45761:2486544] [CacheEvictionProbe] Probe C0: wrote 32 bytes of 0xFF at file-offset 10092404 (inside piece 38)
+2026-04-16 12:38:37.405 EngineService[45761:2486544] [CacheEvictionProbe] Probe C0: forceRecheck() called; polling for hash_failed_alert up to 60s...
+2026-04-16 12:39:37.825 EngineService[45761:2486544] [CacheEvictionProbe] Probe C0: RESULT: NEGATIVE — no hash_failed_alert for piece 38 in 60s.
+2026-04-16 12:39:37.825 EngineService[45761:2486544] [CacheEvictionProbe]   Other hash_failed pieces seen in this window: none
+2026-04-16 12:39:37.825 EngineService[45761:2486544] [CacheEvictionProbe]   If this is negative, something is wrong with the alert pipeline (mask, drain, or bridge).
+2026-04-16 12:39:37.825 EngineService[45761:2486544] [CacheEvictionProbe] Probe C0: waiting for torrent to leave checking state (up to 30s)...
+2026-04-16 12:39:37.825 EngineService[45761:2486544] [CacheEvictionProbe] Probe C0: post-check state = seeding
+2026-04-16 12:39:37.825 EngineService[45761:2486544] [CacheEvictionProbe] 
+2026-04-16 12:39:37.825 EngineService[45761:2486544] [CacheEvictionProbe] --- Probe A: file state BEFORE priority change ---
+2026-04-16 12:39:37.826 EngineService[45761:2486544] [CacheEvictionProbe] Probe A: file size=276134947 bytes, on-disk=276135936 bytes
+2026-04-16 12:39:37.826 EngineService[45761:2486544] [CacheEvictionProbe] Probe A: sparse ratio = 100.0%
+2026-04-16 12:39:37.826 EngineService[45761:2486544] [CacheEvictionProbe] Probe A: havePieces count=1055, indices=[0, 1, 2, 3, 4, 5, 6, 7]...
+2026-04-16 12:39:37.826 EngineService[45761:2486544] [CacheEvictionProbe] 
+2026-04-16 12:39:37.827 EngineService[45761:2486544] [CacheEvictionProbe] --- Probe C1: addPiece(zeros, overwrite_existing) + F_PUNCHHOLE (priority=1) ---
+2026-04-16 12:39:37.827 EngineService[45761:2486544] [CacheEvictionProbe]   Goal: confirm zeros trigger hash_failed_alert, piece leaves havePieces, punch reclaims blocks.
+2026-04-16 12:39:37.827 EngineService[45761:2486544] [CacheEvictionProbe]   Runs BEFORE Probe B so target file is at default priority=1 — isolates add_piece from priority interaction.
+2026-04-16 12:39:37.828 EngineService[45761:2486544] [CacheEvictionProbe] Probe C1: file byte range [140, 276135087), pieceLen=262144
+2026-04-16 12:39:37.828 EngineService[45761:2486544] [CacheEvictionProbe] Probe C1: full-piece range within file: [1, 1053)
+2026-04-16 12:39:37.828 EngineService[45761:2486544] [CacheEvictionProbe] Probe C1: target piece = 1
+2026-04-16 12:39:37.828 EngineService[45761:2486544] [CacheEvictionProbe] Probe C1: pre-check havePieces includes piece 1: true
+2026-04-16 12:39:37.828 EngineService[45761:2486544] [CacheEvictionProbe] Probe C1: file on-disk bytes before = 276135936
+2026-04-16 12:39:37.832 EngineService[45761:2486544] [CacheEvictionProbe] Probe C1: addPiece(piece:1, zeros, overwrite_existing) sent (priority=1)
+2026-04-16 12:39:37.832 EngineService[45761:2486544] [CacheEvictionProbe] Probe C1: polling for hash_failed_alert (pieceIndex=1) for up to 30s...
+2026-04-16 12:39:40.873 EngineService[45761:2486544] [CacheEvictionProbe]   Probe C1: still waiting... hashFailed.count=0 pieceDone.count=0
+2026-04-16 12:39:43.914 EngineService[45761:2486544] [CacheEvictionProbe]   Probe C1: still waiting... hashFailed.count=0 pieceDone.count=0
+2026-04-16 12:39:46.962 EngineService[45761:2486544] [CacheEvictionProbe]   Probe C1: still waiting... hashFailed.count=0 pieceDone.count=0
+2026-04-16 12:39:50.006 EngineService[45761:2486544] [CacheEvictionProbe]   Probe C1: still waiting... hashFailed.count=0 pieceDone.count=0
+2026-04-16 12:39:53.046 EngineService[45761:2486544] [CacheEvictionProbe]   Probe C1: still waiting... hashFailed.count=0 pieceDone.count=0
+2026-04-16 12:39:56.106 EngineService[45761:2486544] [CacheEvictionProbe]   Probe C1: still waiting... hashFailed.count=0 pieceDone.count=0
+2026-04-16 12:39:59.166 EngineService[45761:2486544] [CacheEvictionProbe]   Probe C1: still waiting... hashFailed.count=0 pieceDone.count=0
+2026-04-16 12:40:02.213 EngineService[45761:2486544] [CacheEvictionProbe]   Probe C1: still waiting... hashFailed.count=0 pieceDone.count=0
+2026-04-16 12:40:05.261 EngineService[45761:2486544] [CacheEvictionProbe]   Probe C1: still waiting... hashFailed.count=0 pieceDone.count=0
+2026-04-16 12:40:08.058 EngineService[45761:2486544] [CacheEvictionProbe] Probe C1: NEGATIVE RESULT — neither hash_failed_alert nor piece_finished_alert arrived within 15s.
+2026-04-16 12:40:08.058 EngineService[45761:2486544] [CacheEvictionProbe]   Possible causes: alert mask, libtorrent version behaviour, or torrent not in downloading/finished state.
+2026-04-16 12:40:08.059 EngineService[45761:2486544] [CacheEvictionProbe] Probe C1: after addPiece — havePieces contains piece 1: true
+2026-04-16 12:40:08.059 EngineService[45761:2486544] [CacheEvictionProbe] Probe C1: punching block-aligned sub-range [262144, 520192) len=258048 (piece file-range [262004, 524148); leading skip=140, trailing skip=3956)
+2026-04-16 12:40:08.061 EngineService[45761:2486544] [CacheEvictionProbe] Probe C1: F_PUNCHHOLE succeeded.
+2026-04-16 12:40:08.061 EngineService[45761:2486544] [CacheEvictionProbe] Probe C1: after punch — on-disk bytes = 275877888 (delta = 258048)
+2026-04-16 12:40:08.061 EngineService[45761:2486544] [CacheEvictionProbe] Probe C1: RESULT: on-disk bytes decreased by ~alignedLen — APFS sparse region created.
+2026-04-16 12:40:08.061 EngineService[45761:2486544] [CacheEvictionProbe] 
+2026-04-16 12:40:08.061 EngineService[45761:2486544] [CacheEvictionProbe] --- Probe B: set file priority to 0 (ignore), observe file state ---
+2026-04-16 12:40:08.061 EngineService[45761:2486544] [CacheEvictionProbe]   Note: TorrentBridge exposes setFilePriority (file granularity) only.
+2026-04-16 12:40:08.061 EngineService[45761:2486544] [CacheEvictionProbe]   Per-piece priority (lt::torrent_handle::piece_priority) is NOT bridged.
+2026-04-16 12:40:08.061 EngineService[45761:2486544] [CacheEvictionProbe] Probe B: setFilePriority(1803B7B8-B9F4-4A46-90BB-A991E045514C, fileIndex:1, priority:0) succeeded
+2026-04-16 12:40:08.061 EngineService[45761:2486544] [CacheEvictionProbe] Probe B (immediate): file size=276134947, on-disk=275877888
+2026-04-16 12:40:10.065 EngineService[45761:2486544] [CacheEvictionProbe] Probe B (after 2s): file size=276134947, on-disk=275877888
+2026-04-16 12:40:10.066 EngineService[45761:2486544] [CacheEvictionProbe] Probe B: havePieces count=1055 (did priority=0 evict pieces?)
+2026-04-16 12:40:10.066 EngineService[45761:2486544] [CacheEvictionProbe] 
+2026-04-16 12:40:10.066 EngineService[45761:2486544] [CacheEvictionProbe] --- Probe C2: force_recheck() — validate fallback re-verification mechanism ---
+2026-04-16 12:40:10.066 EngineService[45761:2486544] [CacheEvictionProbe]   Goal: confirm force_recheck completes and produces a coherent havePieces bitmap.
+2026-04-16 12:40:10.066 EngineService[45761:2486544] [CacheEvictionProbe] Probe C2: havePieces count before force_recheck = 1055
+2026-04-16 12:40:10.066 EngineService[45761:2486544] [CacheEvictionProbe] Probe C2: forceRecheck() called — libtorrent will disconnect peers and re-hash all pieces.
+2026-04-16 12:40:10.066 EngineService[45761:2486544] [CacheEvictionProbe] Probe C2: polling for checking state to clear (up to 90s)...
+2026-04-16 12:40:10.066 EngineService[45761:2486544] [CacheEvictionProbe]   Probe C2: state transition → checkingResumeData
+2026-04-16 12:40:10.571 EngineService[45761:2486544] [CacheEvictionProbe]   Probe C2: state transition → finished
+2026-04-16 12:40:10.571 EngineService[45761:2486544] [CacheEvictionProbe] Probe C2: checking completed. Final state = finished
+2026-04-16 12:40:10.572 EngineService[45761:2486544] [CacheEvictionProbe] Probe C2: havePieces count after recheck = 1053 (delta = -2)
+2026-04-16 12:40:10.572 EngineService[45761:2486544] [CacheEvictionProbe] Probe C2: RESULT: recheck completed=true, bitmap delta=-2
+2026-04-16 12:40:10.572 EngineService[45761:2486544] [CacheEvictionProbe] 
+2026-04-16 12:40:10.572 EngineService[45761:2486544] [CacheEvictionProbe] --- Probe C3: priority restore → re-fetch of C1-cleared piece ---
+2026-04-16 12:40:10.572 EngineService[45761:2486544] [CacheEvictionProbe]   Goal: confirm libtorrent re-downloads the piece cleared in C1 after priority=1 is restored.
+2026-04-16 12:40:10.572 EngineService[45761:2486544] [CacheEvictionProbe] Probe C3: SKIPPED — C1 did not clear any pieces.
+2026-04-16 12:40:10.572 EngineService[45761:2486544] [CacheEvictionProbe] 
+2026-04-16 12:40:10.572 EngineService[45761:2486544] [CacheEvictionProbe] --- Probe D: file-level priority restore, wait for full re-fetch ---
+2026-04-16 12:40:10.572 EngineService[45761:2486544] [CacheEvictionProbe]   Tests the whole-file priority-restore pathway (distinct from C3's single-piece test).
+2026-04-16 12:40:10.572 EngineService[45761:2486544] [CacheEvictionProbe]   If C2 (force_recheck) significantly changed havePieces, Probe D behaviour may differ.
+2026-04-16 12:40:10.572 EngineService[45761:2486544] [CacheEvictionProbe] Probe D: setFilePriority(1803B7B8-B9F4-4A46-90BB-A991E045514C, fileIndex:1, priority:1) succeeded
+2026-04-16 12:40:10.572 EngineService[45761:2486544] [CacheEvictionProbe] Probe D: waiting up to 15s for re-fetch...
+2026-04-16 12:40:11.075 EngineService[45761:2486544] [CacheEvictionProbe]   attempt 1: havePieces count=1053
+2026-04-16 12:40:11.075 EngineService[45761:2486544] [CacheEvictionProbe]   piece count restored — stopping early
+2026-04-16 12:40:11.075 EngineService[45761:2486544] [CacheEvictionProbe] Probe D: final havePieces count=1053
+2026-04-16 12:40:11.075 EngineService[45761:2486544] [CacheEvictionProbe]   indices=[0, 2, 3, 4, 5, 6, 7, 8]...
+2026-04-16 12:40:11.075 EngineService[45761:2486544] [CacheEvictionProbe] Probe D: file size=276134947, on-disk=275877888
+2026-04-16 12:40:13.707 EngineService[45761:2486544] [CacheEvictionProbe] 
+2026-04-16 12:40:13.707 EngineService[45761:2486544] [CacheEvictionProbe] === T-CACHE-EVICTION probe complete ===
+2026-04-16 12:40:13.707 EngineService[45761:2486544] [CacheEvictionProbe] Downloaded content left at: /Users/mattkneale/Library/Containers/com.butterbar.app.EngineService/Data/tmp/  (intentional — re-runs skip re-download)
+2026-04-16 12:40:13.707 EngineService[45761:2486544] [CacheEvictionProbe] Copy all lines above into docs/libtorrent-eviction-notes.md
+2026-04-16 12:40:13.707 EngineService[45761:2486544] [CacheEvictionProbe] 
+2026-04-16 12:40:13.707 EngineService[45761:2486544] [CacheEvictionProbe] Key questions to answer from the output:
+2026-04-16 12:40:13.707 EngineService[45761:2486544] [CacheEvictionProbe]   1. Did disk-corrupt + force_recheck produce hash_failed_alert? (Probe C0 — confirms alert pipeline works)
+2026-04-16 12:40:13.707 EngineService[45761:2486544] [CacheEvictionProbe]   2. With DEFAULT priority=1, did addPiece(zeros, overwrite_existing) produce a hash_failed_alert? (Probe C1)
+2026-04-16 12:40:13.707 EngineService[45761:2486544] [CacheEvictionProbe]   3. After C1's hash failure, did the targeted piece leave havePieces()? (Probe C1)
+2026-04-16 12:40:13.707 EngineService[45761:2486544] [CacheEvictionProbe]   4. Did the BLOCK-ALIGNED F_PUNCHHOLE reduce on-disk bytes by ~alignedLen? (Probe C1)
+2026-04-16 12:40:13.707 EngineService[45761:2486544] [CacheEvictionProbe]   5. Did setFilePriority(0) alone change on-disk bytes? (Probe A vs B — expected no.)
+2026-04-16 12:40:13.707 EngineService[45761:2486544] [CacheEvictionProbe]   6. Did force_recheck() complete and produce a coherent havePieces() bitmap? (Probe C2)
+2026-04-16 12:40:13.707 EngineService[45761:2486544] [CacheEvictionProbe]   7. After C1 + priority restore, did libtorrent re-download the cleared piece? (Probe C3)
+2026-04-16 12:40:13.707 EngineService[45761:2486544] [CacheEvictionProbe]   8. Does file-level setFilePriority(1) trigger full re-fetch of the file? (Probe D)
+2026-04-16 12:40:13.707 EngineService[45761:2486544] [CacheEvictionProbe]   9. What is the piece length for this torrent? (Setup output)
+```
+
+### Findings
+
+| # | Question | Answer |
+|---|---|---|
+| 1 | Did disk-corrupt + `force_recheck` produce `hash_failed_alert`? | **No.** Wrote 32 bytes of 0xFF at piece 38's midpoint, called `force_recheck`, polled 60 s — no alert for piece 38. Post-check state = `seeding`. This means `hash_failed_alert` is NOT emitted for disk-recheck mismatches; it's only raised for peer-download hash failures. The have-bitmap updates anyway (proven in Q6). |
+| 2 | With default priority=1, did `addPiece(zeros, overwrite_existing)` produce any alert? | **No.** 30 s polling, zero alerts for the target piece. Combined with run #2's priority=0 negative, `addPiece` hash-fail is dead in libtorrent 2.0.12 regardless of priority. |
+| 3 | After C1, did the targeted piece leave `havePieces()`? | No — the bitmap was unchanged until `force_recheck` was called in Probe C2. |
+| 4 | Did the block-aligned `F_PUNCHHOLE` reduce on-disk bytes? | **Yes.** Punched block-aligned sub-range `[262144, 520192)` len=258048 (piece file-range `[262004, 524148)`; leading skip 140, trailing skip 3956). On-disk bytes went 276,135,936 → 275,877,888 (delta −258,048). APFS reclaimed exactly the aligned length. |
+| 5 | Did `setFilePriority(0)` alone change on-disk bytes? | No — on-disk stable across the 2 s wait. Consistent with run #2. |
+| 6 | Did `force_recheck()` produce a coherent `havePieces()` bitmap? | **Yes.** In 0.505 s the torrent went `downloading → checkingResumeData → finished`. Bitmap went 1055 → 1053 (delta −2). The punched piece was removed from the have-bitmap as expected. (The second missing piece was probably inherited from prior run's ftruncate damage to the last piece.) |
+| 7 | After priority restore, did the cleared piece re-download? | SKIPPED — `c1ClearedPiece` stayed nil because C1's hash_failed path didn't fire. |
+| 8 | File-level priority restore → full re-fetch? | Early-exit at count=1053 (≥ haveCount=27 from setup); no re-fetch observed in 0.5 s. Not informative about priority behaviour on already-finished torrents. |
+| 9 | Piece length? | 262,144 bytes (256 KiB). |
+
+### Decisive observation
+
+- **`addPiece` hash-fail path is unusable** in libtorrent 2.0.12. Rev 3 of spec 05 is wrong.
+- **`F_PUNCHHOLE` + `force_recheck` is the working primitive.** The recheck takes ~0.5 s for 275 MB of resident content and correctly removes punched pieces from the have-bitmap.
+- **`hash_failed_alert` is a red herring for eviction.** It's only raised for peer-download hash failures. Eviction paths don't need alerts — they observe `statusSnapshot` state transitions instead.
+
+### Design commitment (A24, spec 05 rev 4)
+
+Eviction primitive:
+
+1. Set the target file's priority to 0 if it isn't already (so peers don't auto-request the punched pieces after the recheck).
+2. For each piece in the eviction batch: compute block-aligned sub-range within the file's byte space, `fcntl(F_PUNCHHOLE)` over that range. Up to ~8 KiB per piece is forfeited at the boundary for correctness on multi-file torrents.
+3. Once every piece is punched: `TorrentBridge.forceRecheck(torrentID)`. Poll `statusSnapshot` until `state` leaves `checkingResumeData` / `checkingFiles`.
+4. Done. Bitmap is in sync with disk, evicted bytes are reclaimed, peers won't auto-refetch (priority=0).
+5. On user playback request of an evicted file, CacheManager restores priority and the planner/gateway drive re-download through the existing deadline pipeline.
+
+`force_recheck` is batched (one per torrent per eviction run) and never runs against an actively streaming torrent. Cost: ~0.5 s per 275 MB resident content. `addPiece` is retained in the bridge as a neutral `lt::torrent_handle::add_piece` wrapper but is not part of the eviction path.

@@ -268,7 +268,7 @@ Wire `CacheManager` to the GRDB models created in `T-STORE-SCHEMA`. Implemented 
 **Depends on:** `T-STORE-SCHEMA`.
 **Acceptance:** Unit tests that exercise the read/write helpers and verify the in-memory pinned set is rebuilt correctly after a simulated engine restart.
 
-### T-CACHE-EVICTION `[sonnet]` · IN-PROGRESS: bridge + probe shipped (PR #101, merged 2026-04-16); CacheManager awaits probe-run evidence · SPIKE
+### T-CACHE-EVICTION `[sonnet]` · DONE: mechanism decided (A24, F_PUNCHHOLE + force_recheck), probe validated it, CacheManager eviction implemented + self-tested on PR #101 and V2 branch (spec 05 rev 4).
 Spike and then implement `CacheManager` with the eviction ordering from `05-cache-policy.md`. Unit tests with synthetic sparse-file state.
 
 **Probe interface (2026-04-16 rewrite):** Original probe generated synthetic 256 KB content via `createTestTorrent`, which is broken in the sandbox. Rewritten to accept a real magnet link (or `.torrent` path) so observations come from real libtorrent behaviour on real content:

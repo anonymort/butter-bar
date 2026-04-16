@@ -45,6 +45,8 @@
 		DD44EE66FF88AABB11223344 /* ResumeTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE55FF7788990011AABB2233 /* ResumeTracker.swift */; };
 		AA33BB55CC77DD99EE11FF33 /* ResumeTrackerSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF6600889900AABB11CC2233 /* ResumeTrackerSelfTest.swift */; };
 		E1000001000000000000EE01 /* CacheEvictionProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1000002000000000000EE02 /* CacheEvictionProbe.swift */; };
+		E2000001000000000000EE01 /* CacheEviction.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000002000000000000EE02 /* CacheEviction.swift */; };
+		E3000001000000000000EE01 /* CacheManagerEviction.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3000002000000000000EE02 /* CacheManagerEviction.swift */; };
 		F1000001000000000000FF01 /* EngineService.xpc in Embed XPC Services */ = {isa = PBXBuildFile; fileRef = 8B554906D42C3B11AEA5F497 /* EngineService.xpc */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		BB11CC22DD33EE44FF550011 /* ColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00BB11CC22DD33EE44FF55 /* ColorExtensions.swift */; };
 		CC22DD33EE44FF550011AA22 /* LibraryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB11CC22DD33EE44FF550022 /* LibraryViewModel.swift */; };
@@ -100,6 +102,8 @@
 		EE55FF7788990011AABB2233 /* ResumeTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeTracker.swift; sourceTree = "<group>"; };
 		FF6600889900AABB11CC2233 /* ResumeTrackerSelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeTrackerSelfTest.swift; sourceTree = "<group>"; };
 		E1000002000000000000EE02 /* CacheEvictionProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheEvictionProbe.swift; sourceTree = "<group>"; };
+		E2000002000000000000EE02 /* CacheEviction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheEviction.swift; sourceTree = "<group>"; };
+		E3000002000000000000EE02 /* CacheManagerEviction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheManagerEviction.swift; sourceTree = "<group>"; };
 		FF66EE55DD44CC33BB22AA11 /* EngineClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineClient.swift; sourceTree = "<group>"; };
 		AA7766FF55EE44DD33CC22BB /* EngineEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineEventHandler.swift; sourceTree = "<group>"; };
 		DD44EE55FF6677AA88BB99CC /* DTOSendable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTOSendable.swift; sourceTree = "<group>"; };
@@ -338,6 +342,8 @@
 				EE55FF7788990011AABB2233 /* ResumeTracker.swift */,
 				FF6600889900AABB11CC2233 /* ResumeTrackerSelfTest.swift */,
 				E1000002000000000000EE02 /* CacheEvictionProbe.swift */,
+				E2000002000000000000EE02 /* CacheEviction.swift */,
+				E3000002000000000000EE02 /* CacheManagerEviction.swift */,
 			);
 			path = Cache;
 			sourceTree = "<group>";
@@ -594,6 +600,8 @@
 				DD44EE66FF88AABB11223344 /* ResumeTracker.swift in Sources */,
 				AA33BB55CC77DD99EE11FF33 /* ResumeTrackerSelfTest.swift in Sources */,
 				E1000001000000000000EE01 /* CacheEvictionProbe.swift in Sources */,
+				E2000001000000000000EE01 /* CacheEviction.swift in Sources */,
+				E3000001000000000000EE01 /* CacheManagerEviction.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
