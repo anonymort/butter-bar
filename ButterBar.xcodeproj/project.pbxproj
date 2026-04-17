@@ -104,6 +104,11 @@
 		PBM00001000000000000AA01 /* PieceByteMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = PBM00002000000000000BB01 /* PieceByteMapping.swift */; };
 		PBM00003000000000000AA01 /* PieceByteMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = PBM00002000000000000BB01 /* PieceByteMapping.swift */; };
 		PBM00004000000000000AA01 /* PieceByteMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = PBM00005000000000000BB01 /* PieceByteMappingTests.swift */; };
+		FS000010000000000000AA01 /* PlayerCopy.swift in Sources */ = {isa = PBXBuildFile; fileRef = FS000010000000000000BB01 /* PlayerCopy.swift */; };
+		FS000020000000000000AA01 /* PlayerErrorChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = FS000020000000000000BB01 /* PlayerErrorChrome.swift */; };
+		FS000030000000000000AA01 /* PlayerErrorChromeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FS000030000000000000BB01 /* PlayerErrorChromeTests.swift */; };
+		FS000040000000000000AA01 /* PlayerBufferingChromeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FS000040000000000000BB01 /* PlayerBufferingChromeTests.swift */; };
+		FS000050000000000000AA01 /* PlayerRetryPathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FS000050000000000000BB01 /* PlayerRetryPathTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -238,6 +243,11 @@
 		FF6600889900AABB11CC2233 /* ResumeTrackerSelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeTrackerSelfTest.swift; sourceTree = "<group>"; };
 		FF66778899AABBCC0011FF66 /* HTTPSerializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPSerializer.swift; sourceTree = "<group>"; };
 		FF66EE55DD44CC33BB22AA11 /* EngineClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineClient.swift; sourceTree = "<group>"; };
+		FS000010000000000000BB01 /* PlayerCopy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerCopy.swift; sourceTree = "<group>"; };
+		FS000020000000000000BB01 /* PlayerErrorChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerErrorChrome.swift; sourceTree = "<group>"; };
+		FS000030000000000000BB01 /* PlayerErrorChromeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerErrorChromeTests.swift; sourceTree = "<group>"; };
+		FS000040000000000000BB01 /* PlayerBufferingChromeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerBufferingChromeTests.swift; sourceTree = "<group>"; };
+		FS000050000000000000BB01 /* PlayerRetryPathTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerRetryPathTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -335,6 +345,9 @@
 				EOE0000A00000000000000AA /* EndOfEpisodeDetectorTests.swift */,
 				D13D0032000000000000DD32 /* HomeViewModelTests.swift */,
 				D13D0034000000000000DD34 /* HomeSnapshotTests.swift */,
+				FS000030000000000000BB01 /* PlayerErrorChromeTests.swift */,
+				FS000040000000000000BB01 /* PlayerBufferingChromeTests.swift */,
+				FS000050000000000000BB01 /* PlayerRetryPathTests.swift */,
 			);
 			path = ButterBarTests;
 			sourceTree = "<group>";
@@ -473,6 +486,8 @@
 				EOE0000800000000000000A8 /* EndOfEpisodeDetector.swift */,
 				B100000B000000000000BB0B /* AudioPickerViewModel.swift */,
 				B100000C000000000000BB0C /* AudioPickerView.swift */,
+				FS000010000000000000BB01 /* PlayerCopy.swift */,
+				FS000020000000000000BB01 /* PlayerErrorChrome.swift */,
 			);
 			path = Player;
 			sourceTree = "<group>";
@@ -702,6 +717,9 @@
 				EOE0000900000000000000A9 /* EndOfEpisodeDetectorTests.swift in Sources */,
 				D13D0031000000000000DD31 /* HomeViewModelTests.swift in Sources */,
 				D13D0033000000000000DD33 /* HomeSnapshotTests.swift in Sources */,
+				FS000030000000000000AA01 /* PlayerErrorChromeTests.swift in Sources */,
+				FS000040000000000000AA01 /* PlayerBufferingChromeTests.swift in Sources */,
+				FS000050000000000000AA01 /* PlayerRetryPathTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -779,6 +797,8 @@
 				D13D002B000000000000DD2B /* DetailRouteStub.swift in Sources */,
 				D13D002D000000000000DD2D /* MoviesGridView.swift in Sources */,
 				D13D002F000000000000DD2F /* ShowsGridView.swift in Sources */,
+				FS000010000000000000AA01 /* PlayerCopy.swift in Sources */,
+				FS000020000000000000AA01 /* PlayerErrorChrome.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
