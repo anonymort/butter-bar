@@ -1,0 +1,234 @@
+{
+  "The.Matrix.1999.1080p.BluRay.x264-GROUP.mkv": {
+    "title": "The Matrix", "year": 1999, "season": null, "episode": null,
+    "releaseGroup": "GROUP", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "The.Matrix.Reloaded.2003.1080p.BluRay.x264-AMIABLE.mkv": {
+    "title": "The Matrix Reloaded", "year": 2003, "season": null, "episode": null,
+    "releaseGroup": "AMIABLE", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Inception.2010.2160p.UHD.BluRay.x265-TERMINAL.mkv": {
+    "title": "Inception", "year": 2010, "season": null, "episode": null,
+    "releaseGroup": "TERMINAL", "qualityHints": ["2160p", "UHD", "BluRay", "x265"]
+  },
+  "The.Godfather.1972.REMUX.1080p.BluRay.AVC.DTS-HD.MA.5.1-EPSiLON.mkv": {
+    "title": "The Godfather", "year": 1972, "season": null, "episode": null,
+    "releaseGroup": "EPSiLON", "qualityHints": ["1080p", "BluRay", "REMUX", "DTS"]
+  },
+  "Pulp.Fiction.1994.1080p.BluRay.x264-AMIABLE.mkv": {
+    "title": "Pulp Fiction", "year": 1994, "season": null, "episode": null,
+    "releaseGroup": "AMIABLE", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Schindlers.List.1993.1080p.BluRay.x264-AMIABLE.mkv": {
+    "title": "Schindlers List", "year": 1993, "season": null, "episode": null,
+    "releaseGroup": "AMIABLE", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Forrest.Gump.1994.1080p.BluRay.x264-CtrlHD.mkv": {
+    "title": "Forrest Gump", "year": 1994, "season": null, "episode": null,
+    "releaseGroup": "CtrlHD", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "The.Dark.Knight.2008.IMAX.1080p.BluRay.x264-CtrlHD.mkv": {
+    "title": "The Dark Knight", "year": 2008, "season": null, "episode": null,
+    "releaseGroup": "CtrlHD", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Interstellar.2014.IMAX.1080p.BluRay.x264-AMIABLE.mkv": {
+    "title": "Interstellar", "year": 2014, "season": null, "episode": null,
+    "releaseGroup": "AMIABLE", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Parasite.2019.1080p.BluRay.x264-DEPTH.mkv": {
+    "title": "Parasite", "year": 2019, "season": null, "episode": null,
+    "releaseGroup": "DEPTH", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Arrival.2016.1080p.BluRay.x265-RARBG.mkv": {
+    "title": "Arrival", "year": 2016, "season": null, "episode": null,
+    "releaseGroup": "RARBG", "qualityHints": ["1080p", "BluRay", "x265"]
+  },
+  "Joker.2019.1080p.WEBRip.x264-RARBG.mp4": {
+    "title": "Joker", "year": 2019, "season": null, "episode": null,
+    "releaseGroup": "RARBG", "qualityHints": ["1080p", "WEBRip", "x264"]
+  },
+  "Once.Upon.A.Time.In.Hollywood.2019.1080p.BluRay.x264-GECKOS.mkv": {
+    "title": "Once Upon A Time In Hollywood", "year": 2019, "season": null, "episode": null,
+    "releaseGroup": "GECKOS", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Avengers.Endgame.2019.2160p.UHD.BluRay.x265.HDR-TERMINAL.mkv": {
+    "title": "Avengers Endgame", "year": 2019, "season": null, "episode": null,
+    "releaseGroup": "TERMINAL", "qualityHints": ["2160p", "UHD", "BluRay", "x265", "HDR"]
+  },
+  "Spider-Man.Into.The.Spider-Verse.2018.1080p.BluRay.x264-SPARKS.mkv": {
+    "title": "Spider Man Into The Spider Verse", "year": 2018, "season": null, "episode": null,
+    "releaseGroup": "SPARKS", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Friends.S01E01.The.One.Where.Monica.Gets.A.Roommate.1080p.BluRay.x264-PSYCHD.mkv": {
+    "title": "Friends", "year": null, "season": 1, "episode": 1,
+    "releaseGroup": "PSYCHD", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Friends.S10E18.The.Last.One.1080p.BluRay.x264-PSYCHD.mkv": {
+    "title": "Friends", "year": null, "season": 10, "episode": 18,
+    "releaseGroup": "PSYCHD", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Breaking.Bad.S05E14.Ozymandias.1080p.BluRay.x264-DEMAND.mkv": {
+    "title": "Breaking Bad", "year": null, "season": 5, "episode": 14,
+    "releaseGroup": "DEMAND", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Game.of.Thrones.S08E06.The.Iron.Throne.1080p.WEB-DL.DD5.1.H264-GoT.mkv": {
+    "title": "Game of Thrones", "year": null, "season": 8, "episode": 6,
+    "releaseGroup": "GoT", "qualityHints": ["1080p", "WEB-DL", "h264"]
+  },
+  "The.Office.US.S03E12.Back.From.Vacation.1080p.WEB-DL.DD5.1.H264-NTb.mkv": {
+    "title": "The Office US", "year": null, "season": 3, "episode": 12,
+    "releaseGroup": "NTb", "qualityHints": ["1080p", "WEB-DL", "h264"]
+  },
+  "The.Wire.S01E01.The.Target.1080p.BluRay.x264-MARS.mkv": {
+    "title": "The Wire", "year": null, "season": 1, "episode": 1,
+    "releaseGroup": "MARS", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "The.Mandalorian.S02E08.Chapter.16.The.Rescue.2160p.WEB-DL.HDR.HEVC.DDP5.1-NTb.mkv": {
+    "title": "The Mandalorian", "year": null, "season": 2, "episode": 8,
+    "releaseGroup": "NTb", "qualityHints": ["2160p", "WEB-DL", "HDR", "hevc", "DDP"]
+  },
+  "Stranger.Things.S04E09.The.Piggyback.2160p.NF.WEB-DL.DDP5.1.HDR.x265-NTb.mkv": {
+    "title": "Stranger Things", "year": null, "season": 4, "episode": 9,
+    "releaseGroup": "NTb", "qualityHints": ["2160p", "WEB-DL", "HDR", "x265", "DDP"]
+  },
+  "Severance.S01E09.The.We.We.Are.2160p.ATVP.WEB-DL.DDP5.1.Atmos.HDR.HEVC-NTb.mkv": {
+    "title": "Severance", "year": null, "season": 1, "episode": 9,
+    "releaseGroup": "NTb", "qualityHints": ["2160p", "WEB-DL", "HDR", "hevc", "DDP", "Atmos"]
+  },
+  "Ted.Lasso.S03E12.So.Long.Farewell.1080p.ATVP.WEB-DL.DDP5.1.H.264-NTb.mkv": {
+    "title": "Ted Lasso", "year": null, "season": 3, "episode": 12,
+    "releaseGroup": "NTb", "qualityHints": ["1080p", "WEB-DL", "h264", "DDP"]
+  },
+  "Succession.S04E10.With.Open.Eyes.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb.mkv": {
+    "title": "Succession", "year": null, "season": 4, "episode": 10,
+    "releaseGroup": "NTb", "qualityHints": ["1080p", "WEB-DL", "h264", "DDP"]
+  },
+  "House.of.the.Dragon.S01E10.The.Black.Queen.2160p.HMAX.WEB-DL.DDP5.1.HDR.HEVC-NTb.mkv": {
+    "title": "House of the Dragon", "year": null, "season": 1, "episode": 10,
+    "releaseGroup": "NTb", "qualityHints": ["2160p", "WEB-DL", "HDR", "hevc", "DDP"]
+  },
+  "Andor.S01E12.Rix.Road.2160p.DSNP.WEB-DL.DDP5.1.Atmos.HDR.HEVC-NTb.mkv": {
+    "title": "Andor", "year": null, "season": 1, "episode": 12,
+    "releaseGroup": "NTb", "qualityHints": ["2160p", "WEB-DL", "HDR", "hevc", "DDP", "Atmos"]
+  },
+  "Better.Call.Saul.S06E13.Saul.Gone.2160p.NF.WEB-DL.DDP5.1.HDR.x265-NTb.mkv": {
+    "title": "Better Call Saul", "year": null, "season": 6, "episode": 13,
+    "releaseGroup": "NTb", "qualityHints": ["2160p", "WEB-DL", "HDR", "x265", "DDP"]
+  },
+  "The.Last.of.Us.S01E03.Long.Long.Time.2160p.HMAX.WEB-DL.DDP5.1.HDR.HEVC-NTb.mkv": {
+    "title": "The Last of Us", "year": null, "season": 1, "episode": 3,
+    "releaseGroup": "NTb", "qualityHints": ["2160p", "WEB-DL", "HDR", "hevc", "DDP"]
+  },
+  "[SubsPlease] Spy x Family - 12 (1080p) [ABCDEF12].mkv": {
+    "title": "Spy x Family", "year": null, "season": 1, "episode": 12,
+    "releaseGroup": "SubsPlease", "qualityHints": ["1080p"]
+  },
+  "[Erai-raws] Frieren - Beyond Journeys End - 01 [1080p][HEVC][Multiple Subtitle].mkv": {
+    "title": "Frieren Beyond Journeys End", "year": null, "season": 1, "episode": 1,
+    "releaseGroup": "Erai-raws", "qualityHints": ["1080p", "hevc"]
+  },
+  "[HorribleSubs] Attack on Titan - 25 [720p].mkv": {
+    "title": "Attack on Titan", "year": null, "season": 1, "episode": 25,
+    "releaseGroup": "HorribleSubs", "qualityHints": ["720p"]
+  },
+  "[Judas] Demon Slayer - Kimetsu no Yaiba - S01E01 [BD 1080p][HEVC x265 10bit][Eng-Subs].mkv": {
+    "title": "Demon Slayer Kimetsu no Yaiba", "year": null, "season": 1, "episode": 1,
+    "releaseGroup": "Judas", "qualityHints": ["1080p", "hevc", "x265"]
+  },
+  "[Anime Time] One Piece - 1071 [1080p][HEVC 10bit x265][AAC][Eng Sub].mkv": {
+    "title": "One Piece", "year": null, "season": 1, "episode": 1071,
+    "releaseGroup": "Anime Time", "qualityHints": ["1080p", "hevc", "x265"]
+  },
+  "Amelie.2001.FRENCH.1080p.BluRay.x264-FiCO.mkv": {
+    "title": "Amelie", "year": 2001, "season": null, "episode": null,
+    "releaseGroup": "FiCO", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "City.of.God.2002.PORTUGUESE.1080p.BluRay.x264-AMIABLE.mkv": {
+    "title": "City of God", "year": 2002, "season": null, "episode": null,
+    "releaseGroup": "AMIABLE", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Oldboy.2003.KOREAN.1080p.BluRay.x264-CtrlHD.mkv": {
+    "title": "Oldboy", "year": 2003, "season": null, "episode": null,
+    "releaseGroup": "CtrlHD", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Crouching.Tiger.Hidden.Dragon.2000.MANDARIN.1080p.BluRay.x264-AMIABLE.mkv": {
+    "title": "Crouching Tiger Hidden Dragon", "year": 2000, "season": null, "episode": null,
+    "releaseGroup": "AMIABLE", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Pans.Labyrinth.2006.SPANISH.1080p.BluRay.x264-EbP.mkv": {
+    "title": "Pans Labyrinth", "year": 2006, "season": null, "episode": null,
+    "releaseGroup": "EbP", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Rocky.II.1979.1080p.BluRay.x264-AMIABLE.mkv": {
+    "title": "Rocky II", "year": 1979, "season": null, "episode": null,
+    "releaseGroup": "AMIABLE", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Rocky.2.1979.1080p.BluRay.x264-FAKE.mkv": {
+    "title": "Rocky 2", "year": 1979, "season": null, "episode": null,
+    "releaseGroup": "FAKE", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Star.Wars.Episode.IV.A.New.Hope.1977.1080p.BluRay.x264-CtrlHD.mkv": {
+    "title": "Star Wars Episode IV A New Hope", "year": 1977, "season": null, "episode": null,
+    "releaseGroup": "CtrlHD", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Mission.Impossible.III.2006.1080p.BluRay.x264-AMIABLE.mkv": {
+    "title": "Mission Impossible III", "year": 2006, "season": null, "episode": null,
+    "releaseGroup": "AMIABLE", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Avatar.The.Way.of.Water.2022.2160p.UHD.BluRay.x265.10bit.HDR-TERMINAL.mkv": {
+    "title": "Avatar The Way of Water", "year": 2022, "season": null, "episode": null,
+    "releaseGroup": "TERMINAL", "qualityHints": ["2160p", "UHD", "BluRay", "x265", "HDR"]
+  },
+  "Top.Gun.Maverick.2022.IMAX.1080p.BluRay.x264-PIGNUS.mkv": {
+    "title": "Top Gun Maverick", "year": 2022, "season": null, "episode": null,
+    "releaseGroup": "PIGNUS", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Dune.2021.2160p.UHD.BluRay.x265.10bit.HDR.DV-TERMINAL.mkv": {
+    "title": "Dune", "year": 2021, "season": null, "episode": null,
+    "releaseGroup": "TERMINAL", "qualityHints": ["2160p", "UHD", "BluRay", "x265", "HDR", "DV"]
+  },
+  "Dune.Part.Two.2024.1080p.BluRay.x264-GROUP.mkv": {
+    "title": "Dune Part Two", "year": 2024, "season": null, "episode": null,
+    "releaseGroup": "GROUP", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Oppenheimer.2023.IMAX.2160p.UHD.BluRay.x265.10bit.HDR-TERMINAL.mkv": {
+    "title": "Oppenheimer", "year": 2023, "season": null, "episode": null,
+    "releaseGroup": "TERMINAL", "qualityHints": ["2160p", "UHD", "BluRay", "x265", "HDR"]
+  },
+  "Barbie.2023.1080p.WEB-DL.DDP5.1.Atmos.H.264-RARBG.mkv": {
+    "title": "Barbie", "year": 2023, "season": null, "episode": null,
+    "releaseGroup": "RARBG", "qualityHints": ["1080p", "WEB-DL", "h264", "DDP", "Atmos"]
+  },
+  "Killers.of.the.Flower.Moon.2023.2160p.ATVP.WEB-DL.DDP5.1.Atmos.DV.HDR.H.265-NTb.mkv": {
+    "title": "Killers of the Flower Moon", "year": 2023, "season": null, "episode": null,
+    "releaseGroup": "NTb", "qualityHints": ["2160p", "WEB-DL", "h265", "HDR", "DDP", "Atmos", "DV"]
+  },
+  "The.Bear.S02E07.Forks.1080p.HULU.WEB-DL.DDP5.1.H.264-NTb.mkv": {
+    "title": "The Bear", "year": null, "season": 2, "episode": 7,
+    "releaseGroup": "NTb", "qualityHints": ["1080p", "WEB-DL", "h264", "DDP"]
+  },
+  "Chernobyl.S01E05.Vichnaya.Pamyat.1080p.BluRay.x264-DEMAND.mkv": {
+    "title": "Chernobyl", "year": null, "season": 1, "episode": 5,
+    "releaseGroup": "DEMAND", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Sherlock.S04E03.The.Final.Problem.1080p.BluRay.x264-SHORTBREHD.mkv": {
+    "title": "Sherlock", "year": null, "season": 4, "episode": 3,
+    "releaseGroup": "SHORTBREHD", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Mr.Robot.S04E13.Hello.Elliot.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb.mkv": {
+    "title": "Mr Robot", "year": null, "season": 4, "episode": 13,
+    "releaseGroup": "NTb", "qualityHints": ["1080p", "WEB-DL", "h264", "DDP"]
+  },
+  "Westworld.Season.1.Complete.1080p.BluRay.x264-DEFLATE.mkv": {
+    "title": "Westworld", "year": null, "season": 1, "episode": null,
+    "releaseGroup": "DEFLATE", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "The.Sopranos.S06E21.Made.in.America.1080p.BluRay.x264-AMIABLE.mkv": {
+    "title": "The Sopranos", "year": null, "season": 6, "episode": 21,
+    "releaseGroup": "AMIABLE", "qualityHints": ["1080p", "BluRay", "x264"]
+  },
+  "Lost.Season.6.1080p.BluRay.x264-AMIABLE.mkv": {
+    "title": "Lost", "year": null, "season": 6, "episode": null,
+    "releaseGroup": "AMIABLE", "qualityHints": ["1080p", "BluRay", "x264"]
+  }
+}

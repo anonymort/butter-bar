@@ -1,0 +1,63 @@
+# Release-name fixture for TitleNameParserTests.
+# Format: one release name per line. Blank lines and lines beginning with `#`
+# are ignored. Each non-comment line has a sibling `<line>.expected.json` —
+# but to keep the directory manageable, the expected outputs are bundled in
+# `release-names.expected.json` (one map keyed by the input string).
+The.Matrix.1999.1080p.BluRay.x264-GROUP.mkv
+The.Matrix.Reloaded.2003.1080p.BluRay.x264-AMIABLE.mkv
+Inception.2010.2160p.UHD.BluRay.x265-TERMINAL.mkv
+The.Godfather.1972.REMUX.1080p.BluRay.AVC.DTS-HD.MA.5.1-EPSiLON.mkv
+Pulp.Fiction.1994.1080p.BluRay.x264-AMIABLE.mkv
+Schindlers.List.1993.1080p.BluRay.x264-AMIABLE.mkv
+Forrest.Gump.1994.1080p.BluRay.x264-CtrlHD.mkv
+The.Dark.Knight.2008.IMAX.1080p.BluRay.x264-CtrlHD.mkv
+Interstellar.2014.IMAX.1080p.BluRay.x264-AMIABLE.mkv
+Parasite.2019.1080p.BluRay.x264-DEPTH.mkv
+Arrival.2016.1080p.BluRay.x265-RARBG.mkv
+Joker.2019.1080p.WEBRip.x264-RARBG.mp4
+Once.Upon.A.Time.In.Hollywood.2019.1080p.BluRay.x264-GECKOS.mkv
+Avengers.Endgame.2019.2160p.UHD.BluRay.x265.HDR-TERMINAL.mkv
+Spider-Man.Into.The.Spider-Verse.2018.1080p.BluRay.x264-SPARKS.mkv
+Friends.S01E01.The.One.Where.Monica.Gets.A.Roommate.1080p.BluRay.x264-PSYCHD.mkv
+Friends.S10E18.The.Last.One.1080p.BluRay.x264-PSYCHD.mkv
+Breaking.Bad.S05E14.Ozymandias.1080p.BluRay.x264-DEMAND.mkv
+Game.of.Thrones.S08E06.The.Iron.Throne.1080p.WEB-DL.DD5.1.H264-GoT.mkv
+The.Office.US.S03E12.Back.From.Vacation.1080p.WEB-DL.DD5.1.H264-NTb.mkv
+The.Wire.S01E01.The.Target.1080p.BluRay.x264-MARS.mkv
+The.Mandalorian.S02E08.Chapter.16.The.Rescue.2160p.WEB-DL.HDR.HEVC.DDP5.1-NTb.mkv
+Stranger.Things.S04E09.The.Piggyback.2160p.NF.WEB-DL.DDP5.1.HDR.x265-NTb.mkv
+Severance.S01E09.The.We.We.Are.2160p.ATVP.WEB-DL.DDP5.1.Atmos.HDR.HEVC-NTb.mkv
+Ted.Lasso.S03E12.So.Long.Farewell.1080p.ATVP.WEB-DL.DDP5.1.H.264-NTb.mkv
+Succession.S04E10.With.Open.Eyes.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb.mkv
+House.of.the.Dragon.S01E10.The.Black.Queen.2160p.HMAX.WEB-DL.DDP5.1.HDR.HEVC-NTb.mkv
+Andor.S01E12.Rix.Road.2160p.DSNP.WEB-DL.DDP5.1.Atmos.HDR.HEVC-NTb.mkv
+Better.Call.Saul.S06E13.Saul.Gone.2160p.NF.WEB-DL.DDP5.1.HDR.x265-NTb.mkv
+The.Last.of.Us.S01E03.Long.Long.Time.2160p.HMAX.WEB-DL.DDP5.1.HDR.HEVC-NTb.mkv
+[SubsPlease] Spy x Family - 12 (1080p) [ABCDEF12].mkv
+[Erai-raws] Frieren - Beyond Journeys End - 01 [1080p][HEVC][Multiple Subtitle].mkv
+[HorribleSubs] Attack on Titan - 25 [720p].mkv
+[Judas] Demon Slayer - Kimetsu no Yaiba - S01E01 [BD 1080p][HEVC x265 10bit][Eng-Subs].mkv
+[Anime Time] One Piece - 1071 [1080p][HEVC 10bit x265][AAC][Eng Sub].mkv
+Amelie.2001.FRENCH.1080p.BluRay.x264-FiCO.mkv
+City.of.God.2002.PORTUGUESE.1080p.BluRay.x264-AMIABLE.mkv
+Oldboy.2003.KOREAN.1080p.BluRay.x264-CtrlHD.mkv
+Crouching.Tiger.Hidden.Dragon.2000.MANDARIN.1080p.BluRay.x264-AMIABLE.mkv
+Pans.Labyrinth.2006.SPANISH.1080p.BluRay.x264-EbP.mkv
+Rocky.II.1979.1080p.BluRay.x264-AMIABLE.mkv
+Rocky.2.1979.1080p.BluRay.x264-FAKE.mkv
+Star.Wars.Episode.IV.A.New.Hope.1977.1080p.BluRay.x264-CtrlHD.mkv
+Mission.Impossible.III.2006.1080p.BluRay.x264-AMIABLE.mkv
+Avatar.The.Way.of.Water.2022.2160p.UHD.BluRay.x265.10bit.HDR-TERMINAL.mkv
+Top.Gun.Maverick.2022.IMAX.1080p.BluRay.x264-PIGNUS.mkv
+Dune.2021.2160p.UHD.BluRay.x265.10bit.HDR.DV-TERMINAL.mkv
+Dune.Part.Two.2024.1080p.BluRay.x264-GROUP.mkv
+Oppenheimer.2023.IMAX.2160p.UHD.BluRay.x265.10bit.HDR-TERMINAL.mkv
+Barbie.2023.1080p.WEB-DL.DDP5.1.Atmos.H.264-RARBG.mkv
+Killers.of.the.Flower.Moon.2023.2160p.ATVP.WEB-DL.DDP5.1.Atmos.DV.HDR.H.265-NTb.mkv
+The.Bear.S02E07.Forks.1080p.HULU.WEB-DL.DDP5.1.H.264-NTb.mkv
+Chernobyl.S01E05.Vichnaya.Pamyat.1080p.BluRay.x264-DEMAND.mkv
+Sherlock.S04E03.The.Final.Problem.1080p.BluRay.x264-SHORTBREHD.mkv
+Mr.Robot.S04E13.Hello.Elliot.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb.mkv
+Westworld.Season.1.Complete.1080p.BluRay.x264-DEFLATE.mkv
+The.Sopranos.S06E21.Made.in.America.1080p.BluRay.x264-AMIABLE.mkv
+Lost.Season.6.1080p.BluRay.x264-AMIABLE.mkv
