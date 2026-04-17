@@ -1,5 +1,6 @@
 import AVFoundation
 import Combine
+import CoreMedia
 import EngineInterface
 import Foundation
 import LibraryDomain
@@ -60,6 +61,9 @@ final class PlayerViewModel: ObservableObject {
     /// state leaves `.buffering(.engineStarving)`.
     @Published private(set) var showLongBufferingSecondary: Bool = false
 
+    /// Subtitle controller for this playback session. UI binds to this.
+    @Published private(set) var subtitleController: SubtitleController
+
     // MARK: Internal
 
     /// Strong reference — released in `close()`.
@@ -110,6 +114,9 @@ final class PlayerViewModel: ObservableObject {
     /// a no-op (the state machine already moved us back to
     /// `.buffering(.openingStream)` — a second openStream call would race).
     private var retryTask: Task<Void, Never>?
+    /// Token returned by `addPeriodicTimeObserver` for subtitle ticks — must
+    /// be removed on close, separately from `periodicTimeObserver`.
+    private var subtitleTimeObserver: Any?
 
     // MARK: - Init
 
@@ -119,7 +126,8 @@ final class PlayerViewModel: ObservableObject {
          fileIndex: Int32? = nil,
          historyProvider: (() async throws -> [PlaybackHistoryDTO])? = nil,
          streamOpener: ((String, Int32) async throws -> StreamDescriptorDTO)? = nil,
-         now: @escaping () -> Date = Date.init) {
+         now: @escaping () -> Date = Date.init,
+         preferenceStore: SubtitlePreferenceStore = SubtitlePreferenceStore()) {
         self.streamDescriptor = streamDescriptor
         self.engineClient = engineClient
         self.torrentID = torrentID
@@ -129,6 +137,7 @@ final class PlayerViewModel: ObservableObject {
             try await engineClient.openStream(tid as NSString, fileIndex: NSNumber(value: idx))
         }
         self.now = now
+        self.subtitleController = SubtitleController(preferenceStore: preferenceStore)
 
         // Project the (already-completed) open through the state machine so
         // every consumer sees state move .closed → .buffering(.openingStream)
@@ -153,6 +162,32 @@ final class PlayerViewModel: ObservableObject {
         }
 
         bindAVPlayerObservers(player: avPlayer, item: item)
+
+        // When the item is ready, refresh embedded subtitle tracks. Stored
+        // in `avPlayerObservers` so it survives the `cancellables.removeAll()`
+        // call in `resolveResumeStartOver` (which targets the resume-seek
+        // subscription).
+        item.publisher(for: \.status)
+            .filter { $0 == .readyToPlay }
+            .first()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self, weak item] _ in
+                self?.subtitleController.refreshEmbeddedTracks(from: item)
+            }
+            .store(in: &avPlayerObservers)
+
+        // Wire 4 Hz time observer so the subtitle overlay stays in sync.
+        // The block fires on the main queue (queue: .main); we use
+        // MainActor.assumeIsolated to satisfy the Swift 6 concurrency checker.
+        let tickInterval = CMTime(value: 1, timescale: 4)
+        subtitleTimeObserver = avPlayer.addPeriodicTimeObserver(
+            forInterval: tickInterval,
+            queue: .main
+        ) { [weak self] time in
+            MainActor.assumeIsolated {
+                self?.subtitleController.tick(currentTime: time)
+            }
+        }
 
         // Evaluate the resume-prompt seam (#19). Fires at most once per VM
         // lifetime; the lookup is async because it traverses XPC. Triggered
@@ -429,6 +464,10 @@ final class PlayerViewModel: ObservableObject {
         if let token = periodicTimeObserver {
             player?.removeTimeObserver(token)
             periodicTimeObserver = nil
+        }
+        if let observer = subtitleTimeObserver {
+            player?.removeTimeObserver(observer)
+            subtitleTimeObserver = nil
         }
         player?.pause()
         player = nil

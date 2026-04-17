@@ -25,6 +25,7 @@ struct PlayerView: View {
     @State private var hideTask: Task<Void, Never>?
     @State private var isFullscreen: Bool = false
     @State private var showingAudioPicker: Bool = false
+    @State private var isDropTargeted: Bool = false
 
     /// Auto-hide delay after pointer idle while `.playing`. Injected so tests
     /// don't have to wait three real seconds.
@@ -54,6 +55,10 @@ struct PlayerView: View {
                 AVPlayerViewRepresentable(player: player)
                     .ignoresSafeArea()
             }
+
+            // Subtitle overlay — cue text centred in the lower third. Sits
+            // above the video but below the chrome and resume prompt.
+            SubtitleOverlay(controller: viewModel.subtitleController)
 
             // Chrome overlay — issue #24. Audio picker entry point wired in #23.
             PlayerOverlay(
@@ -86,6 +91,19 @@ struct PlayerView: View {
                 )
             }
 
+            // Subtitle controls — banner + selection menu. Visibility tracks
+            // the chrome overlay so the controls hide together with the HUD.
+            VStack(spacing: 8) {
+                Spacer()
+                SubtitleErrorBanner(controller: viewModel.subtitleController)
+                SubtitleSelectionMenu(controller: viewModel.subtitleController)
+            }
+            .padding(.bottom, 24)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .opacity(effectiveOverlayOpacity)
+            .animation(.easeInOut(duration: 0.2), value: effectiveOverlayOpacity)
+            .allowsHitTesting(effectiveOverlayOpacity > 0)
+
             // Error chrome — distinct surface per `PlayerError` case (#26).
             // Sits above the overlay so the user's recovery path is
             // unambiguous. `lastKnownTier` is captured by the VM so the
@@ -115,6 +133,13 @@ struct PlayerView: View {
             }
         }
         .animation(.easeInOut(duration: 0.25), value: viewModel.resumePromptOffer)
+        // SRT drag-and-drop: accept .fileURL drops over the player.
+        .onDrop(of: [.fileURL], isTargeted: $isDropTargeted) { providers in
+            for provider in providers {
+                viewModel.subtitleController.ingestSidecar(provider)
+            }
+            return true
+        }
         // Dark colour scheme enforced regardless of system appearance.
         .preferredColorScheme(.dark)
         // Track mouse movement to reset the auto-hide timer.
