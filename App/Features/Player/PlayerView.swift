@@ -24,6 +24,7 @@ struct PlayerView: View {
     @State private var overlayVisible: Bool = true
     @State private var hideTask: Task<Void, Never>?
     @State private var isFullscreen: Bool = false
+    @State private var showingAudioPicker: Bool = false
 
     /// Auto-hide delay after pointer idle while `.playing`. Injected so tests
     /// don't have to wait three real seconds.
@@ -54,7 +55,7 @@ struct PlayerView: View {
                     .ignoresSafeArea()
             }
 
-            // Chrome overlay — issue #24.
+            // Chrome overlay — issue #24. Audio picker entry point wired in #23.
             PlayerOverlay(
                 state: viewModel.state,
                 health: viewModel.health,
@@ -66,11 +67,23 @@ struct PlayerView: View {
                 onPause: { viewModel.pause() },
                 onClose: { viewModel.close() },
                 onToggleFullscreen: toggleFullscreen,
-                onScrub: { seconds in viewModel.seek(toSeconds: seconds) }
+                onScrub: { seconds in viewModel.seek(toSeconds: seconds) },
+                onOpenAudioPicker: { showingAudioPicker = true }
             )
             .opacity(effectiveOverlayOpacity)
             .animation(.easeInOut(duration: 0.2), value: effectiveOverlayOpacity)
             .allowsHitTesting(effectiveOverlayOpacity > 0)
+            .sheet(isPresented: $showingAudioPicker) {
+                AudioPickerView(
+                    viewModel: AudioPickerViewModel(
+                        provider: viewModel.player?.currentItem.flatMap {
+                            AVPlayerItemAudioProvider(item: $0)
+                        },
+                        state: viewModel.state
+                    ),
+                    onDismiss: { showingAudioPicker = false }
+                )
+            }
 
             // Error overlay — derived from PlayerState per Phase 3 design.
             // #26 will replace this minimal text with brand-compliant

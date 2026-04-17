@@ -32,6 +32,10 @@
 		RP1000003000000000AA03 /* ResumePromptDecisionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = RP1000003000000000BB03 /* ResumePromptDecisionTests.swift */; };
 		RP1000004000000000AA04 /* PlayerViewModelResumePromptTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = RP1000004000000000BB04 /* PlayerViewModelResumePromptTests.swift */; };
 		RP1000005000000000AA05 /* ResumePromptSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = RP1000005000000000BB05 /* ResumePromptSnapshotTests.swift */; };
+		A100000B000000000000AA0B /* AudioPickerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000B000000000000BB0B /* AudioPickerViewModel.swift */; };
+		A100000C000000000000AA0C /* AudioPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000C000000000000BB0C /* AudioPickerView.swift */; };
+		A100000D000000000000AA0D /* AudioPickerViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000D000000000000BB0D /* AudioPickerViewModelTests.swift */; };
+		A100000E000000000000AA0E /* AudioPickerSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000E000000000000BB0E /* AudioPickerSnapshotTests.swift */; };
 		A1B2C3D4E5F6A1B2C3D4E5F6 /* EngineXPCServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A6B1C2D3E4F5A6 /* EngineXPCServer.swift */; };
 		A1F000000000000000000002 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1F000000000000000000001 /* AppIntents.framework */; };
 		A1F000000000000000000003 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1F000000000000000000001 /* AppIntents.framework */; };
@@ -51,6 +55,16 @@
 		NEP0000300000000000000A3 /* UpNextOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = NEP0000400000000000000A4 /* UpNextOverlay.swift */; };
 		NEP0000500000000000000A5 /* NextEpisodeCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = NEP0000600000000000000A6 /* NextEpisodeCoordinatorTests.swift */; };
 		NEP0000700000000000000A7 /* UpNextOverlaySnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = NEP0000800000000000000A8 /* UpNextOverlaySnapshotTests.swift */; };
+		D13D0021000000000000DD21 /* DiscoveryDestination.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13D0022000000000000DD22 /* DiscoveryDestination.swift */; };
+		D13D0023000000000000DD23 /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13D0024000000000000DD24 /* HomeViewModel.swift */; };
+		D13D0025000000000000DD25 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13D0026000000000000DD26 /* HomeView.swift */; };
+		D13D0027000000000000DD27 /* MediaCarouselRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13D0028000000000000DD28 /* MediaCarouselRow.swift */; };
+		D13D0029000000000000DD29 /* PosterCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13D002A000000000000DD2A /* PosterCard.swift */; };
+		D13D002B000000000000DD2B /* DetailRouteStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13D002C000000000000DD2C /* DetailRouteStub.swift */; };
+		D13D002D000000000000DD2D /* MoviesGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13D002E000000000000DD2E /* MoviesGridView.swift */; };
+		D13D002F000000000000DD2F /* ShowsGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13D0030000000000000DD30 /* ShowsGridView.swift */; };
+		D13D0031000000000000DD31 /* HomeViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13D0032000000000000DD32 /* HomeViewModelTests.swift */; };
+		D13D0033000000000000DD33 /* HomeSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13D0034000000000000DD34 /* HomeSnapshotTests.swift */; };
 		AA33BB55CC77DD99EE11FF33 /* ResumeTrackerSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF6600889900AABB11CC2233 /* ResumeTrackerSelfTest.swift */; };
 		AA77889900BBCCDD11AA7788 /* HTTPSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8899AA00CCDDEE22BB8899 /* HTTPSelfTest.swift */; };
 		B5C7D9E1F3A2048A67B9C0D1 /* TorrentBridgeSmokeTest.mm in Sources */ = {isa = PBXBuildFile; fileRef = F8C1D5A3B2E497640F3A5B02 /* TorrentBridgeSmokeTest.mm */; };
@@ -168,6 +182,10 @@
 		RP1000003000000000BB03 /* ResumePromptDecisionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumePromptDecisionTests.swift; sourceTree = "<group>"; };
 		RP1000004000000000BB04 /* PlayerViewModelResumePromptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerViewModelResumePromptTests.swift; sourceTree = "<group>"; };
 		RP1000005000000000BB05 /* ResumePromptSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumePromptSnapshotTests.swift; sourceTree = "<group>"; };
+		B100000B000000000000BB0B /* AudioPickerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPickerViewModel.swift; sourceTree = "<group>"; };
+		B100000C000000000000BB0C /* AudioPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPickerView.swift; sourceTree = "<group>"; };
+		B100000D000000000000BB0D /* AudioPickerViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPickerViewModelTests.swift; sourceTree = "<group>"; };
+		B100000E000000000000BB0E /* AudioPickerSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPickerSnapshotTests.swift; sourceTree = "<group>"; };
 		B1C2D3E4F5A6B1C2D3E4F5A6 /* EngineXPCServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineXPCServer.swift; sourceTree = "<group>"; };
 		B2F3A4C5D6E7B2F3A4C5D6E7 /* StreamRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamRegistry.swift; sourceTree = "<group>"; };
 		B3C4D5E6F7A8B3C4D5E6F7A8 /* TorrentAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TorrentAlert.swift; sourceTree = "<group>"; };
@@ -199,6 +217,16 @@
 		NEP0000400000000000000A4 /* UpNextOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpNextOverlay.swift; sourceTree = "<group>"; };
 		NEP0000600000000000000A6 /* NextEpisodeCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextEpisodeCoordinatorTests.swift; sourceTree = "<group>"; };
 		NEP0000800000000000000A8 /* UpNextOverlaySnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpNextOverlaySnapshotTests.swift; sourceTree = "<group>"; };
+		D13D0022000000000000DD22 /* DiscoveryDestination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoveryDestination.swift; sourceTree = "<group>"; };
+		D13D0024000000000000DD24 /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
+		D13D0026000000000000DD26 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		D13D0028000000000000DD28 /* MediaCarouselRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCarouselRow.swift; sourceTree = "<group>"; };
+		D13D002A000000000000DD2A /* PosterCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PosterCard.swift; sourceTree = "<group>"; };
+		D13D002C000000000000DD2C /* DetailRouteStub.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailRouteStub.swift; sourceTree = "<group>"; };
+		D13D002E000000000000DD2E /* MoviesGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviesGridView.swift; sourceTree = "<group>"; };
+		D13D0030000000000000DD30 /* ShowsGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowsGridView.swift; sourceTree = "<group>"; };
+		D13D0032000000000000DD32 /* HomeViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModelTests.swift; sourceTree = "<group>"; };
+		D13D0034000000000000DD34 /* HomeSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeSnapshotTests.swift; sourceTree = "<group>"; };
 		E1000002000000000000EE02 /* CacheEvictionProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheEvictionProbe.swift; sourceTree = "<group>"; };
 		E1F2A3B4C5D6E1F2A3B4C5D6 /* ByteReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ByteReader.swift; sourceTree = "<group>"; };
 		E2000002000000000000EE02 /* CacheEviction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheEviction.swift; sourceTree = "<group>"; };
@@ -302,6 +330,8 @@
 				B1000005000000000000BB05 /* PlayerHUDSnapshotTests.swift */,
 				B1000009000000000000BB09 /* PlayerOverlayPolicyTests.swift */,
 				B100000A000000000000BB0A /* PlayerOverlaySnapshotTests.swift */,
+				B100000D000000000000BB0D /* AudioPickerViewModelTests.swift */,
+				B100000E000000000000BB0E /* AudioPickerSnapshotTests.swift */,
 				FACE0006AAAA0000BBBB0006 /* LibraryViewModelWatchStateTests.swift */,
 				FACE000CAAAA0000BBBB000C /* LibraryViewModelContinueWatchingTests.swift */,
 				FACE000EAAAA0000BBBB000E /* LibraryViewModelFavouritesTests.swift */,
@@ -313,6 +343,8 @@
 				EOE0000A00000000000000AA /* EndOfEpisodeDetectorTests.swift */,
 				NEP0000600000000000000A6 /* NextEpisodeCoordinatorTests.swift */,
 				NEP0000800000000000000A8 /* UpNextOverlaySnapshotTests.swift */,
+				D13D0032000000000000DD32 /* HomeViewModelTests.swift */,
+				D13D0034000000000000DD34 /* HomeSnapshotTests.swift */,
 			);
 			path = ButterBarTests;
 			sourceTree = "<group>";
@@ -322,8 +354,24 @@
 			children = (
 				EE44FF5500AA11BB22CC33DD /* Library */,
 				C1000001000000000000DD01 /* Player */,
+				D13D0040000000000000DD40 /* Discovery */,
 			);
 			path = Features;
+			sourceTree = "<group>";
+		};
+		D13D0040000000000000DD40 /* Discovery */ = {
+			isa = PBXGroup;
+			children = (
+				D13D0022000000000000DD22 /* DiscoveryDestination.swift */,
+				D13D0024000000000000DD24 /* HomeViewModel.swift */,
+				D13D0026000000000000DD26 /* HomeView.swift */,
+				D13D0028000000000000DD28 /* MediaCarouselRow.swift */,
+				D13D002A000000000000DD2A /* PosterCard.swift */,
+				D13D002C000000000000DD2C /* DetailRouteStub.swift */,
+				D13D002E000000000000DD2E /* MoviesGridView.swift */,
+				D13D0030000000000000DD30 /* ShowsGridView.swift */,
+			);
+			path = Discovery;
 			sourceTree = "<group>";
 		};
 		3CACA3D81F9FFAC4DCCF5038 /* XPC */ = {
@@ -435,6 +483,8 @@
 				EOE0000800000000000000A8 /* EndOfEpisodeDetector.swift */,
 				NEP0000200000000000000A2 /* NextEpisodeCoordinator.swift */,
 				NEP0000400000000000000A4 /* UpNextOverlay.swift */,
+				B100000B000000000000BB0B /* AudioPickerViewModel.swift */,
+				B100000C000000000000BB0C /* AudioPickerView.swift */,
 			);
 			path = Player;
 			sourceTree = "<group>";
@@ -649,6 +699,8 @@
 				A1000005000000000000AA05 /* PlayerHUDSnapshotTests.swift in Sources */,
 				A1000009000000000000AA09 /* PlayerOverlayPolicyTests.swift in Sources */,
 				A100000A000000000000AA0A /* PlayerOverlaySnapshotTests.swift in Sources */,
+				A100000D000000000000AA0D /* AudioPickerViewModelTests.swift in Sources */,
+				A100000E000000000000AA0E /* AudioPickerSnapshotTests.swift in Sources */,
 				FACE0005AAAA0000BBBB0005 /* LibraryViewModelWatchStateTests.swift in Sources */,
 				FACE000BAAAA0000BBBB000B /* LibraryViewModelContinueWatchingTests.swift in Sources */,
 				FACE000DAAAA0000BBBB000D /* LibraryViewModelFavouritesTests.swift in Sources */,
@@ -662,6 +714,8 @@
 				EOE0000900000000000000A9 /* EndOfEpisodeDetectorTests.swift in Sources */,
 				NEP0000500000000000000A5 /* NextEpisodeCoordinatorTests.swift in Sources */,
 				NEP0000700000000000000A7 /* UpNextOverlaySnapshotTests.swift in Sources */,
+				D13D0031000000000000DD31 /* HomeViewModelTests.swift in Sources */,
+				D13D0033000000000000DD33 /* HomeSnapshotTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -731,6 +785,16 @@
 				EOE0000700000000000000A7 /* EndOfEpisodeDetector.swift in Sources */,
 				NEP0000100000000000000A1 /* NextEpisodeCoordinator.swift in Sources */,
 				NEP0000300000000000000A3 /* UpNextOverlay.swift in Sources */,
+				A100000B000000000000AA0B /* AudioPickerViewModel.swift in Sources */,
+				A100000C000000000000AA0C /* AudioPickerView.swift in Sources */,
+				D13D0021000000000000DD21 /* DiscoveryDestination.swift in Sources */,
+				D13D0023000000000000DD23 /* HomeViewModel.swift in Sources */,
+				D13D0025000000000000DD25 /* HomeView.swift in Sources */,
+				D13D0027000000000000DD27 /* MediaCarouselRow.swift in Sources */,
+				D13D0029000000000000DD29 /* PosterCard.swift in Sources */,
+				D13D002B000000000000DD2B /* DetailRouteStub.swift in Sources */,
+				D13D002D000000000000DD2D /* MoviesGridView.swift in Sources */,
+				D13D002F000000000000DD2F /* ShowsGridView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
