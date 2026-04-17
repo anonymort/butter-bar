@@ -16,3 +16,6 @@ xcuserdata/
 .LSOverride
 default.profraw
 *.profraw
+
+# Local secrets — never commit. Template lives at TMDBSecrets.local.swift.example.
+**/TMDBSecrets.local.swift
