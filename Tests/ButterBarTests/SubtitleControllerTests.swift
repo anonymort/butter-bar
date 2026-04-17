@@ -117,6 +117,23 @@ final class SubtitleControllerTests: XCTestCase {
         XCTAssertEqual(store.load(), "off")
     }
 
+    func testEmbeddedSelectionFailureClearsSelectionAndSetsError() {
+        let controller = makeController()
+        let previous = makeSidecarTrack(language: "en")
+        let embedded = SubtitleTrack(
+            id: "embedded-en",
+            source: .embedded(identifier: "en"),
+            language: "en",
+            label: "English"
+        )
+        controller._setTracksForTesting([previous, embedded], selection: previous)
+
+        controller.applyEmbeddedSelectionResult(didActivate: false, track: embedded)
+
+        XCTAssertNil(controller.selection)
+        XCTAssertEqual(controller.activeError, .systemTrackFailed(reason: "System track activation failed"))
+    }
+
     // MARK: - Auto-pick failure does NOT set activeError
 
     func testAutoPick_noMatchingTrack_doesNotSetActiveError() async throws {

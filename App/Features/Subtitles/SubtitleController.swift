@@ -189,10 +189,12 @@ final class SubtitleController: ObservableObject {
                     return
                 }
                 item.select(option, in: group)
-                selection = track
-                if !suppressBanner {
-                    preferenceStore.save(track.language ?? "off")
-                }
+                let selected = item.currentMediaSelection.selectedMediaOption(in: group)
+                applyEmbeddedSelectionResult(
+                    didActivate: selected === option,
+                    track: track,
+                    suppressBanner: suppressBanner
+                )
             }
 
         case .sidecar:
@@ -220,6 +222,34 @@ final class SubtitleController: ObservableObject {
                 item.selectMediaOptionAutomatically(in: group)
             }
         }
+    }
+
+    func applyEmbeddedSelectionResult(didActivate: Bool,
+                                      track: SubtitleTrack,
+                                      suppressBanner: Bool = false) {
+        if didActivate {
+            selection = track
+            activeError = nil
+            if !suppressBanner {
+                preferenceStore.save(track.language ?? "off")
+            }
+        } else {
+            selection = nil
+            currentCue = nil
+            if !suppressBanner {
+                activeError = .systemTrackFailed(reason: "System track activation failed")
+            }
+        }
+    }
+
+    func _setTracksForTesting(_ tracks: [SubtitleTrack],
+                              selection: SubtitleTrack? = nil) {
+        self.tracks = tracks
+        self.sessionSidecars = tracks.filter {
+            if case .sidecar = $0.source { return true }
+            return false
+        }
+        self.selection = selection
     }
 
     /// Binary-searches `cues` (sorted by startTime) for the cue covering `time`.

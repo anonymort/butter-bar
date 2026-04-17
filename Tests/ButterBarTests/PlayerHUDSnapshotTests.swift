@@ -250,22 +250,7 @@ final class PlayerViewModelReconnectTests: XCTestCase {
         let viewModel = PlayerViewModel(streamDescriptor: descriptor,
                                         engineClient: engineClient)
 
-        let handler = EngineEventHandler()
-        await engineClient._replaceEventHandlerForTesting(handler)
-        try await Task.sleep(for: .milliseconds(50))
-
-        handler.streamHealthChanged(
-            StreamHealthDTO(
-                streamID: streamID as NSString,
-                secondsBufferedAhead: 1,
-                downloadRateBytesPerSec: 50_000,
-                requiredBitrateBytesPerSec: nil,
-                peerCount: 0,
-                outstandingCriticalPieces: 5,
-                recentStallCount: 3,
-                tier: "starving"
-            )
-        )
+        viewModel.injectEventForTesting(.engineHealthChanged(.starving))
 
         try await assertEventually("state should project to .buffering(.engineStarving)") {
             viewModel.state == .buffering(reason: .engineStarving)

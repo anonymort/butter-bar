@@ -4,6 +4,7 @@ import CoreMedia
 import EngineInterface
 import Foundation
 import LibraryDomain
+import MetadataDomain
 import PlayerDomain
 
 // MARK: - PlayerViewModel
@@ -64,6 +65,10 @@ final class PlayerViewModel: ObservableObject {
     /// Subtitle controller for this playback session. UI binds to this.
     @Published private(set) var subtitleController: SubtitleController
 
+    /// Quiet one-line transient message for non-fatal playback orchestration
+    /// outcomes, e.g. when auto-play cannot find the next episode locally.
+    @Published private(set) var transientMessage: String?
+
     // MARK: Internal
 
     /// Strong reference — released in `close()`.
@@ -71,7 +76,7 @@ final class PlayerViewModel: ObservableObject {
 
     // MARK: Private
 
-    private let streamDescriptor: StreamDescriptorDTO
+    private var streamDescriptor: StreamDescriptorDTO
     private let engineClient: EngineClient
     /// Async closure that returns the current playback-history snapshot.
     /// Defaults to `engineClient.listPlaybackHistory()` in production; tests
@@ -87,8 +92,11 @@ final class PlayerViewModel: ObservableObject {
     /// Identity of the file behind this stream. Optional because preview /
     /// snapshot tests construct a VM without an underlying torrent. When
     /// `nil`, the resume-prompt lookup is skipped (no history to query).
-    private let torrentID: String?
-    private let fileIndex: Int32?
+    private var torrentID: String?
+    private var fileIndex: Int32?
+    private var currentEpisode: Episode?
+    private let currentShow: Show?
+    private let resolveNextEpisode: @Sendable (Episode) async -> (torrentID: String, fileIndex: Int32)?
     private var healthSubscription: AnyCancellable?
     private var reconnectSubscription: AnyCancellable?
     private var avPlayerObservers = Set<AnyCancellable>()
@@ -114,6 +122,8 @@ final class PlayerViewModel: ObservableObject {
     /// a no-op (the state machine already moved us back to
     /// `.buffering(.openingStream)` — a second openStream call would race).
     private var retryTask: Task<Void, Never>?
+    private var nextEpisodeTask: Task<Void, Never>?
+    private var transientMessageTask: Task<Void, Never>?
     /// Token returned by `addPeriodicTimeObserver` for subtitle ticks — must
     /// be removed on close, separately from `periodicTimeObserver`.
     private var subtitleTimeObserver: Any?
@@ -124,6 +134,9 @@ final class PlayerViewModel: ObservableObject {
          engineClient: EngineClient,
          torrentID: String? = nil,
          fileIndex: Int32? = nil,
+         currentEpisode: Episode? = nil,
+         currentShow: Show? = nil,
+         resolveNextEpisode: ((@Sendable (Episode) async -> (torrentID: String, fileIndex: Int32)?))? = nil,
          historyProvider: (() async throws -> [PlaybackHistoryDTO])? = nil,
          streamOpener: ((String, Int32) async throws -> StreamDescriptorDTO)? = nil,
          now: @escaping () -> Date = Date.init,
@@ -132,10 +145,16 @@ final class PlayerViewModel: ObservableObject {
         self.engineClient = engineClient
         self.torrentID = torrentID
         self.fileIndex = fileIndex
+        self.currentEpisode = currentEpisode
+        self.currentShow = currentShow
         self.historyProvider = historyProvider ?? { try await engineClient.listPlaybackHistory() }
         self.streamOpener = streamOpener ?? { tid, idx in
             try await engineClient.openStream(tid as NSString, fileIndex: NSNumber(value: idx))
         }
+        self.resolveNextEpisode = resolveNextEpisode ?? Self.libraryResolver(
+            engineClient: engineClient,
+            show: currentShow
+        )
         self.now = now
         self.subtitleController = SubtitleController(preferenceStore: preferenceStore)
 
@@ -279,6 +298,34 @@ final class PlayerViewModel: ObservableObject {
         resumePromptOffer = nil
     }
 
+    func openNextEpisode(_ episode: Episode) {
+        nextEpisodeTask?.cancel()
+        transientMessage = nil
+        nextEpisodeTask = Task { [weak self, resolveNextEpisode, streamOpener] in
+            guard let resolution = await resolveNextEpisode(episode) else {
+                await MainActor.run {
+                    self?.showTransientMessage("Next episode not in library")
+                }
+                return
+            }
+            do {
+                let descriptor = try await streamOpener(resolution.torrentID, resolution.fileIndex)
+                await MainActor.run {
+                    self?.applyNextEpisodeDescriptor(
+                        descriptor,
+                        torrentID: resolution.torrentID,
+                        fileIndex: resolution.fileIndex,
+                        episode: episode
+                    )
+                }
+            } catch {
+                await MainActor.run {
+                    self?.showTransientMessage("Next episode could not start")
+                }
+            }
+        }
+    }
+
     // MARK: - Event handling
 
     /// Apply a `PlayerEvent` through the state machine and perform the side
@@ -297,6 +344,15 @@ final class PlayerViewModel: ObservableObject {
 
         let next = PlayerStateMachine.apply(event, to: previous, now: now())
         state = next
+
+        if let signal = EndOfEpisodeDetector.detect(
+            stateTransition: (from: previous, to: next),
+            playheadSeconds: currentSeconds,
+            durationSeconds: durationSeconds,
+            episode: currentEpisode
+        ) {
+            EndOfEpisodeDetector.publisher.send(signal)
+        }
 
         updateLongBufferingTracking(previous: previous, next: next)
 
@@ -389,6 +445,53 @@ final class PlayerViewModel: ObservableObject {
         bindAVPlayerObservers(player: avPlayer, item: item)
     }
 
+    private func applyNextEpisodeDescriptor(_ dto: StreamDescriptorDTO,
+                                            torrentID: String,
+                                            fileIndex: Int32,
+                                            episode: Episode) {
+        let previousStreamID = streamDescriptor.streamID as String
+        avPlayerObservers.removeAll()
+        if let token = periodicTimeObserver {
+            player?.removeTimeObserver(token)
+            periodicTimeObserver = nil
+        }
+        if let observer = subtitleTimeObserver {
+            player?.removeTimeObserver(observer)
+            subtitleTimeObserver = nil
+        }
+        player?.pause()
+
+        self.streamDescriptor = dto
+        self.torrentID = torrentID
+        self.fileIndex = fileIndex
+        self.currentEpisode = episode
+        self.currentSeconds = 0
+        self.durationSeconds = 0
+        self.resumePromptOffer = nil
+        self.hasOfferedResume = true
+        self.isClosed = false
+        self.health = nil
+        self.subtitleController = SubtitleController()
+
+        Task { try? await engineClient.closeStream(previousStreamID as NSString) }
+
+        guard let url = URL(string: dto.loopbackURL as String) else {
+            handle(.engineReturnedOpenError(.streamOpenFailed))
+            return
+        }
+        let item = AVPlayerItem(url: url)
+        let avPlayer = AVPlayer(playerItem: item)
+        self.player = avPlayer
+        self.primaryItem = item
+
+        state = .closed
+        handle(.userRequestedOpen)
+        handle(.engineReturnedDescriptor)
+        bindAVPlayerObservers(player: avPlayer, item: item)
+        play()
+        Task { await self.subscribeToHealth() }
+    }
+
     /// Best-effort extraction of an `EngineErrorCode` from a thrown error.
     /// Falls back to `.streamOpenFailed` so the user still sees brand-voice
     /// copy rather than a raw NSError description.
@@ -404,6 +507,49 @@ final class PlayerViewModel: ObservableObject {
             return code
         }
         return .streamOpenFailed
+    }
+
+    private func showTransientMessage(_ message: String) {
+        transientMessageTask?.cancel()
+        transientMessage = message
+        transientMessageTask = Task { [weak self] in
+            do {
+                try await Task.sleep(for: .seconds(4))
+            } catch {
+                return
+            }
+            await MainActor.run {
+                self?.transientMessage = nil
+            }
+        }
+    }
+
+    private static func libraryResolver(
+        engineClient: EngineClient,
+        show: Show?
+    ) -> (@Sendable (Episode) async -> (torrentID: String, fileIndex: Int32)?) {
+        { episode in
+            guard let show else { return nil }
+            let torrents = (try? await engineClient.listTorrents()) ?? []
+            for torrent in torrents {
+                let torrentID = torrent.torrentID as String
+                let files = (try? await engineClient.listFiles(torrentID as NSString)) ?? []
+                for file in files where file.isPlayableByAVFoundation {
+                    let parsed = TitleNameParser.parse(file.path as String)
+                    guard parsed.season == episode.seasonNumber,
+                          parsed.episode == episode.episodeNumber else {
+                        continue
+                    }
+                    let ranked = MatchRanker.rank(parsed: parsed, candidates: [.show(show)])
+                    guard let top = ranked.first,
+                          top.confidence >= MatchRanker.defaultThreshold else {
+                        continue
+                    }
+                    return (torrentID: torrentID, fileIndex: file.fileIndex)
+                }
+            }
+            return nil
+        }
     }
 
     /// Drive `showLongBufferingSecondary` and the timer that flips it.
@@ -454,8 +600,12 @@ final class PlayerViewModel: ObservableObject {
         healthSubscription?.cancel()
         reconnectSubscription?.cancel()
         retryTask?.cancel()
+        nextEpisodeTask?.cancel()
+        transientMessageTask?.cancel()
         longBufferingTask?.cancel()
         retryTask = nil
+        nextEpisodeTask = nil
+        transientMessageTask = nil
         longBufferingTask = nil
         avPlayerObservers.removeAll()
         healthSubscription = nil
@@ -572,6 +722,23 @@ final class PlayerViewModel: ObservableObject {
             }
             .store(in: &avPlayerObservers)
 
+        NotificationCenter.default.publisher(
+            for: .AVPlayerItemDidPlayToEndTime,
+            object: item
+        )
+        .receive(on: DispatchQueue.main)
+        .sink { [weak self] _ in
+            guard let self else { return }
+            guard let signal = EndOfEpisodeDetector.detect(
+                stateTransition: (from: .playing, to: .closed),
+                playheadSeconds: self.durationSeconds,
+                durationSeconds: self.durationSeconds,
+                episode: self.currentEpisode
+            ) else { return }
+            EndOfEpisodeDetector.publisher.send(signal)
+        }
+        .store(in: &avPlayerObservers)
+
         // Asset duration arrives some time after `readyToPlay`. Republish
         // through `durationSeconds` so the scrub bar can render once it is
         // known.
@@ -593,9 +760,11 @@ final class PlayerViewModel: ObservableObject {
             forInterval: interval,
             queue: .main
         ) { [weak self] cmtime in
-            guard let self else { return }
-            if cmtime.isNumeric, cmtime.seconds.isFinite, cmtime.seconds >= 0 {
-                self.currentSeconds = cmtime.seconds
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                if cmtime.isNumeric, cmtime.seconds.isFinite, cmtime.seconds >= 0 {
+                    self.currentSeconds = cmtime.seconds
+                }
             }
         }
     }

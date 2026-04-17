@@ -15,6 +15,7 @@ public struct Show: Equatable, Sendable, Hashable, Codable {
     public let popularity: Double?
     /// Hydrated lazily by the detail fetch; can be empty for browse-row results.
     public let seasons: [Season]
+    public let cast: [CastMember]
 
     public init(id: MediaID,
                 name: String,
@@ -28,7 +29,8 @@ public struct Show: Equatable, Sendable, Hashable, Codable {
                 backdropPath: String?,
                 voteAverage: Double?,
                 popularity: Double?,
-                seasons: [Season]) {
+                seasons: [Season],
+                cast: [CastMember] = []) {
         self.id = id
         self.name = name
         self.originalName = originalName
@@ -42,5 +44,30 @@ public struct Show: Equatable, Sendable, Hashable, Codable {
         self.voteAverage = voteAverage
         self.popularity = popularity
         self.seasons = seasons
+        self.cast = cast
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, originalName, firstAirYear, lastAirYear, status
+        case overview, genres, posterPath, backdropPath, voteAverage
+        case popularity, seasons, cast
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(MediaID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        originalName = try container.decode(String.self, forKey: .originalName)
+        firstAirYear = try container.decodeIfPresent(Int.self, forKey: .firstAirYear)
+        lastAirYear = try container.decodeIfPresent(Int.self, forKey: .lastAirYear)
+        status = try container.decode(ShowStatus.self, forKey: .status)
+        overview = try container.decode(String.self, forKey: .overview)
+        genres = try container.decode([Genre].self, forKey: .genres)
+        posterPath = try container.decodeIfPresent(String.self, forKey: .posterPath)
+        backdropPath = try container.decodeIfPresent(String.self, forKey: .backdropPath)
+        voteAverage = try container.decodeIfPresent(Double.self, forKey: .voteAverage)
+        popularity = try container.decodeIfPresent(Double.self, forKey: .popularity)
+        seasons = try container.decode([Season].self, forKey: .seasons)
+        cast = try container.decodeIfPresent([CastMember].self, forKey: .cast) ?? []
     }
 }

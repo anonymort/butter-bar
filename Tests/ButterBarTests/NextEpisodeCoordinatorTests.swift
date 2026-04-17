@@ -1,5 +1,6 @@
 import XCTest
 import Combine
+import EngineInterface
 import MetadataDomain
 @testable import ButterBar
 
@@ -263,6 +264,60 @@ final class NextEpisodeCoordinatorTests: XCTestCase {
         coord.playNow()
         await waitUntil("open fires") { openedEpisodes.count == 1 }
         XCTAssertEqual(openedEpisodes.first?.episodeNumber, 2)
+    }
+
+    // MARK: - Host wiring: PlayerViewModel resolver handoff
+
+    func testPlayerViewModelOpenNextUsesResolverAndStreamOpener() async {
+        let next = episode(season: 1, ep: 2)
+        var opened: [(String, Int32)] = []
+        let vm = PlayerViewModel(
+            streamDescriptor: descriptor(id: "one"),
+            engineClient: EngineClient(),
+            currentEpisode: episode(season: 1, ep: 1),
+            currentShow: show(seasons: [season(1, episodes: [next])]),
+            resolveNextEpisode: { episode in
+                XCTAssertEqual(episode, next)
+                return (torrentID: "torrent-next", fileIndex: 4)
+            },
+            historyProvider: { [] },
+            streamOpener: { torrentID, fileIndex in
+                opened.append((torrentID, fileIndex))
+                return self.descriptor(id: "two")
+            }
+        )
+
+        vm.openNextEpisode(next)
+
+        await waitUntil("next episode opened") { opened.count == 1 }
+        XCTAssertEqual(opened.first?.0, "torrent-next")
+        XCTAssertEqual(opened.first?.1, 4)
+        XCTAssertNil(vm.transientMessage)
+    }
+
+    func testPlayerViewModelOpenNextShowsCalmMessageWhenMissing() async {
+        let next = episode(season: 1, ep: 2)
+        let vm = PlayerViewModel(
+            streamDescriptor: descriptor(id: "one"),
+            engineClient: EngineClient(),
+            resolveNextEpisode: { _ in nil },
+            historyProvider: { [] },
+            streamOpener: { _, _ in XCTFail("openStream should not run"); return self.descriptor(id: "unused") }
+        )
+
+        vm.openNextEpisode(next)
+
+        await waitUntil("missing message surfaces") { vm.transientMessage == "Next episode not in library" }
+    }
+
+    private func descriptor(id: String) -> StreamDescriptorDTO {
+        StreamDescriptorDTO(
+            streamID: id as NSString,
+            loopbackURL: "http://127.0.0.1:9999/\(id)" as NSString,
+            contentType: "video/mp4" as NSString,
+            contentLength: 1000,
+            resumeByteOffset: 0
+        )
     }
 }
 

@@ -2,22 +2,6 @@ import Foundation
 import SwiftUI
 import MetadataDomain
 
-// MARK: - Cast member (local app type)
-//
-// `MetadataDomain` (#11) does not expose cast in v1; the foundation seals
-// `Movie`/`Show`/`MetadataProvider` at the surface needed to ship Phase 4.
-// Cast surfacing is a follow-up to extend the foundation. The detail page
-// holds a local value type so the chip-row UI is wired and snapshot-tested
-// today; once `MetadataProvider` exposes credits, the view model populates
-// this list from the same fetch and no UI change is needed.
-
-struct CastMember: Equatable, Sendable, Hashable, Identifiable {
-    let id: Int
-    let name: String
-    let character: String
-    let profilePath: String?
-}
-
 // MARK: - Library match seam
 //
 // "In your library" is the join between a discovery-side `MediaItem` and a
@@ -179,14 +163,23 @@ final class TitleDetailViewModel: ObservableObject {
             }
 
             // Recommendations and cast fetch in parallel; either failing is
-            // non-fatal — the page still renders without them.
+            // non-fatal — the page still renders without them. The
+            // `castProvider` remains as a test seam; production uses cast
+            // decoded on the detail payload itself.
             async let recsTask: [MediaItem] = (try? provider.recommendations(for: id)) ?? []
             async let castTask: [CastMember] = castProvider(id)
             async let matchTask: LibraryMatch? = libraryMatcher(item)
 
             let recs = await recsTask
-            let cast = await castTask
+            let injectedCast = await castTask
             let match = await matchTask
+            let realCast: [CastMember] = {
+                switch item {
+                case .movie(let movie): return movie.cast
+                case .show(let show): return show.cast
+                }
+            }()
+            let cast = injectedCast.isEmpty ? realCast : injectedCast
 
             let detail = TitleDetail(
                 item: item,

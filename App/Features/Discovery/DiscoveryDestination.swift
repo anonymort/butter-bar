@@ -4,7 +4,10 @@ import MetadataDomain
 /// App-side `Identifiable` conformance for `MediaItem`. Lives here rather
 /// than in `MetadataDomain` because `Identifiable` is a SwiftUI/runtime
 /// conformance the domain package shouldn't carry.
-extension MediaItem: Identifiable {}
+extension MediaItem: @retroactive Identifiable {}
+extension Movie: @retroactive Identifiable {}
+extension Show: @retroactive Identifiable {}
+extension Episode: @retroactive Identifiable {}
 
 /// Sidebar destinations exposed by the Discovery surface (#13).
 ///

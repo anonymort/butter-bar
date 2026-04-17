@@ -180,12 +180,7 @@ struct PlayerOverlay: View {
                     overlayButton(
                         systemImage: "captions.bubble",
                         label: "Subtitles",
-                        action: onOpenSubtitlePicker,
-                        // #22 wires the real picker; entry-point is disabled
-                        // until then to avoid implying functionality we don't
-                        // ship yet (per brand voice: don't suggest features
-                        // we cannot deliver).
-                        enabled: false
+                        action: onOpenSubtitlePicker
                     )
                     // Audio picker — wired by #23. Per AC: discoverability
                     // matters even on single-track assets, so the entry point

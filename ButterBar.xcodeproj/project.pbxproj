@@ -136,6 +136,14 @@
 		D1500004000000000000AA04 /* RecommendationsRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1500004000000000000BB04 /* RecommendationsRow.swift */; };
 		D1500005000000000000AA05 /* TitleDetailViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1500005000000000000BB05 /* TitleDetailViewModelTests.swift */; };
 		D1500006000000000000AA06 /* TitleDetailSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1500006000000000000BB06 /* TitleDetailSnapshotTests.swift */; };
+		D1600001000000000000AA01 /* SearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1600001000000000000BB01 /* SearchViewModel.swift */; };
+		D1600002000000000000AA02 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1600002000000000000BB02 /* SearchView.swift */; };
+		D1600003000000000000AA03 /* SeasonEpisodeSelectorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1600003000000000000BB03 /* SeasonEpisodeSelectorViewModel.swift */; };
+		D1600004000000000000AA04 /* SeasonEpisodeSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1600004000000000000BB04 /* SeasonEpisodeSelectorView.swift */; };
+		D1600005000000000000AA05 /* SearchViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1600005000000000000BB05 /* SearchViewModelTests.swift */; };
+		D1600006000000000000AA06 /* SeasonEpisodeSelectorViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1600006000000000000BB06 /* SeasonEpisodeSelectorViewModelTests.swift */; };
+		D1600007000000000000AA07 /* SubtitlePickerViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1600007000000000000BB07 /* SubtitlePickerViewModelTests.swift */; };
+		D1600008000000000000AA08 /* KeyboardShortcutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1600008000000000000BB08 /* KeyboardShortcutTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -301,6 +309,14 @@
 		D1500004000000000000BB04 /* RecommendationsRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendationsRow.swift; sourceTree = "<group>"; };
 		D1500005000000000000BB05 /* TitleDetailViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleDetailViewModelTests.swift; sourceTree = "<group>"; };
 		D1500006000000000000BB06 /* TitleDetailSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleDetailSnapshotTests.swift; sourceTree = "<group>"; };
+		D1600001000000000000BB01 /* SearchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewModel.swift; sourceTree = "<group>"; };
+		D1600002000000000000BB02 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
+		D1600003000000000000BB03 /* SeasonEpisodeSelectorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeasonEpisodeSelectorViewModel.swift; sourceTree = "<group>"; };
+		D1600004000000000000BB04 /* SeasonEpisodeSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeasonEpisodeSelectorView.swift; sourceTree = "<group>"; };
+		D1600005000000000000BB05 /* SearchViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewModelTests.swift; sourceTree = "<group>"; };
+		D1600006000000000000BB06 /* SeasonEpisodeSelectorViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeasonEpisodeSelectorViewModelTests.swift; sourceTree = "<group>"; };
+		D1600007000000000000BB07 /* SubtitlePickerViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitlePickerViewModelTests.swift; sourceTree = "<group>"; };
+		D1600008000000000000BB08 /* KeyboardShortcutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardShortcutTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -410,6 +426,10 @@
 				FS000050000000000000BB01 /* PlayerRetryPathTests.swift */,
 				D1500005000000000000BB05 /* TitleDetailViewModelTests.swift */,
 				D1500006000000000000BB06 /* TitleDetailSnapshotTests.swift */,
+				D1600005000000000000BB05 /* SearchViewModelTests.swift */,
+				D1600006000000000000BB06 /* SeasonEpisodeSelectorViewModelTests.swift */,
+				D1600007000000000000BB07 /* SubtitlePickerViewModelTests.swift */,
+				D1600008000000000000BB08 /* KeyboardShortcutTests.swift */,
 				SD000008000000000000BB01 /* SubtitleIngestorTests.swift */,
 				SD000009000000000000BB01 /* SubtitleControllerTests.swift */,
 				SD000010000000000000BB01 /* SubtitlePreferenceStoreTests.swift */,
@@ -441,11 +461,15 @@
 				D13D002C000000000000DD2C /* DetailRouteStub.swift */,
 				D13D002E000000000000DD2E /* MoviesGridView.swift */,
 				D13D0030000000000000DD30 /* ShowsGridView.swift */,
+				D1600001000000000000BB01 /* SearchViewModel.swift */,
+				D1600002000000000000BB02 /* SearchView.swift */,
 				D17C0002AAAA0000BBBB0002 /* LibraryMetadataResolver.swift */,
 				D1500001000000000000BB01 /* TitleDetailView.swift */,
 				D1500002000000000000BB02 /* TitleDetailViewModel.swift */,
 				D1500003000000000000BB03 /* CastChipRow.swift */,
 				D1500004000000000000BB04 /* RecommendationsRow.swift */,
+				D1600003000000000000BB03 /* SeasonEpisodeSelectorViewModel.swift */,
+				D1600004000000000000BB04 /* SeasonEpisodeSelectorView.swift */,
 			);
 			path = Discovery;
 			sourceTree = "<group>";
@@ -819,6 +843,10 @@
 				FS000050000000000000AA01 /* PlayerRetryPathTests.swift in Sources */,
 				D1500005000000000000AA05 /* TitleDetailViewModelTests.swift in Sources */,
 				D1500006000000000000AA06 /* TitleDetailSnapshotTests.swift in Sources */,
+				D1600005000000000000AA05 /* SearchViewModelTests.swift in Sources */,
+				D1600006000000000000AA06 /* SeasonEpisodeSelectorViewModelTests.swift in Sources */,
+				D1600007000000000000AA07 /* SubtitlePickerViewModelTests.swift in Sources */,
+				D1600008000000000000AA08 /* KeyboardShortcutTests.swift in Sources */,
 				SD000008000000000000AA01 /* SubtitleIngestorTests.swift in Sources */,
 				SD000009000000000000AA01 /* SubtitleControllerTests.swift in Sources */,
 				SD000010000000000000AA01 /* SubtitlePreferenceStoreTests.swift in Sources */,
@@ -904,12 +932,16 @@
 				D13D002B000000000000DD2B /* DetailRouteStub.swift in Sources */,
 				D13D002D000000000000DD2D /* MoviesGridView.swift in Sources */,
 				D13D002F000000000000DD2F /* ShowsGridView.swift in Sources */,
+				D1600001000000000000AA01 /* SearchViewModel.swift in Sources */,
+				D1600002000000000000AA02 /* SearchView.swift in Sources */,
 				FS000010000000000000AA01 /* PlayerCopy.swift in Sources */,
 				FS000020000000000000AA01 /* PlayerErrorChrome.swift in Sources */,
 				D1500001000000000000AA01 /* TitleDetailView.swift in Sources */,
 				D1500002000000000000AA02 /* TitleDetailViewModel.swift in Sources */,
 				D1500003000000000000AA03 /* CastChipRow.swift in Sources */,
 				D1500004000000000000AA04 /* RecommendationsRow.swift in Sources */,
+				D1600003000000000000AA03 /* SeasonEpisodeSelectorViewModel.swift in Sources */,
+				D1600004000000000000AA04 /* SeasonEpisodeSelectorView.swift in Sources */,
 				SD000001000000000000AA01 /* SubtitleController.swift in Sources */,
 				SD000002000000000000AA01 /* SubtitleIngestor.swift in Sources */,
 				SD000003000000000000AA01 /* SubtitleOverlay.swift in Sources */,

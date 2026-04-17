@@ -204,6 +204,23 @@ final class TitleDetailViewModelTests: XCTestCase {
         XCTAssertEqual(detail.cast.count, TitleDetailViewModel.defaultCastCount)
     }
 
+    func testUsesCastFromDetailPayloadWhenNoCastProviderInjected() async {
+        let provider = StubProvider()
+        let cast = [CastMember(id: 1, name: "Actor", character: "Lead", profilePath: "/actor.jpg")]
+        provider.movieDetailResult = .success(Self.sampleMovie.withCast(cast))
+        let vm = TitleDetailViewModel(
+            id: Self.sampleMovieID,
+            kind: .movie,
+            provider: provider
+        )
+        await vm.load()
+
+        guard case .loaded(let detail, _) = vm.state else {
+            return XCTFail("Expected .loaded; got \(vm.state)")
+        }
+        XCTAssertEqual(detail.cast, cast)
+    }
+
     // MARK: - Image URL helpers route through the provider
 
     func testImageURLHelpersUseProvider() async {
@@ -255,6 +272,25 @@ final class TitleDetailViewModelTests: XCTestCase {
             voteAverage: 8.4,
             popularity: 200.0,
             seasons: []
+        )
+    }
+}
+
+private extension Movie {
+    func withCast(_ cast: [CastMember]) -> Movie {
+        Movie(
+            id: id,
+            title: title,
+            originalTitle: originalTitle,
+            releaseYear: releaseYear,
+            runtimeMinutes: runtimeMinutes,
+            overview: overview,
+            genres: genres,
+            posterPath: posterPath,
+            backdropPath: backdropPath,
+            voteAverage: voteAverage,
+            popularity: popularity,
+            cast: cast
         )
     }
 }

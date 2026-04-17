@@ -97,14 +97,20 @@ public actor TMDBProvider: MetadataProvider {
 
     public func movieDetail(id: MediaID) async throws -> Movie {
         precondition(id.provider == .tmdb)
-        let url = endpoint("/movie/\(id.id)")
+        let url = appendingQueryItem(
+            URLQueryItem(name: "append_to_response", value: "credits"),
+            to: endpoint("/movie/\(id.id)")
+        )
         let dto: MovieDetailDTO = try await fetch(url: url, ttl: MetadataCacheTTL.movieDetail)
         return dto.toMovie()
     }
 
     public func showDetail(id: MediaID) async throws -> Show {
         precondition(id.provider == .tmdb)
-        let url = endpoint("/tv/\(id.id)")
+        let url = appendingQueryItem(
+            URLQueryItem(name: "append_to_response", value: "credits"),
+            to: endpoint("/tv/\(id.id)")
+        )
         let dto: ShowDetailDTO = try await fetch(url: url, ttl: MetadataCacheTTL.showDetail)
         return dto.toShow()
     }
@@ -145,6 +151,12 @@ public actor TMDBProvider: MetadataProvider {
             items.append(URLQueryItem(name: "region", value: region))
         }
         components.queryItems = items
+        return components.url!
+    }
+
+    private nonisolated func appendingQueryItem(_ item: URLQueryItem, to url: URL) -> URL {
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
+        components.queryItems = (components.queryItems ?? []) + [item]
         return components.url!
     }
 
@@ -386,6 +398,31 @@ struct GenreDTO: Decodable {
     func toGenre() -> Genre { Genre(id: id, name: name) }
 }
 
+struct CreditsDTO: Decodable {
+    let cast: [CastMemberDTO]?
+}
+
+struct CastMemberDTO: Decodable {
+    let id: Int
+    let name: String
+    let character: String?
+    let profilePath: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, character
+        case profilePath = "profile_path"
+    }
+
+    func toCastMember() -> CastMember {
+        CastMember(
+            id: id,
+            name: name,
+            character: character ?? "",
+            profilePath: profilePath
+        )
+    }
+}
+
 struct MovieDetailDTO: Decodable {
     let id: Int64
     let title: String
@@ -398,9 +435,10 @@ struct MovieDetailDTO: Decodable {
     let voteAverage: Double?
     let popularity: Double?
     let genres: [GenreDTO]?
+    let credits: CreditsDTO?
 
     private enum CodingKeys: String, CodingKey {
-        case id, title, runtime, overview, popularity, genres
+        case id, title, runtime, overview, popularity, genres, credits
         case originalTitle = "original_title"
         case releaseDate = "release_date"
         case posterPath = "poster_path"
@@ -424,7 +462,8 @@ struct MovieDetailDTO: Decodable {
             posterPath: posterPath,
             backdropPath: backdropPath,
             voteAverage: voteAverage,
-            popularity: popularity
+            popularity: popularity,
+            cast: (credits?.cast ?? []).map { $0.toCastMember() }
         )
     }
 }
@@ -444,9 +483,10 @@ struct ShowDetailDTO: Decodable {
     let popularity: Double?
     let genres: [GenreDTO]?
     let seasons: [SeasonSummaryDTO]?
+    let credits: CreditsDTO?
 
     private enum CodingKeys: String, CodingKey {
-        case id, name, status, overview, popularity, genres, seasons
+        case id, name, status, overview, popularity, genres, seasons, credits
         case originalName = "original_name"
         case firstAirDate = "first_air_date"
         case lastAirDate = "last_air_date"
@@ -498,7 +538,8 @@ struct ShowDetailDTO: Decodable {
             backdropPath: backdropPath,
             voteAverage: voteAverage,
             popularity: popularity,
-            seasons: mappedSeasons
+            seasons: mappedSeasons,
+            cast: (credits?.cast ?? []).map { $0.toCastMember() }
         )
     }
 }

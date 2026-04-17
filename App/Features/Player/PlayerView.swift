@@ -1,6 +1,7 @@
 import AVFoundation
 import AppKit
 import EngineInterface
+import MetadataDomain
 import PlayerDomain
 import SwiftUI
 
@@ -21,11 +22,14 @@ import SwiftUI
 struct PlayerView: View {
 
     @StateObject private var viewModel: PlayerViewModel
+    @StateObject private var nextEpisodeCoordinator: NextEpisodeCoordinator
     @State private var overlayVisible: Bool = true
     @State private var hideTask: Task<Void, Never>?
     @State private var isFullscreen: Bool = false
     @State private var showingAudioPicker: Bool = false
+    @State private var showingSubtitlePicker: Bool = false
     @State private var isDropTargeted: Bool = false
+    @FocusState private var hasKeyboardFocus: Bool
 
     /// Auto-hide delay after pointer idle while `.playing`. Injected so tests
     /// don't have to wait three real seconds.
@@ -35,12 +39,27 @@ struct PlayerView: View {
          engineClient: EngineClient,
          torrentID: String? = nil,
          fileIndex: Int32? = nil,
+         currentEpisode: Episode? = nil,
+         currentShow: Show? = nil,
+         metadataProvider: MetadataProvider? = nil,
          autoHideDelay: Duration = .seconds(3)) {
-        _viewModel = StateObject(wrappedValue: PlayerViewModel(
+        let provider: MetadataProvider = metadataProvider ?? TMDBProvider(
+            config: .init(bearerToken: TMDBSecrets.tmdbAccessToken)
+        )
+        let vm = PlayerViewModel(
             streamDescriptor: streamDescriptor,
             engineClient: engineClient,
             torrentID: torrentID,
-            fileIndex: fileIndex
+            fileIndex: fileIndex,
+            currentEpisode: currentEpisode,
+            currentShow: currentShow
+        )
+        _viewModel = StateObject(wrappedValue: vm)
+        _nextEpisodeCoordinator = StateObject(wrappedValue: NextEpisodeCoordinator(
+            metadata: provider,
+            openStream: { episode in
+                Task { @MainActor in vm.openNextEpisode(episode) }
+            }
         ))
         self.autoHideDelay = autoHideDelay
     }
@@ -74,6 +93,7 @@ struct PlayerView: View {
                 onClose: { viewModel.close() },
                 onToggleFullscreen: toggleFullscreen,
                 onScrub: { seconds in viewModel.seek(toSeconds: seconds) },
+                onOpenSubtitlePicker: { showingSubtitlePicker = true },
                 onOpenAudioPicker: { showingAudioPicker = true }
             )
             .opacity(effectiveOverlayOpacity)
@@ -90,13 +110,21 @@ struct PlayerView: View {
                     onDismiss: { showingAudioPicker = false }
                 )
             }
+            .sheet(isPresented: $showingSubtitlePicker) {
+                SubtitlePickerView(
+                    viewModel: SubtitlePickerViewModel(
+                        controller: viewModel.subtitleController,
+                        state: viewModel.state
+                    ),
+                    onDismiss: { showingSubtitlePicker = false }
+                )
+            }
 
-            // Subtitle controls — banner + selection menu. Visibility tracks
+            // Subtitle error banner. Visibility tracks
             // the chrome overlay so the controls hide together with the HUD.
             VStack(spacing: 8) {
                 Spacer()
                 SubtitleErrorBanner(controller: viewModel.subtitleController)
-                SubtitleSelectionMenu(controller: viewModel.subtitleController)
             }
             .padding(.bottom, 24)
             .frame(maxWidth: .infinity, alignment: .center)
@@ -131,6 +159,21 @@ struct PlayerView: View {
                 )
                 .transition(.opacity)
             }
+
+            if let offer = nextEpisodeCoordinator.offer {
+                UpNextOverlay(
+                    offer: offer,
+                    secondsRemaining: nextEpisodeCoordinator.secondsRemaining,
+                    onPlayNow: { nextEpisodeCoordinator.playNow() },
+                    onCancel: { nextEpisodeCoordinator.cancel() }
+                )
+                .transition(.opacity)
+            }
+
+            if let message = viewModel.transientMessage {
+                transientBanner(message)
+                    .transition(.opacity)
+            }
         }
         .animation(.easeInOut(duration: 0.25), value: viewModel.resumePromptOffer)
         // SRT drag-and-drop: accept .fileURL drops over the player.
@@ -142,6 +185,23 @@ struct PlayerView: View {
         }
         // Dark colour scheme enforced regardless of system appearance.
         .preferredColorScheme(.dark)
+        .focusable()
+        .focused($hasKeyboardFocus)
+        .onKeyPress(.space) {
+            handleKeyboardShortcut(.playPause)
+        }
+        .onKeyPress(.leftArrow) {
+            handleKeyboardShortcut(.seekBackward)
+        }
+        .onKeyPress(.rightArrow) {
+            handleKeyboardShortcut(.seekForward)
+        }
+        .onKeyPress("f") {
+            handleKeyboardShortcut(.toggleFullscreen)
+        }
+        .onKeyPress(.escape) {
+            handleKeyboardShortcut(.escape)
+        }
         // Track mouse movement to reset the auto-hide timer.
         .onContinuousHover { phase in
             switch phase {
@@ -158,6 +218,7 @@ struct PlayerView: View {
             // routes through resolveResumeContinue / resolveResumeStartOver.
             viewModel.requestAutoPlayWhenReady()
             scheduleHide(for: viewModel.state)
+            hasKeyboardFocus = true
         }
         .onChange(of: viewModel.state) { _, newState in
             // Re-evaluate auto-hide policy whenever state changes — leaving
@@ -230,6 +291,72 @@ struct PlayerView: View {
         }
     }
 
+    private func exitFullscreen() {
+        guard isFullscreen else { return }
+        toggleFullscreen()
+    }
+
+    private func handleKeyboardShortcut(_ shortcut: PlayerKeyboardShortcut) -> KeyPress.Result {
+        guard shortcut.isEnabled(in: viewModel.state) else { return .ignored }
+        switch shortcut {
+        case .playPause:
+            if viewModel.state == .paused {
+                viewModel.play()
+            } else {
+                viewModel.pause()
+            }
+        case .seekBackward:
+            viewModel.seek(toSeconds: max(0, viewModel.currentSeconds - 10))
+        case .seekForward:
+            let target = viewModel.currentSeconds + 10
+            if viewModel.durationSeconds > 0 {
+                viewModel.seek(toSeconds: min(viewModel.durationSeconds, target))
+            } else {
+                viewModel.seek(toSeconds: target)
+            }
+        case .toggleFullscreen:
+            toggleFullscreen()
+        case .escape:
+            if isFullscreen {
+                exitFullscreen()
+            } else {
+                viewModel.close()
+            }
+        }
+        return .handled
+    }
+
+    private func transientBanner(_ message: String) -> some View {
+        VStack {
+            Spacer()
+            Text(message)
+                .brandCaption()
+                .foregroundStyle(BrandColors.cocoa)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(BrandColors.surfaceRaised)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .padding(.bottom, 96)
+        }
+    }
+
+}
+
+enum PlayerKeyboardShortcut: Equatable {
+    case playPause
+    case seekBackward
+    case seekForward
+    case toggleFullscreen
+    case escape
+
+    func isEnabled(in state: PlayerState) -> Bool {
+        switch state {
+        case .playing, .paused, .buffering:
+            return true
+        case .closed, .open, .error:
+            return false
+        }
+    }
 }
 
 // MARK: - Previews
