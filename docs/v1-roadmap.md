@@ -79,7 +79,7 @@ Every phase follows the same protocol:
 - Cross-session sidecar persistence — explicit v1 limitation per design doc D5.
 - Subtitle offset / styling controls — v1.5+ per spec 07.
 
-**Status (2026-04-17):** design merged (PR #157); foundation #27 merged (PR #161 — `Packages/SubtitleDomain`, 46 tests); app integration (#28/#29/#30/#32) **PAUSED**. PR #171 was closed without merge after `main` diverged mid-flight — PRs #164 (PlayerState foundation), #166 (overlay controls), and #167 (resume prompt) reshaped `PlayerView` / `PlayerViewModel` around `PlayerDomain.PlayerState` and the `PlayerOverlay` / `PlayerScrubBar` chrome, making the branch's player-integration commits stale against the new shape. The subtitle implementation (SubtitleController, SubtitleIngestor, SubtitleOverlay, SubtitleSelectionMenu, SubtitlePreferenceStore, SubtitleErrorBanner + 25 unit tests + 22 snapshot baselines) is preserved on dangling commit `4308cdc`. See epic #4 for the pickup plan.
+**Status (2026-04-17):** design merged (PR #157); foundation #27 merged (PR #161 — `Packages/SubtitleDomain`, 46 tests); app integration (#28/#29/#30/#32) merged via rebuild PR #174 (d335749) after PR #171 was closed mid-flight. **Epic #4 CLOSED.** SubtitleController, SubtitleIngestor, SubtitleOverlay, SubtitleSelectionMenu, SubtitlePreferenceStore, SubtitleErrorBanner all landed with unit + snapshot tests. **Follow-up flagged:** `SubtitleController.activateTrack` should set `selection = nil` on AVKit activation failure (design doc § Fallback matrix row 4) — fix as part of a subtitle-resumption follow-up.
 
 **Phase 2 done =** #27, #28, #29, #30, #32 closed; #72 closed as duplicate of #28; epic #4 closed; user can drag a `.srt` onto the player, pick a track, and have the preference persisted across launches.
 
@@ -115,6 +115,8 @@ Every phase follows the same protocol:
 - PiP, AirPlay, external player handoff — p2 per spec 07.
 - Playback speed controls — v1.5+.
 
+**Status (2026-04-17):** foundation #18 merged (PR #164); #19 resume prompt merged (PR #167); #20 end-of-episode detector merged (PR #170); #21 next-episode auto-play merged (PR #175); #23 audio track picker merged (PR #169); #24 overlay controls merged (PR #166); #26 failure states + retry merged (PR #177). **Outstanding:** #22 subtitle picker (was blocked on Phase 2 #29 — now unblocked after PR #174 landed Phase 2), #25 keyboard shortcuts. **Follow-up flagged:** `NextEpisodeCoordinator` (PR #175) is unit-tested but not host-wired into `PlayerView` — needs an `Episode → (torrentID, fileIndex)` resolver that doesn't exist yet.
+
 **Phase 3 done =** #18–#26 closed per option chosen above; epic #3 closed; every player surface routes through `PlayerState` rather than ad-hoc booleans.
 
 ### Phase 4 — Discovery and metadata (Epic #2)
@@ -138,6 +140,8 @@ Every phase follows the same protocol:
 - Related / recommended titles beyond what Trakt's stock endpoints provide (richer recommendations are p2).
 - Advanced sort/filter (p2).
 - Trailers / extras (p2).
+
+**Status (2026-04-17):** foundation #11 merged (PR #168 — `Packages/MetadataDomain`); #13 browse hierarchy + home rows merged (PR #172); #15 title detail page merged (PR #178); #17 continue-watching cards merged (PR #176). Phase 3 tail: #20 and #21 already merged in Phase 3 (see above). **Outstanding:** #14 search (unblocked), #16 season/episode selector (unblocked). **Follow-up flagged:** `MetadataProvider` does not yet expose cast/credits — `TitleDetailView` cast row is wired via injected fixtures and dormant until a small `MetadataDomain` extension lands.
 
 **Phase 4 done =** #11, #13, #14, #15, #16, #17 closed (+ #20, #21 if in tail); epic #2 closed; the "Definition of a credible v1" walkthrough in spec 07 § passes end-to-end manually.
 
