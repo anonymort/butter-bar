@@ -195,11 +195,15 @@ struct PlayerOverlay: View {
                         // we cannot deliver).
                         enabled: false
                     )
+                    // Audio picker — wired by #23. Per AC: discoverability
+                    // matters even on single-track assets, so the entry point
+                    // is always enabled when the policy shows it; the picker
+                    // itself renders the calm disabled copy when there's
+                    // nothing to choose.
                     overlayButton(
                         systemImage: "speaker.wave.2",
                         label: "Audio track",
-                        action: onOpenAudioPicker,
-                        enabled: false
+                        action: onOpenAudioPicker
                     )
                 }
             }
