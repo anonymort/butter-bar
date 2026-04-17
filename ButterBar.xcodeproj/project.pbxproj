@@ -90,6 +90,10 @@
 		EE44FF550011AA22BB33CC44 /* FileSelectionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD33EE44FF550011AA22BB44 /* FileSelectionSheet.swift */; };
 		FACE0007AAAA0000BBBB0007 /* ContinueWatchingItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE0008AAAA0000BBBB0008 /* ContinueWatchingItem.swift */; };
 		FACE0009AAAA0000BBBB0009 /* ContinueWatchingRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE000AAAAAA0000BBBB000A /* ContinueWatchingRow.swift */; };
+		D17C0001AAAA0000BBBB0001 /* LibraryMetadataResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17C0002AAAA0000BBBB0002 /* LibraryMetadataResolver.swift */; };
+		D17C0003AAAA0000BBBB0003 /* LibraryMetadataResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17C0004AAAA0000BBBB0004 /* LibraryMetadataResolverTests.swift */; };
+		D17C0005AAAA0000BBBB0005 /* ContinueWatchingRowViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17C0006AAAA0000BBBB0006 /* ContinueWatchingRowViewModelTests.swift */; };
+		D17C0007AAAA0000BBBB0007 /* ContinueWatchingRowSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17C0008AAAA0000BBBB0008 /* ContinueWatchingRowSnapshotTests.swift */; };
 		EE5566778899AABBEE5566FF /* HTTPSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF66778899AABBCC0011FF66 /* HTTPSerializer.swift */; };
 		EW000001000000000000AA01 /* EvictionWireSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = EW000002000000000000AA02 /* EvictionWireSelfTest.swift */; };
 		EW000003000000000000AA03 /* XPCCodesignSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = EW000004000000000000AA04 /* XPCCodesignSelfTest.swift */; };
@@ -201,6 +205,10 @@
 		DD33EE44FF550011AA22BB44 /* FileSelectionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSelectionSheet.swift; sourceTree = "<group>"; };
 		FACE0008AAAA0000BBBB0008 /* ContinueWatchingItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinueWatchingItem.swift; sourceTree = "<group>"; };
 		FACE000AAAAAA0000BBBB000A /* ContinueWatchingRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinueWatchingRow.swift; sourceTree = "<group>"; };
+		D17C0002AAAA0000BBBB0002 /* LibraryMetadataResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryMetadataResolver.swift; sourceTree = "<group>"; };
+		D17C0004AAAA0000BBBB0004 /* LibraryMetadataResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryMetadataResolverTests.swift; sourceTree = "<group>"; };
+		D17C0006AAAA0000BBBB0006 /* ContinueWatchingRowViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinueWatchingRowViewModelTests.swift; sourceTree = "<group>"; };
+		D17C0008AAAA0000BBBB0008 /* ContinueWatchingRowSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinueWatchingRowSnapshotTests.swift; sourceTree = "<group>"; };
 		DD4455667788990ADDEEE445 /* HTTPParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPParser.swift; sourceTree = "<group>"; };
 		DD44EE55FF6677AA88BB99CC /* DTOSendable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTOSendable.swift; sourceTree = "<group>"; };
 		DD44EE66FF88AA00BB22CC44 /* EngineStore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = EngineStore; path = Packages/EngineStore; sourceTree = "<group>"; };
@@ -327,6 +335,9 @@
 				FACE0006AAAA0000BBBB0006 /* LibraryViewModelWatchStateTests.swift */,
 				FACE000CAAAA0000BBBB000C /* LibraryViewModelContinueWatchingTests.swift */,
 				FACE000EAAAA0000BBBB000E /* LibraryViewModelFavouritesTests.swift */,
+				D17C0004AAAA0000BBBB0004 /* LibraryMetadataResolverTests.swift */,
+				D17C0006AAAA0000BBBB0006 /* ContinueWatchingRowViewModelTests.swift */,
+				D17C0008AAAA0000BBBB0008 /* ContinueWatchingRowSnapshotTests.swift */,
 				TA000001000000000000BB01 /* TorrentAlertTests.swift */,
 				PBM00005000000000000BB01 /* PieceByteMappingTests.swift */,
 				RP1000003000000000BB03 /* ResumePromptDecisionTests.swift */,
@@ -342,9 +353,9 @@
 		2E8A3935F76DD63B81D5BCD8 /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				D13D0040000000000000DD40 /* Discovery */,
 				EE44FF5500AA11BB22CC33DD /* Library */,
 				C1000001000000000000DD01 /* Player */,
-				D13D0040000000000000DD40 /* Discovery */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -360,6 +371,7 @@
 				D13D002C000000000000DD2C /* DetailRouteStub.swift */,
 				D13D002E000000000000DD2E /* MoviesGridView.swift */,
 				D13D0030000000000000DD30 /* ShowsGridView.swift */,
+				D17C0002AAAA0000BBBB0002 /* LibraryMetadataResolver.swift */,
 			);
 			path = Discovery;
 			sourceTree = "<group>";
@@ -692,6 +704,9 @@
 				FACE0005AAAA0000BBBB0005 /* LibraryViewModelWatchStateTests.swift in Sources */,
 				FACE000BAAAA0000BBBB000B /* LibraryViewModelContinueWatchingTests.swift in Sources */,
 				FACE000DAAAA0000BBBB000D /* LibraryViewModelFavouritesTests.swift in Sources */,
+				D17C0003AAAA0000BBBB0003 /* LibraryMetadataResolverTests.swift in Sources */,
+				D17C0005AAAA0000BBBB0005 /* ContinueWatchingRowViewModelTests.swift in Sources */,
+				D17C0007AAAA0000BBBB0007 /* ContinueWatchingRowSnapshotTests.swift in Sources */,
 				TA000002000000000000AA01 /* TorrentAlertTests.swift in Sources */,
 				TA000003000000000000AA01 /* TorrentAlert.swift in Sources */,
 				PBM00003000000000000AA01 /* PieceByteMapping.swift in Sources */,
@@ -759,6 +774,7 @@
 				EE44FF550011AA22BB33CC44 /* FileSelectionSheet.swift in Sources */,
 				FACE0007AAAA0000BBBB0007 /* ContinueWatchingItem.swift in Sources */,
 				FACE0009AAAA0000BBBB0009 /* ContinueWatchingRow.swift in Sources */,
+				D17C0001AAAA0000BBBB0001 /* LibraryMetadataResolver.swift in Sources */,
 				A1000001000000000000AA01 /* PlayerView.swift in Sources */,
 				A1000002000000000000AA02 /* PlayerViewModel.swift in Sources */,
 				A1000003000000000000AA03 /* AVPlayerViewRepresentable.swift in Sources */,
