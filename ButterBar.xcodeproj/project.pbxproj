@@ -113,6 +113,12 @@
 		FS000030000000000000AA01 /* PlayerErrorChromeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FS000030000000000000BB01 /* PlayerErrorChromeTests.swift */; };
 		FS000040000000000000AA01 /* PlayerBufferingChromeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FS000040000000000000BB01 /* PlayerBufferingChromeTests.swift */; };
 		FS000050000000000000AA01 /* PlayerRetryPathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FS000050000000000000BB01 /* PlayerRetryPathTests.swift */; };
+		D1500001000000000000AA01 /* TitleDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1500001000000000000BB01 /* TitleDetailView.swift */; };
+		D1500002000000000000AA02 /* TitleDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1500002000000000000BB02 /* TitleDetailViewModel.swift */; };
+		D1500003000000000000AA03 /* CastChipRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1500003000000000000BB03 /* CastChipRow.swift */; };
+		D1500004000000000000AA04 /* RecommendationsRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1500004000000000000BB04 /* RecommendationsRow.swift */; };
+		D1500005000000000000AA05 /* TitleDetailViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1500005000000000000BB05 /* TitleDetailViewModelTests.swift */; };
+		D1500006000000000000AA06 /* TitleDetailSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1500006000000000000BB06 /* TitleDetailSnapshotTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -256,6 +262,12 @@
 		FS000030000000000000BB01 /* PlayerErrorChromeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerErrorChromeTests.swift; sourceTree = "<group>"; };
 		FS000040000000000000BB01 /* PlayerBufferingChromeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerBufferingChromeTests.swift; sourceTree = "<group>"; };
 		FS000050000000000000BB01 /* PlayerRetryPathTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerRetryPathTests.swift; sourceTree = "<group>"; };
+		D1500001000000000000BB01 /* TitleDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleDetailView.swift; sourceTree = "<group>"; };
+		D1500002000000000000BB02 /* TitleDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleDetailViewModel.swift; sourceTree = "<group>"; };
+		D1500003000000000000BB03 /* CastChipRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CastChipRow.swift; sourceTree = "<group>"; };
+		D1500004000000000000BB04 /* RecommendationsRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendationsRow.swift; sourceTree = "<group>"; };
+		D1500005000000000000BB05 /* TitleDetailViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleDetailViewModelTests.swift; sourceTree = "<group>"; };
+		D1500006000000000000BB06 /* TitleDetailSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleDetailSnapshotTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -359,6 +371,8 @@
 				FS000030000000000000BB01 /* PlayerErrorChromeTests.swift */,
 				FS000040000000000000BB01 /* PlayerBufferingChromeTests.swift */,
 				FS000050000000000000BB01 /* PlayerRetryPathTests.swift */,
+				D1500005000000000000BB05 /* TitleDetailViewModelTests.swift */,
+				D1500006000000000000BB06 /* TitleDetailSnapshotTests.swift */,
 			);
 			path = ButterBarTests;
 			sourceTree = "<group>";
@@ -385,6 +399,10 @@
 				D13D002E000000000000DD2E /* MoviesGridView.swift */,
 				D13D0030000000000000DD30 /* ShowsGridView.swift */,
 				D17C0002AAAA0000BBBB0002 /* LibraryMetadataResolver.swift */,
+				D1500001000000000000BB01 /* TitleDetailView.swift */,
+				D1500002000000000000BB02 /* TitleDetailViewModel.swift */,
+				D1500003000000000000BB03 /* CastChipRow.swift */,
+				D1500004000000000000BB04 /* RecommendationsRow.swift */,
 			);
 			path = Discovery;
 			sourceTree = "<group>";
@@ -735,6 +753,8 @@
 				FS000030000000000000AA01 /* PlayerErrorChromeTests.swift in Sources */,
 				FS000040000000000000AA01 /* PlayerBufferingChromeTests.swift in Sources */,
 				FS000050000000000000AA01 /* PlayerRetryPathTests.swift in Sources */,
+				D1500005000000000000AA05 /* TitleDetailViewModelTests.swift in Sources */,
+				D1500006000000000000AA06 /* TitleDetailSnapshotTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -815,6 +835,10 @@
 				D13D002F000000000000DD2F /* ShowsGridView.swift in Sources */,
 				FS000010000000000000AA01 /* PlayerCopy.swift in Sources */,
 				FS000020000000000000AA01 /* PlayerErrorChrome.swift in Sources */,
+				D1500001000000000000AA01 /* TitleDetailView.swift in Sources */,
+				D1500002000000000000AA02 /* TitleDetailViewModel.swift in Sources */,
+				D1500003000000000000AA03 /* CastChipRow.swift in Sources */,
+				D1500004000000000000AA04 /* RecommendationsRow.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
