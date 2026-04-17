@@ -30,6 +30,15 @@ final class PlayerViewModel: ObservableObject {
     /// state machine deliberately doesn't carry.
     @Published private(set) var health: StreamHealthDTO?
 
+    /// Current playback time in seconds, observed from `AVPlayer` via a
+    /// periodic time observer. Drives the scrub bar in `PlayerOverlay`.
+    /// `0` until the asset reports a sensible time.
+    @Published private(set) var currentSeconds: Double = 0
+
+    /// Asset duration in seconds, observed from `AVPlayerItem.duration`.
+    /// `0` until the asset reports a finite duration.
+    @Published private(set) var durationSeconds: Double = 0
+
     // MARK: Internal
 
     /// Strong reference — released in `close()`.
@@ -44,6 +53,7 @@ final class PlayerViewModel: ObservableObject {
     private var reconnectSubscription: AnyCancellable?
     private var avPlayerObservers = Set<AnyCancellable>()
     private var cancellables = Set<AnyCancellable>()
+    private var periodicTimeObserver: Any?
     private var isClosed = false
     private var hasPriorEvents = false   // edge detection for disconnect/reconnect
 
@@ -114,6 +124,16 @@ final class PlayerViewModel: ObservableObject {
         handle(.userTappedRetry)
     }
 
+    /// Seek the underlying `AVPlayer`. Invisible to the state machine per
+    /// design § D5 (scrub does not produce a `PlayerEvent`).
+    func seek(toSeconds seconds: Double) {
+        guard let player else { return }
+        let target = CMTime(seconds: max(0, seconds), preferredTimescale: 600)
+        player.seek(to: target,
+                    toleranceBefore: .zero,
+                    toleranceAfter: CMTime(seconds: 1, preferredTimescale: 600))
+    }
+
     // MARK: - Event handling
 
     /// Apply a `PlayerEvent` through the state machine and perform the side
@@ -158,6 +178,10 @@ final class PlayerViewModel: ObservableObject {
         healthSubscription = nil
         reconnectSubscription = nil
         cancellables.removeAll()
+        if let token = periodicTimeObserver {
+            player?.removeTimeObserver(token)
+            periodicTimeObserver = nil
+        }
         player?.pause()
         player = nil
         let streamID = streamDescriptor.streamID as String
@@ -260,6 +284,33 @@ final class PlayerViewModel: ObservableObject {
                 if status == .failed { self?.handle(.avPlayerFailed) }
             }
             .store(in: &avPlayerObservers)
+
+        // Asset duration arrives some time after `readyToPlay`. Republish
+        // through `durationSeconds` so the scrub bar can render once it is
+        // known.
+        item.publisher(for: \.duration)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] cmtime in
+                guard let self else { return }
+                if cmtime.isNumeric, cmtime.seconds.isFinite, cmtime.seconds > 0 {
+                    self.durationSeconds = cmtime.seconds
+                }
+            }
+            .store(in: &avPlayerObservers)
+
+        // Periodic time observer for scrub-bar progress. 200 ms cadence is
+        // smooth enough for the eased fill animation without busying the
+        // main thread.
+        let interval = CMTime(seconds: 0.2, preferredTimescale: 600)
+        periodicTimeObserver = player.addPeriodicTimeObserver(
+            forInterval: interval,
+            queue: .main
+        ) { [weak self] cmtime in
+            guard let self else { return }
+            if cmtime.isNumeric, cmtime.seconds.isFinite, cmtime.seconds >= 0 {
+                self.currentSeconds = cmtime.seconds
+            }
+        }
     }
 
     // MARK: - Private helpers
