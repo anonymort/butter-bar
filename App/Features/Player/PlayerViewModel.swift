@@ -47,6 +47,19 @@ final class PlayerViewModel: ObservableObject {
     /// `hasOfferedResume` flag below gates re-entry.
     @Published private(set) var resumePromptOffer: ResumePromptOffer?
 
+    /// Last-known engine tier captured before a transition into `.error(_)`.
+    /// Used by `PlayerErrorChrome` to surface a calm context hint on
+    /// `.playbackFailed` when the engine was already starving when playback
+    /// stopped. `nil` if no health event has ever been observed.
+    @Published private(set) var lastKnownTier: StreamHealthTier?
+
+    /// Whether the buffering chrome should show its long-buffering secondary
+    /// line. Decided against an injected clock per
+    /// `PlayerCopy.shouldShowLongStarvingLine` — published so the view can
+    /// react when the threshold is crossed. Resets to `false` whenever the
+    /// state leaves `.buffering(.engineStarving)`.
+    @Published private(set) var showLongBufferingSecondary: Bool = false
+
     // MARK: Internal
 
     /// Strong reference — released in `close()`.
@@ -61,6 +74,11 @@ final class PlayerViewModel: ObservableObject {
     /// inject a fake to drive the resume-prompt seam without standing up
     /// a real XPC connection.
     private let historyProvider: () async throws -> [PlaybackHistoryDTO]
+    /// Async closure that opens a stream by `(torrentID, fileIndex)`. Defaults
+    /// to `engineClient.openStream` in production; tests inject a fake so the
+    /// retry path (#26) can be exercised without standing up a real XPC
+    /// connection.
+    private let streamOpener: (String, Int32) async throws -> StreamDescriptorDTO
     private let now: () -> Date
     /// Identity of the file behind this stream. Optional because preview /
     /// snapshot tests construct a VM without an underlying torrent. When
@@ -80,6 +98,18 @@ final class PlayerViewModel: ObservableObject {
     /// AVPlayerItem the resume seek (if any) was scheduled against. Held so
     /// "Start over" can override the prepared seek by replacing it with `.zero`.
     private weak var primaryItem: AVPlayerItem?
+    /// Wall-clock instant the current `.buffering(.engineStarving)` interval
+    /// started, used to drive `showLongBufferingSecondary` against the
+    /// injected `now` clock. `nil` while not in `.engineStarving`.
+    private var engineStarvingStartedAt: Date?
+    /// Long-running task that flips `showLongBufferingSecondary` to `true`
+    /// once the threshold elapses. Cancelled on every state transition out
+    /// of `.engineStarving`.
+    private var longBufferingTask: Task<Void, Never>?
+    /// In-flight retry. Held so a re-entry of retry while one is pending is
+    /// a no-op (the state machine already moved us back to
+    /// `.buffering(.openingStream)` — a second openStream call would race).
+    private var retryTask: Task<Void, Never>?
 
     // MARK: - Init
 
@@ -88,12 +118,16 @@ final class PlayerViewModel: ObservableObject {
          torrentID: String? = nil,
          fileIndex: Int32? = nil,
          historyProvider: (() async throws -> [PlaybackHistoryDTO])? = nil,
+         streamOpener: ((String, Int32) async throws -> StreamDescriptorDTO)? = nil,
          now: @escaping () -> Date = Date.init) {
         self.streamDescriptor = streamDescriptor
         self.engineClient = engineClient
         self.torrentID = torrentID
         self.fileIndex = fileIndex
         self.historyProvider = historyProvider ?? { try await engineClient.listPlaybackHistory() }
+        self.streamOpener = streamOpener ?? { tid, idx in
+            try await engineClient.openStream(tid as NSString, fileIndex: NSNumber(value: idx))
+        }
         self.now = now
 
         // Project the (already-completed) open through the state machine so
@@ -217,8 +251,19 @@ final class PlayerViewModel: ObservableObject {
     /// pure; this method is where AVPlayer / engine-client calls happen.
     private func handle(_ event: PlayerEvent) {
         let previous = state
+
+        // Capture the last-known engine tier *before* the transition — once
+        // the state machine moves us into `.error(_)` the published health
+        // DTO may continue to update, but the tier we want is the one that
+        // was true when playback stopped.
+        if case .engineHealthChanged(let tier) = event {
+            lastKnownTier = tier
+        }
+
         let next = PlayerStateMachine.apply(event, to: previous, now: now())
         state = next
+
+        updateLongBufferingTracking(previous: previous, next: next)
 
         // Side effects keyed off (event, previous → next) edges.
         switch (previous, event, next) {
@@ -227,13 +272,10 @@ final class PlayerViewModel: ObservableObject {
             performClose()
 
         case (.error, .userTappedRetry, .buffering(.openingStream)):
-            // Reissue openStream via the existing path — handled by the
-            // caller that originally constructed this VM. For v1 we surface
-            // the retry intent on `state`; the calling view re-creates a
-            // fresh PlayerViewModel against the same descriptor. (Direct
-            // engine.openStream re-issue from inside the VM is deferred —
-            // see #26 for the full retry plumbing.)
-            break
+            // Re-issue openStream with the original (torrentID, fileIndex)
+            // captured at first open. Per design § D6 reconnect alone never
+            // triggers this — only an explicit user retry does.
+            performRetry()
 
         case (_, .userTappedPlay, .playing):
             player?.play()
@@ -246,10 +288,140 @@ final class PlayerViewModel: ObservableObject {
         }
     }
 
+    /// Internal seam used by `PlayerRetryPathTests` to drive the VM into a
+    /// known state without standing up XPC or AVKit. Marked `internal` so
+    /// `@testable import ButterBar` can reach it; not part of any public API.
+    func injectEventForTesting(_ event: PlayerEvent) {
+        handle(event)
+    }
+
+    /// Re-issue `engine.openStream(torrentID, fileIndex)` through the
+    /// injected `streamOpener`. Result is projected back through the state
+    /// machine as `.engineReturnedDescriptor` (success) or
+    /// `.engineReturnedOpenError(_)` (failure), matching the original-open
+    /// flow exactly so the user sees the same chrome regardless of whether
+    /// it's the first attempt or a retry.
+    private func performRetry() {
+        guard let torrentID, let fileIndex else {
+            // No identity captured at construction → nothing to re-issue.
+            // The state machine has already moved to `.buffering(.openingStream)`;
+            // the user is left in a defensible "loading" state rather than a
+            // crashed view. Real call sites always have identity (#19's
+            // PlayerView init), so this branch only fires in tests / previews.
+            return
+        }
+
+        retryTask?.cancel()
+        retryTask = Task { [weak self, streamOpener] in
+            do {
+                let dto = try await streamOpener(torrentID, fileIndex)
+                guard let self else { return }
+                await MainActor.run {
+                    self.applyRetryDescriptor(dto)
+                }
+            } catch {
+                guard let self else { return }
+                let code = Self.engineCode(from: error)
+                await MainActor.run {
+                    self.handle(.engineReturnedOpenError(code))
+                }
+            }
+        }
+    }
+
+    /// Apply a freshly-opened descriptor from a retry. Replaces the
+    /// underlying `AVPlayer` so the new loopback URL is consumed, then
+    /// projects `.engineReturnedDescriptor` so the state machine moves
+    /// `.buffering(.openingStream) → .open`.
+    private func applyRetryDescriptor(_ dto: StreamDescriptorDTO) {
+        // Tear down the old AVPlayer observers — the old item is gone.
+        avPlayerObservers.removeAll()
+        if let token = periodicTimeObserver {
+            player?.removeTimeObserver(token)
+            periodicTimeObserver = nil
+        }
+
+        guard let url = URL(string: dto.loopbackURL as String) else {
+            handle(.engineReturnedOpenError(.streamOpenFailed))
+            return
+        }
+        let item = AVPlayerItem(url: url)
+        let avPlayer = AVPlayer(playerItem: item)
+        self.player = avPlayer
+        self.primaryItem = item
+
+        handle(.engineReturnedDescriptor)
+        bindAVPlayerObservers(player: avPlayer, item: item)
+    }
+
+    /// Best-effort extraction of an `EngineErrorCode` from a thrown error.
+    /// Falls back to `.streamOpenFailed` so the user still sees brand-voice
+    /// copy rather than a raw NSError description.
+    private static func engineCode(from error: Error) -> EngineErrorCode {
+        if case let EngineClientError.serviceError(nsError) = error,
+           nsError.domain == EngineErrorDomain,
+           let code = EngineErrorCode(rawValue: nsError.code) {
+            return code
+        }
+        let nsError = error as NSError
+        if nsError.domain == EngineErrorDomain,
+           let code = EngineErrorCode(rawValue: nsError.code) {
+            return code
+        }
+        return .streamOpenFailed
+    }
+
+    /// Drive `showLongBufferingSecondary` and the timer that flips it.
+    /// Pure-ish: only mutates VM state, no I/O.
+    private func updateLongBufferingTracking(previous: PlayerState,
+                                             next: PlayerState) {
+        let wasStarving = previous == .buffering(reason: .engineStarving)
+        let isStarving = next == .buffering(reason: .engineStarving)
+
+        if isStarving && !wasStarving {
+            // Entered starving — start the threshold timer.
+            engineStarvingStartedAt = now()
+            scheduleLongBufferingFlip()
+        } else if !isStarving && wasStarving {
+            // Left starving — reset.
+            engineStarvingStartedAt = nil
+            longBufferingTask?.cancel()
+            longBufferingTask = nil
+            showLongBufferingSecondary = false
+        }
+    }
+
+    private func scheduleLongBufferingFlip() {
+        longBufferingTask?.cancel()
+        let threshold = PlayerCopy.longStarvingThreshold
+        longBufferingTask = Task { [weak self] in
+            do {
+                try await Task.sleep(for: .seconds(threshold))
+            } catch {
+                return
+            }
+            await MainActor.run {
+                guard let self else { return }
+                // Re-check: only flip if still starving when the deadline
+                // lands — the state may have recovered while we slept.
+                if let started = self.engineStarvingStartedAt,
+                   PlayerCopy.shouldShowLongStarvingLine(
+                    bufferingStartedAt: started,
+                    now: self.now()) {
+                    self.showLongBufferingSecondary = true
+                }
+            }
+        }
+    }
+
     private func performClose() {
         isClosed = true
         healthSubscription?.cancel()
         reconnectSubscription?.cancel()
+        retryTask?.cancel()
+        longBufferingTask?.cancel()
+        retryTask = nil
+        longBufferingTask = nil
         avPlayerObservers.removeAll()
         healthSubscription = nil
         reconnectSubscription = nil

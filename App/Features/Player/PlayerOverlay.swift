@@ -25,6 +25,10 @@ struct PlayerOverlay: View {
     let currentSeconds: Double
     let durationSeconds: Double
     let isFullscreen: Bool
+    /// Whether the buffering chrome should surface its long-buffering
+    /// secondary line. Decided by the caller against an injected clock per
+    /// `PlayerCopy.shouldShowLongStarvingLine`.
+    var showLongBufferingSecondary: Bool = false
 
     let onPlay: () -> Void
     let onPause: () -> Void
@@ -145,25 +149,13 @@ struct PlayerOverlay: View {
         .accessibilityLabel(label)
     }
 
-    /// Buffering chrome: calm, no spinner per `06-brand.md § Motion`. Reason
-    /// copy supplied by `PlayerOverlayPolicy.bufferingCopy`.
+    /// Buffering chrome: calm, no spinner per `06-brand.md § Motion`. Copy
+    /// and the long-buffering threshold both live in `PlayerCopy` (#26).
     private func bufferingIndicator(reason: BufferingReason) -> some View {
-        VStack(spacing: 10) {
-            // A pulsing buffer-coloured pill rather than an Apple spinner.
-            // The HUD already carries the live "n s ready" value — this is the
-            // calm headline so the user knows we know what's going on.
-            Capsule()
-                .fill(BrandColors.butter)
-                .frame(width: 96, height: 4)
-                .opacity(0.8)
-
-            Text(PlayerOverlayPolicy.bufferingCopy(for: reason))
-                .brandBodyRegular()
-                .foregroundStyle(BrandColors.cocoa)
-        }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 14)
-        .overlayChromeSurface()
+        PlayerBufferingChrome(
+            reason: reason,
+            showLongBufferingSecondary: showLongBufferingSecondary
+        )
     }
 
     // MARK: - Bottom bar

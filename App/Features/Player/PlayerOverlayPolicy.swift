@@ -139,16 +139,13 @@ enum PlayerOverlayPolicy {
     }
 
     /// Reason-aware copy per design § D2 (buffering reasons) and brand §
-    /// Voice (calm, concrete, British English). Used by the centre buffering
-    /// indicator.
+    /// Voice (calm, concrete, British English).
+    ///
+    /// Forwarder retained for the existing `PlayerOverlayPolicyTests` suite
+    /// — the canonical strings live in `PlayerCopy.swift` per #26's
+    /// single-audit-surface rule. New call sites should reference
+    /// `PlayerCopy.bufferingPrimary(for:)` directly.
     static func bufferingCopy(for reason: BufferingReason) -> String {
-        switch reason {
-        case .openingStream:
-            return "Opening stream…"
-        case .engineStarving:
-            return "Looking for peers…"
-        case .playerRebuffering:
-            return "Re-buffering…"
-        }
+        PlayerCopy.bufferingPrimary(for: reason)
     }
 }

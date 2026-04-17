@@ -63,6 +63,7 @@ struct PlayerView: View {
                 currentSeconds: viewModel.currentSeconds,
                 durationSeconds: viewModel.durationSeconds,
                 isFullscreen: isFullscreen,
+                showLongBufferingSecondary: viewModel.showLongBufferingSecondary,
                 onPlay: { viewModel.play() },
                 onPause: { viewModel.pause() },
                 onClose: { viewModel.close() },
@@ -85,11 +86,18 @@ struct PlayerView: View {
                 )
             }
 
-            // Error overlay — derived from PlayerState per Phase 3 design.
-            // #26 will replace this minimal text with brand-compliant
-            // per-error-case chrome and a Retry affordance.
+            // Error chrome — distinct surface per `PlayerError` case (#26).
+            // Sits above the overlay so the user's recovery path is
+            // unambiguous. `lastKnownTier` is captured by the VM so the
+            // .playbackFailed surface can include a calm context hint.
             if case .error(let err) = viewModel.state {
-                errorOverlay(displayMessage(for: err))
+                PlayerErrorChrome(
+                    error: err,
+                    lastKnownTier: viewModel.lastKnownTier,
+                    onRetry: { viewModel.retry() },
+                    onClose: { viewModel.close() }
+                )
+                .transition(.opacity)
             }
 
             // Resume prompt overlay (#19). Renders only while the VM has
@@ -197,36 +205,6 @@ struct PlayerView: View {
         }
     }
 
-    // MARK: - Error overlay
-
-    /// Map a `PlayerError` to interim display copy. #26 owns the final
-    /// brand-voice copy + retry chrome; this is the minimal seam.
-    private func displayMessage(for error: PlayerError) -> String {
-        switch error {
-        case .streamOpenFailed(let code):
-            return "We couldn't open this stream (engine code \(code.rawValue))."
-        case .xpcDisconnected:
-            return "We lost contact with the engine."
-        case .playbackFailed:
-            return "Playback couldn't continue."
-        case .streamLost:
-            return "The stream is no longer available."
-        }
-    }
-
-    private func errorOverlay(_ message: String) -> some View {
-        VStack(spacing: 8) {
-            Text("Playback unavailable")
-                .brandBodyEmphasis()
-                .foregroundStyle(BrandColors.cocoa)
-            Text(message)
-                .brandCaption()
-                .multilineTextAlignment(.center)
-        }
-        .padding(24)
-        .background(BrandColors.cocoa.opacity(0.6))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-    }
 }
 
 // MARK: - Previews
