@@ -43,6 +43,10 @@
 		AA11BB33CC55DD77EE99FF11 /* EngineStore in Frameworks */ = {isa = PBXBuildFile; productRef = FF66AA88BB00CC22DD44EE66 /* EngineStore */; };
 		FACE0001AAAA0000BBBB0001 /* LibraryDomain in Frameworks */ = {isa = PBXBuildFile; productRef = FACE0004AAAA0000BBBB0004 /* LibraryDomain */; };
 		B11E0001000000000000BB01 /* PlayerDomain in Frameworks */ = {isa = PBXBuildFile; productRef = B11E0004000000000000BB04 /* PlayerDomain */; };
+		EOE0000100000000000000A1 /* MetadataDomain in Frameworks */ = {isa = PBXBuildFile; productRef = EOE0000400000000000000A4 /* MetadataDomain */; };
+		EOE0000500000000000000A5 /* MetadataDomain in Frameworks */ = {isa = PBXBuildFile; productRef = EOE0000600000000000000A6 /* MetadataDomain */; };
+		EOE0000700000000000000A7 /* EndOfEpisodeDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = EOE0000800000000000000A8 /* EndOfEpisodeDetector.swift */; };
+		EOE0000900000000000000A9 /* EndOfEpisodeDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EOE0000A00000000000000AA /* EndOfEpisodeDetectorTests.swift */; };
 		AA33BB55CC77DD99EE11FF33 /* ResumeTrackerSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF6600889900AABB11CC2233 /* ResumeTrackerSelfTest.swift */; };
 		AA77889900BBCCDD11AA7788 /* HTTPSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8899AA00CCDDEE22BB8899 /* HTTPSelfTest.swift */; };
 		B5C7D9E1F3A2048A67B9C0D1 /* TorrentBridgeSmokeTest.mm in Sources */ = {isa = PBXBuildFile; fileRef = F8C1D5A3B2E497640F3A5B02 /* TorrentBridgeSmokeTest.mm */; };
@@ -184,6 +188,9 @@
 		DD44EE66FF88AA00BB22CC44 /* EngineStore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = EngineStore; path = Packages/EngineStore; sourceTree = "<group>"; };
 		FACE0002AAAA0000BBBB0002 /* LibraryDomain */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LibraryDomain; path = Packages/LibraryDomain; sourceTree = "<group>"; };
 		B11E0002000000000000BB02 /* PlayerDomain */ = {isa = PBXFileReference; lastKnownFileType = folder; name = PlayerDomain; path = Packages/PlayerDomain; sourceTree = "<group>"; };
+		EOE0000200000000000000A2 /* MetadataDomain */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MetadataDomain; path = Packages/MetadataDomain; sourceTree = "<group>"; };
+		EOE0000800000000000000A8 /* EndOfEpisodeDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndOfEpisodeDetector.swift; sourceTree = "<group>"; };
+		EOE0000A00000000000000AA /* EndOfEpisodeDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndOfEpisodeDetectorTests.swift; sourceTree = "<group>"; };
 		E1000002000000000000EE02 /* CacheEvictionProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheEvictionProbe.swift; sourceTree = "<group>"; };
 		E1F2A3B4C5D6E1F2A3B4C5D6 /* ByteReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ByteReader.swift; sourceTree = "<group>"; };
 		E2000002000000000000EE02 /* CacheEviction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheEviction.swift; sourceTree = "<group>"; };
@@ -215,6 +222,7 @@
 				97D6C5379559B125DE089050 /* PlannerCore in Frameworks */,
 				FACE0001AAAA0000BBBB0001 /* LibraryDomain in Frameworks */,
 				B11E0001000000000000BB01 /* PlayerDomain in Frameworks */,
+				EOE0000100000000000000A1 /* MetadataDomain in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -234,6 +242,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8E4F6EAC342FC231B7B08716 /* SnapshotTesting in Frameworks */,
+				EOE0000500000000000000A5 /* MetadataDomain in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -293,6 +302,7 @@
 				RP1000003000000000BB03 /* ResumePromptDecisionTests.swift */,
 				RP1000004000000000BB04 /* PlayerViewModelResumePromptTests.swift */,
 				RP1000005000000000BB05 /* ResumePromptSnapshotTests.swift */,
+				EOE0000A00000000000000AA /* EndOfEpisodeDetectorTests.swift */,
 			);
 			path = ButterBarTests;
 			sourceTree = "<group>";
@@ -412,6 +422,7 @@
 				B1000008000000000000BB08 /* PlayerScrubBar.swift */,
 				RP1000001000000000BB01 /* ResumePromptDecision.swift */,
 				RP1000002000000000BB02 /* ResumePromptView.swift */,
+				EOE0000800000000000000A8 /* EndOfEpisodeDetector.swift */,
 			);
 			path = Player;
 			sourceTree = "<group>";
@@ -435,6 +446,7 @@
 				DD44EE66FF88AA00BB22CC44 /* EngineStore */,
 				FACE0002AAAA0000BBBB0002 /* LibraryDomain */,
 				B11E0002000000000000BB02 /* PlayerDomain */,
+				EOE0000200000000000000A2 /* MetadataDomain */,
 			);
 			name = Packages;
 			sourceTree = "<group>";
@@ -496,6 +508,7 @@
 				BDA7E17795E9B0C29D6E029A /* PlannerCore */,
 				FACE0004AAAA0000BBBB0004 /* LibraryDomain */,
 				B11E0004000000000000BB04 /* PlayerDomain */,
+				EOE0000400000000000000A4 /* MetadataDomain */,
 			);
 			productName = ButterBar;
 			productReference = 67921BA991E985B2A97454A8 /* ButterBar.app */;
@@ -516,6 +529,7 @@
 			name = ButterBarTests;
 			packageProductDependencies = (
 				6F770D65D670E58E0351D8AE /* SnapshotTesting */,
+				EOE0000600000000000000A6 /* MetadataDomain */,
 			);
 			productName = ButterBarTests;
 			productReference = 3A4B5C6D7E8F3A4B5C6D7E8F /* ButterBarTests.xctest */;
@@ -581,6 +595,7 @@
 				EE55FF77AA99BB11CC33DD55 /* XCLocalSwiftPackageReference "Packages/EngineStore" */,
 				FACE0003AAAA0000BBBB0003 /* XCLocalSwiftPackageReference "Packages/LibraryDomain" */,
 				B11E0003000000000000BB03 /* XCLocalSwiftPackageReference "Packages/PlayerDomain" */,
+				EOE0000300000000000000A3 /* XCLocalSwiftPackageReference "Packages/MetadataDomain" */,
 				390C8C7D7247342CD8100F2F /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
 			);
 			productRefGroup = 21A59A6D24B4DEA9DB9C5973 /* Products */;
@@ -632,6 +647,7 @@
 				RP1000003000000000AA03 /* ResumePromptDecisionTests.swift in Sources */,
 				RP1000004000000000AA04 /* PlayerViewModelResumePromptTests.swift in Sources */,
 				RP1000005000000000AA05 /* ResumePromptSnapshotTests.swift in Sources */,
+				EOE0000900000000000000A9 /* EndOfEpisodeDetectorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -698,6 +714,7 @@
 				A1000008000000000000AA08 /* PlayerScrubBar.swift in Sources */,
 				RP1000001000000000AA01 /* ResumePromptDecision.swift in Sources */,
 				RP1000002000000000AA02 /* ResumePromptView.swift in Sources */,
+				EOE0000700000000000000A7 /* EndOfEpisodeDetector.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1382,6 +1399,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/PlayerDomain;
 		};
+		EOE0000300000000000000A3 /* XCLocalSwiftPackageReference "Packages/MetadataDomain" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/MetadataDomain;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
@@ -1435,6 +1456,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B11E0003000000000000BB03 /* XCLocalSwiftPackageReference "Packages/PlayerDomain" */;
 			productName = PlayerDomain;
+		};
+		EOE0000400000000000000A4 /* MetadataDomain */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EOE0000300000000000000A3 /* XCLocalSwiftPackageReference "Packages/MetadataDomain" */;
+			productName = MetadataDomain;
+		};
+		EOE0000600000000000000A6 /* MetadataDomain */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EOE0000300000000000000A3 /* XCLocalSwiftPackageReference "Packages/MetadataDomain" */;
+			productName = MetadataDomain;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
