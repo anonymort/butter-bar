@@ -1,4 +1,5 @@
 import AVFoundation
+import AppKit
 import EngineInterface
 import PlayerDomain
 import SwiftUI
@@ -7,23 +8,35 @@ import SwiftUI
 
 /// Full-screen player view. Dark by default regardless of system appearance.
 ///
-/// Wraps `AVPlayerView` (via `AVPlayerViewRepresentable`) and floats
-/// `StreamHealthHUD` over the video at the bottom-centre of the frame.
+/// Wraps `AVPlayerView` (via `AVPlayerViewRepresentable`) and floats the
+/// `PlayerOverlay` chrome (issue #24) above the video. The overlay handles
+/// the top bar (title, close, fullscreen), the centre play/pause/buffering
+/// affordance, and the bottom bar (scrub + tier HUD + picker entry-points).
 ///
-/// The HUD is visible on first appearance and auto-hides after 3 seconds of
-/// inactivity — even if the mouse never moves. Mouse movement resets the
-/// 3-second timer (existing behaviour).
+/// Visibility policy:
+/// - The overlay is always visible during `.open`, `.paused`, `.buffering(_)`,
+///   and `.error(_)` per `PlayerOverlayPolicy.mayAutoHide`.
+/// - During `.playing`, the overlay auto-hides 3 s after the pointer goes
+///   idle and reappears on any pointer movement.
 struct PlayerView: View {
 
     @StateObject private var viewModel: PlayerViewModel
-    @State private var hudVisible: Bool = true
+    @State private var overlayVisible: Bool = true
     @State private var hideTask: Task<Void, Never>?
+    @State private var isFullscreen: Bool = false
 
-    init(streamDescriptor: StreamDescriptorDTO, engineClient: EngineClient) {
+    /// Auto-hide delay after pointer idle while `.playing`. Injected so tests
+    /// don't have to wait three real seconds.
+    private let autoHideDelay: Duration
+
+    init(streamDescriptor: StreamDescriptorDTO,
+         engineClient: EngineClient,
+         autoHideDelay: Duration = .seconds(3)) {
         _viewModel = StateObject(wrappedValue: PlayerViewModel(
             streamDescriptor: streamDescriptor,
             engineClient: engineClient
         ))
+        self.autoHideDelay = autoHideDelay
     }
 
     var body: some View {
@@ -37,39 +50,56 @@ struct PlayerView: View {
                     .ignoresSafeArea()
             }
 
+            // Chrome overlay — issue #24.
+            PlayerOverlay(
+                state: viewModel.state,
+                health: viewModel.health,
+                title: streamTitle,
+                currentSeconds: viewModel.currentSeconds,
+                durationSeconds: viewModel.durationSeconds,
+                isFullscreen: isFullscreen,
+                onPlay: { viewModel.play() },
+                onPause: { viewModel.pause() },
+                onClose: { viewModel.close() },
+                onToggleFullscreen: toggleFullscreen,
+                onScrub: { seconds in viewModel.seek(toSeconds: seconds) }
+            )
+            .opacity(effectiveOverlayOpacity)
+            .animation(.easeInOut(duration: 0.2), value: effectiveOverlayOpacity)
+            .allowsHitTesting(effectiveOverlayOpacity > 0)
+
             // Error overlay — derived from PlayerState per Phase 3 design.
             // #26 will replace this minimal text with brand-compliant
             // per-error-case chrome and a Retry affordance.
             if case .error(let err) = viewModel.state {
                 errorOverlay(displayMessage(for: err))
             }
-
-            // HUD overlay — floats at bottom centre, 24 pt margin.
-            if let health = viewModel.health {
-                VStack {
-                    Spacer()
-                    StreamHealthHUD(health: health)
-                        .padding(.bottom, 24)
-                }
-                .opacity(hudVisible ? 1 : 0)
-                .animation(.easeInOut(duration: 0.25), value: hudVisible)
-                .frame(maxWidth: .infinity, alignment: .center)
-            }
         }
         // Dark colour scheme enforced regardless of system appearance.
         .preferredColorScheme(.dark)
-        // Track mouse movement to show/hide HUD.
+        // Track mouse movement to reset the auto-hide timer.
         .onContinuousHover { phase in
             switch phase {
             case .active:
-                showHUD()
+                showOverlay()
             case .ended:
                 break
             }
         }
         .onAppear {
             viewModel.play()
-            scheduleHide()
+            scheduleHide(for: viewModel.state)
+        }
+        .onChange(of: viewModel.state) { _, newState in
+            // Re-evaluate auto-hide policy whenever state changes — leaving
+            // `.playing` should pin the chrome immediately, entering it
+            // should restart the countdown.
+            if PlayerOverlayPolicy.mayAutoHide(in: newState) {
+                scheduleHide(for: newState)
+            } else {
+                hideTask?.cancel()
+                overlayVisible = true
+            }
         }
         .onDisappear {
             hideTask?.cancel()
@@ -77,24 +107,57 @@ struct PlayerView: View {
         }
     }
 
-    // MARK: - HUD visibility
+    // MARK: - Title
 
-    private func showHUD() {
-        hudVisible = true
-        scheduleHide()
+    private var streamTitle: String? {
+        // The descriptor doesn't carry a human title in v1; fall back to nil
+        // so the top bar reserves the slot without rendering a placeholder.
+        nil
     }
 
-    /// Cancels any pending hide task and starts a new 3-second countdown.
-    /// Called both from `.onAppear` (initial timer) and from `showHUD()` (reset on hover).
-    private func scheduleHide() {
+    // MARK: - Overlay visibility
+
+    /// Force-on whenever the policy says we cannot auto-hide. This keeps the
+    /// chrome correct even if `overlayVisible` was left `false` from a prior
+    /// `.playing` interval.
+    private var effectiveOverlayOpacity: Double {
+        if !PlayerOverlayPolicy.mayAutoHide(in: viewModel.state) { return 1 }
+        return overlayVisible ? 1 : 0
+    }
+
+    private func showOverlay() {
+        overlayVisible = true
+        scheduleHide(for: viewModel.state)
+    }
+
+    /// Cancels any pending hide task. Starts a new countdown only if the
+    /// current state allows auto-hiding.
+    private func scheduleHide(for state: PlayerState) {
         hideTask?.cancel()
+        guard PlayerOverlayPolicy.mayAutoHide(in: state) else {
+            overlayVisible = true
+            return
+        }
+        let delay = autoHideDelay
         hideTask = Task {
             do {
-                try await Task.sleep(for: .seconds(3))
+                try await Task.sleep(for: delay)
             } catch {
                 return  // cancelled — do nothing
             }
-            await MainActor.run { hudVisible = false }
+            await MainActor.run { overlayVisible = false }
+        }
+    }
+
+    // MARK: - Fullscreen
+
+    private func toggleFullscreen() {
+        guard let window = NSApp.keyWindow ?? NSApp.windows.first else { return }
+        window.toggleFullScreen(nil)
+        // `toggleFullScreen` is async; observe the resulting style mask shortly
+        // after to refresh the icon. A one-frame delay is enough.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            isFullscreen = window.styleMask.contains(.fullScreen)
         }
     }
 

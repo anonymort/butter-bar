@@ -94,6 +94,7 @@ jobs:
             -scheme ButterBar \
             -only-testing:ButterBarTests/LibrarySnapshotTests \
             -only-testing:ButterBarTests/PlayerHUDSnapshotTests \
+            -only-testing:ButterBarTests/PlayerOverlaySnapshotTests \
             -destination 'platform=macOS' \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
