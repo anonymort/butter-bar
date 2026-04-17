@@ -79,6 +79,8 @@ Every phase follows the same protocol:
 - Cross-session sidecar persistence — explicit v1 limitation per design doc D5.
 - Subtitle offset / styling controls — v1.5+ per spec 07.
 
+**Status (2026-04-17):** design merged (PR #157); foundation #27 merged (PR #161 — `Packages/SubtitleDomain`, 46 tests); app integration (#28/#29/#30/#32) **PAUSED**. PR #171 was closed without merge after `main` diverged mid-flight — PRs #164 (PlayerState foundation), #166 (overlay controls), and #167 (resume prompt) reshaped `PlayerView` / `PlayerViewModel` around `PlayerDomain.PlayerState` and the `PlayerOverlay` / `PlayerScrubBar` chrome, making the branch's player-integration commits stale against the new shape. The subtitle implementation (SubtitleController, SubtitleIngestor, SubtitleOverlay, SubtitleSelectionMenu, SubtitlePreferenceStore, SubtitleErrorBanner + 25 unit tests + 22 snapshot baselines) is preserved on dangling commit `4308cdc`. See epic #4 for the pickup plan.
+
 **Phase 2 done =** #27, #28, #29, #30, #32 closed; #72 closed as duplicate of #28; epic #4 closed; user can drag a `.srt` onto the player, pick a track, and have the preference persisted across launches.
 
 ### Phase 3 — Playback UX (Epic #3)
