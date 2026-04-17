@@ -2,6 +2,7 @@ import Foundation
 import Combine
 import EngineInterface
 import LibraryDomain
+import MetadataDomain
 
 // MARK: - LibraryViewModel
 
@@ -30,6 +31,23 @@ final class LibraryViewModel: ObservableObject {
     let engineClient: EngineClient
     private(set) var isRefreshing: Bool = false
 
+    /// Metadata-enriched continue-watching items (#17). Populated by
+    /// `LibraryMetadataResolver` whenever the underlying torrents/history
+    /// change. When `metadataResolver` is `nil` (preview / older code paths),
+    /// this stays empty and `displayContinueWatching` falls back to the raw
+    /// projection.
+    @Published private(set) var enrichedContinueWatching: [ContinueWatchingItem] = []
+
+    /// Optional resolver. Production code injects it from
+    /// `ButterBarApp`; preview / snapshot factories may leave it nil to
+    /// keep the row metadata-free.
+    let metadataResolver: LibraryMetadataResolver?
+
+    /// Optional image URL builder for the row. Mirrors the lifecycle of
+    /// `metadataResolver` — when both are set, posters render; when nil,
+    /// the placeholder rect carries the slot.
+    let posterURLBuilder: ((String) -> URL)?
+
     /// Set `true` in preview/snapshot factory methods to prevent `.task` from
     /// firing a real `EngineClient` call and overwriting pre-populated state.
     /// For Canvas / snapshot-test use only — do not set in production code paths.
@@ -37,8 +55,12 @@ final class LibraryViewModel: ObservableObject {
 
     private var cancellables: Set<AnyCancellable> = []
 
-    init(client: EngineClient) {
+    init(client: EngineClient,
+         metadataResolver: LibraryMetadataResolver? = nil,
+         posterURLBuilder: ((String) -> URL)? = nil) {
         self.engineClient = client
+        self.metadataResolver = metadataResolver
+        self.posterURLBuilder = posterURLBuilder
     }
 
     func start() async {
@@ -71,10 +93,53 @@ final class LibraryViewModel: ObservableObject {
                 }
             )
             loadError = nil
+            await refreshContinueWatching()
         } catch {
             loadError = "Could not load library: \(error.localizedDescription)"
         }
     }
+
+    // MARK: - Continue watching enrichment (#17)
+
+    /// Re-run the metadata resolver against the current torrents + history.
+    /// Cheap if everything is cache-hot. Safe to call repeatedly.
+    func refreshContinueWatching() async {
+        guard let resolver = metadataResolver else { return }
+        let history = Array(playbackHistory.values)
+        let snapshotTorrents = torrents
+        let client = engineClient
+        let items = await resolver.resolve(
+            history: history,
+            torrents: snapshotTorrents,
+            fileNameLookup: { torrentID, fileIndex in
+                // Best-effort lookup of the file name. Failures fall back
+                // to the torrent name in `LibraryMetadataResolver`.
+                guard let files = try? await client.listFiles(torrentID as NSString),
+                      let file = files.first(where: { Int($0.fileIndex) == fileIndex }) else {
+                    return nil
+                }
+                return file.path as String
+            }
+        )
+        self.enrichedContinueWatching = items
+    }
+
+    /// Read-side projection used by `LibraryView`. Prefers the
+    /// metadata-enriched output when the resolver is wired up (or when a
+    /// preview/snapshot factory has populated `enrichedContinueWatching`
+    /// directly), and falls back to the raw synchronous projection
+    /// otherwise.
+    var displayContinueWatching: [ContinueWatchingItem] {
+        if metadataResolver != nil || previewForcesEnriched {
+            return enrichedContinueWatching
+        }
+        return continueWatching
+    }
+
+    /// Snapshot/Preview escape hatch: lets the preview factory hand-craft
+    /// the enriched array without instantiating a resolver. Production
+    /// code never sets this.
+    var previewForcesEnriched: Bool = false
 
     func listFiles(torrentID: String) async throws -> [TorrentFileDTO] {
         try await engineClient.listFiles(torrentID as NSString)
@@ -205,6 +270,11 @@ final class LibraryViewModel: ObservableObject {
                 guard let self else { return }
                 let key = Self.key(for: dto.torrentID as String, fileIndex: Int(dto.fileIndex))
                 self.playbackHistory[key] = dto
+                // #17: re-derive the enriched row whenever watch state
+                // changes. The resolver's match cache absorbs the cost.
+                Task { [weak self] in
+                    await self?.refreshContinueWatching()
+                }
             }
             .store(in: &cancellables)
         events.favouritesChangedSubject
@@ -316,6 +386,52 @@ extension LibraryViewModel {
             completed: true,
             completedAt: NSNumber(value: 1_700_000_300_000)
         )
+        return vm
+    }
+
+    /// Pre-populated with metadata-enriched continue-watching items for #17
+    /// visual snapshots. The resolver remains nil; we set the
+    /// `enrichedContinueWatching` array directly so snapshots are
+    /// deterministic without exercising the network seam.
+    static var previewWithEnrichedContinueWatching: LibraryViewModel {
+        let vm = previewWithContinueWatching
+        // Force `displayContinueWatching` to use the enriched array by
+        // assigning a dummy resolver-flag via `previewForcesEnriched`.
+        vm.previewForcesEnriched = true
+        let raw = vm.continueWatching
+        vm.enrichedContinueWatching = raw.enumerated().map { index, item in
+            // Mix matched + unmatched: index 0 (most recent) is matched as
+            // a show with an episode designator, index 1 is unmatched.
+            if index == 0 {
+                let show = Show(
+                    id: MediaID(provider: .tmdb, id: 1399),
+                    name: "The General",
+                    originalName: "The General",
+                    firstAirYear: 2011,
+                    lastAirYear: 2019,
+                    status: .ended,  // typed via MetadataDomain.ShowStatus
+                    overview: "",
+                    genres: [],
+                    posterPath: "/sample.jpg",
+                    backdropPath: nil,
+                    voteAverage: nil,
+                    popularity: nil,
+                    seasons: []
+                )
+                return ContinueWatchingItem(
+                    torrent: item.torrent,
+                    fileIndex: item.fileIndex,
+                    progressBytes: item.progressBytes,
+                    totalBytes: item.totalBytes,
+                    lastPlayedAtMillis: item.lastPlayedAtMillis,
+                    isReWatching: item.isReWatching,
+                    media: .show(show),
+                    posterPath: "/sample.jpg",
+                    episodeDesignator: "S01E04"
+                )
+            }
+            return item
+        }
         return vm
     }
 

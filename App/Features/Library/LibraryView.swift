@@ -98,10 +98,11 @@ struct LibraryView: View {
             // (no in-progress / re-watching items). Rendered as a list section
             // with a transparent background so it blends with the surrounding
             // surface.
-            if !viewModel.continueWatching.isEmpty {
+            if !viewModel.displayContinueWatching.isEmpty {
                 Section {
                     ContinueWatchingRow(
-                        items: viewModel.continueWatching,
+                        items: viewModel.displayContinueWatching,
+                        imageURLBuilder: viewModel.posterURLBuilder,
                         onOpen: { item in
                             openStream(
                                 torrentID: item.torrent.torrentID as String,
