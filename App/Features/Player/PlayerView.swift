@@ -17,6 +17,7 @@ struct PlayerView: View {
     @StateObject private var viewModel: PlayerViewModel
     @State private var hudVisible: Bool = true
     @State private var hideTask: Task<Void, Never>?
+    @State private var isDropTargeted: Bool = false
 
     init(streamDescriptor: StreamDescriptorDTO, engineClient: EngineClient) {
         _viewModel = StateObject(wrappedValue: PlayerViewModel(
@@ -36,6 +37,9 @@ struct PlayerView: View {
                     .ignoresSafeArea()
             }
 
+            // Subtitle overlay — cue text centred in the lower third.
+            SubtitleOverlay(controller: viewModel.subtitleController)
+
             // Error overlay — only shown if player initialisation failed.
             if let errorMessage = viewModel.error {
                 errorOverlay(errorMessage)
@@ -43,8 +47,10 @@ struct PlayerView: View {
 
             // HUD overlay — floats at bottom centre, 24 pt margin.
             if let health = viewModel.health {
-                VStack {
+                VStack(spacing: 8) {
                     Spacer()
+                    SubtitleErrorBanner(controller: viewModel.subtitleController)
+                    SubtitleSelectionMenu(controller: viewModel.subtitleController)
                     StreamHealthHUD(health: health)
                         .padding(.bottom, 24)
                 }
@@ -52,6 +58,13 @@ struct PlayerView: View {
                 .animation(.easeInOut(duration: 0.25), value: hudVisible)
                 .frame(maxWidth: .infinity, alignment: .center)
             }
+        }
+        // SRT drag-and-drop: accept .fileURL drops over the player.
+        .onDrop(of: [.fileURL], isTargeted: $isDropTargeted) { providers in
+            for provider in providers {
+                viewModel.subtitleController.ingestSidecar(provider)
+            }
+            return true
         }
         // Dark colour scheme enforced regardless of system appearance.
         .preferredColorScheme(.dark)

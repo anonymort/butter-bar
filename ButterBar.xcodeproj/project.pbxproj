@@ -7,6 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		SD000001000000000000AA01 /* SubtitleController.swift in Sources */ = {isa = PBXBuildFile; fileRef = SD000001000000000000BB01 /* SubtitleController.swift */; };
+		SD000002000000000000AA01 /* SubtitleIngestor.swift in Sources */ = {isa = PBXBuildFile; fileRef = SD000002000000000000BB01 /* SubtitleIngestor.swift */; };
+		SD000003000000000000AA01 /* SubtitleOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = SD000003000000000000BB01 /* SubtitleOverlay.swift */; };
+		SD000004000000000000AA01 /* SubtitleSelectionMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = SD000004000000000000BB01 /* SubtitleSelectionMenu.swift */; };
+		SD000005000000000000AA01 /* SubtitlePreferenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = SD000005000000000000BB01 /* SubtitlePreferenceStore.swift */; };
+		SD000006000000000000AA01 /* SubtitleErrorBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = SD000006000000000000BB01 /* SubtitleErrorBanner.swift */; };
+		SD000007000000000000AA01 /* SubtitleDomain in Frameworks */ = {isa = PBXBuildFile; productRef = SD000007000000000000BB01 /* SubtitleDomain */; };
+		SD000008000000000000AA01 /* SubtitleIngestorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = SD000008000000000000BB01 /* SubtitleIngestorTests.swift */; };
+		SD000009000000000000AA01 /* SubtitleControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = SD000009000000000000BB01 /* SubtitleControllerTests.swift */; };
+		SD000010000000000000AA01 /* SubtitlePreferenceStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = SD000010000000000000BB01 /* SubtitlePreferenceStoreTests.swift */; };
+		SD000011000000000000AA01 /* SubtitleSelectionMenuSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = SD000011000000000000BB01 /* SubtitleSelectionMenuSnapshotTests.swift */; };
+		SD000012000000000000AA01 /* SubtitleErrorBannerSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = SD000012000000000000BB01 /* SubtitleErrorBannerSnapshotTests.swift */; };
+		SD000013000000000000AA01 /* SubtitleDomain in Frameworks */ = {isa = PBXBuildFile; productRef = SD000013000000000000BB01 /* SubtitleDomain */; };
 		3B57A8B70A08652E82BED14C /* BrandColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0339C9D8ED637562D06C13F /* BrandColors.swift */; };
 		5449C4D2390E0AAD7914583D /* EngineInterface in Frameworks */ = {isa = PBXBuildFile; productRef = 29ED0EA0014C4BEC558549BB /* EngineInterface */; };
 		6AE4D8E712B992B57139800A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6219FBB50A4AF5FF44C0F8C /* ContentView.swift */; };
@@ -111,6 +124,18 @@
 		PBM00005000000000000BB01 /* PieceByteMappingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PieceByteMappingTests.swift; sourceTree = "<group>"; };
 		1785E418002BEE10CA7FEDC0 /* TestFixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TestFixtures; path = Packages/TestFixtures; sourceTree = "<group>"; };
 		39AB853C8253F0485E14495A /* EngineInterface */ = {isa = PBXFileReference; lastKnownFileType = folder; name = EngineInterface; path = Packages/EngineInterface; sourceTree = "<group>"; };
+		SD000001000000000000BB01 /* SubtitleController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleController.swift; sourceTree = "<group>"; };
+		SD000002000000000000BB01 /* SubtitleIngestor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleIngestor.swift; sourceTree = "<group>"; };
+		SD000003000000000000BB01 /* SubtitleOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleOverlay.swift; sourceTree = "<group>"; };
+		SD000004000000000000BB01 /* SubtitleSelectionMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleSelectionMenu.swift; sourceTree = "<group>"; };
+		SD000005000000000000BB01 /* SubtitlePreferenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitlePreferenceStore.swift; sourceTree = "<group>"; };
+		SD000006000000000000BB01 /* SubtitleErrorBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleErrorBanner.swift; sourceTree = "<group>"; };
+		SD000014000000000000BB01 /* SubtitleDomain */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SubtitleDomain; path = Packages/SubtitleDomain; sourceTree = "<group>"; };
+		SD000008000000000000BB01 /* SubtitleIngestorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleIngestorTests.swift; sourceTree = "<group>"; };
+		SD000009000000000000BB01 /* SubtitleControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleControllerTests.swift; sourceTree = "<group>"; };
+		SD000010000000000000BB01 /* SubtitlePreferenceStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitlePreferenceStoreTests.swift; sourceTree = "<group>"; };
+		SD000011000000000000BB01 /* SubtitleSelectionMenuSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleSelectionMenuSnapshotTests.swift; sourceTree = "<group>"; };
+		SD000012000000000000BB01 /* SubtitleErrorBannerSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleErrorBannerSnapshotTests.swift; sourceTree = "<group>"; };
 		3A4B5C6D7E8F3A4B5C6D7E8F /* ButterBarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ButterBarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3D64D5A568E80007ADCD6078 /* EngineServiceMain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineServiceMain.swift; sourceTree = "<group>"; };
 		67921BA991E985B2A97454A8 /* ButterBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ButterBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -184,6 +209,7 @@
 				5449C4D2390E0AAD7914583D /* EngineInterface in Frameworks */,
 				97D6C5379559B125DE089050 /* PlannerCore in Frameworks */,
 				FACE0001AAAA0000BBBB0001 /* LibraryDomain in Frameworks */,
+				SD000007000000000000AA01 /* SubtitleDomain in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -203,6 +229,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8E4F6EAC342FC231B7B08716 /* SnapshotTesting in Frameworks */,
+				SD000013000000000000AA01 /* SubtitleDomain in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -255,6 +282,11 @@
 				FACE0006AAAA0000BBBB0006 /* LibraryViewModelWatchStateTests.swift */,
 				TA000001000000000000BB01 /* TorrentAlertTests.swift */,
 				PBM00005000000000000BB01 /* PieceByteMappingTests.swift */,
+				SD000008000000000000BB01 /* SubtitleIngestorTests.swift */,
+				SD000009000000000000BB01 /* SubtitleControllerTests.swift */,
+				SD000010000000000000BB01 /* SubtitlePreferenceStoreTests.swift */,
+				SD000011000000000000BB01 /* SubtitleSelectionMenuSnapshotTests.swift */,
+				SD000012000000000000BB01 /* SubtitleErrorBannerSnapshotTests.swift */,
 			);
 			path = ButterBarTests;
 			sourceTree = "<group>";
@@ -264,8 +296,22 @@
 			children = (
 				EE44FF5500AA11BB22CC33DD /* Library */,
 				C1000001000000000000DD01 /* Player */,
+				SD000015000000000000GG01 /* Subtitles */,
 			);
 			path = Features;
+			sourceTree = "<group>";
+		};
+		SD000015000000000000GG01 /* Subtitles */ = {
+			isa = PBXGroup;
+			children = (
+				SD000001000000000000BB01 /* SubtitleController.swift */,
+				SD000002000000000000BB01 /* SubtitleIngestor.swift */,
+				SD000003000000000000BB01 /* SubtitleOverlay.swift */,
+				SD000004000000000000BB01 /* SubtitleSelectionMenu.swift */,
+				SD000005000000000000BB01 /* SubtitlePreferenceStore.swift */,
+				SD000006000000000000BB01 /* SubtitleErrorBanner.swift */,
+			);
+			path = Subtitles;
 			sourceTree = "<group>";
 		};
 		3CACA3D81F9FFAC4DCCF5038 /* XPC */ = {
@@ -391,6 +437,7 @@
 				1785E418002BEE10CA7FEDC0 /* TestFixtures */,
 				DD44EE66FF88AA00BB22CC44 /* EngineStore */,
 				FACE0002AAAA0000BBBB0002 /* LibraryDomain */,
+				SD000014000000000000BB01 /* SubtitleDomain */,
 			);
 			name = Packages;
 			sourceTree = "<group>";
@@ -449,6 +496,7 @@
 				29ED0EA0014C4BEC558549BB /* EngineInterface */,
 				BDA7E17795E9B0C29D6E029A /* PlannerCore */,
 				FACE0004AAAA0000BBBB0004 /* LibraryDomain */,
+				SD000007000000000000BB01 /* SubtitleDomain */,
 			);
 			productName = ButterBar;
 			productReference = 67921BA991E985B2A97454A8 /* ButterBar.app */;
@@ -469,6 +517,7 @@
 			name = ButterBarTests;
 			packageProductDependencies = (
 				6F770D65D670E58E0351D8AE /* SnapshotTesting */,
+				SD000013000000000000BB01 /* SubtitleDomain */,
 			);
 			productName = ButterBarTests;
 			productReference = 3A4B5C6D7E8F3A4B5C6D7E8F /* ButterBarTests.xctest */;
@@ -534,6 +583,7 @@
 				EE55FF77AA99BB11CC33DD55 /* XCLocalSwiftPackageReference "Packages/EngineStore" */,
 				FACE0003AAAA0000BBBB0003 /* XCLocalSwiftPackageReference "Packages/LibraryDomain" */,
 				390C8C7D7247342CD8100F2F /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
+				SD000016000000000000HH01 /* XCLocalSwiftPackageReference "Packages/SubtitleDomain" */,
 			);
 			productRefGroup = 21A59A6D24B4DEA9DB9C5973 /* Products */;
 			projectDirPath = "";
@@ -577,6 +627,11 @@
 				TA000003000000000000AA01 /* TorrentAlert.swift in Sources */,
 				PBM00003000000000000AA01 /* PieceByteMapping.swift in Sources */,
 				PBM00004000000000000AA01 /* PieceByteMappingTests.swift in Sources */,
+				SD000008000000000000AA01 /* SubtitleIngestorTests.swift in Sources */,
+				SD000009000000000000AA01 /* SubtitleControllerTests.swift in Sources */,
+				SD000010000000000000AA01 /* SubtitlePreferenceStoreTests.swift in Sources */,
+				SD000011000000000000AA01 /* SubtitleSelectionMenuSnapshotTests.swift in Sources */,
+				SD000012000000000000AA01 /* SubtitleErrorBannerSnapshotTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -636,6 +691,12 @@
 				A1000002000000000000AA02 /* PlayerViewModel.swift in Sources */,
 				A1000003000000000000AA03 /* AVPlayerViewRepresentable.swift in Sources */,
 				A1000004000000000000AA04 /* StreamHealthHUD.swift in Sources */,
+				SD000001000000000000AA01 /* SubtitleController.swift in Sources */,
+				SD000002000000000000AA01 /* SubtitleIngestor.swift in Sources */,
+				SD000003000000000000AA01 /* SubtitleOverlay.swift in Sources */,
+				SD000004000000000000AA01 /* SubtitleSelectionMenu.swift in Sources */,
+				SD000005000000000000AA01 /* SubtitlePreferenceStore.swift in Sources */,
+				SD000006000000000000AA01 /* SubtitleErrorBanner.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1316,6 +1377,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/LibraryDomain;
 		};
+		SD000016000000000000HH01 /* XCLocalSwiftPackageReference "Packages/SubtitleDomain" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/SubtitleDomain;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
@@ -1364,6 +1429,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = FACE0003AAAA0000BBBB0003 /* XCLocalSwiftPackageReference "Packages/LibraryDomain" */;
 			productName = LibraryDomain;
+		};
+		SD000007000000000000BB01 /* SubtitleDomain */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = SD000016000000000000HH01 /* XCLocalSwiftPackageReference "Packages/SubtitleDomain" */;
+			productName = SubtitleDomain;
+		};
+		SD000013000000000000BB01 /* SubtitleDomain */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = SD000016000000000000HH01 /* XCLocalSwiftPackageReference "Packages/SubtitleDomain" */;
+			productName = SubtitleDomain;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

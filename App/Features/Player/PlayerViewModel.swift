@@ -1,5 +1,6 @@
 import AVFoundation
 import Combine
+import CoreMedia
 import EngineInterface
 import Foundation
 
@@ -17,6 +18,8 @@ final class PlayerViewModel: ObservableObject {
 
     @Published private(set) var health: StreamHealthDTO?
     @Published private(set) var error: String?
+    /// Subtitle controller for this playback session. UI binds to this.
+    @Published private(set) var subtitleController: SubtitleController
 
     // MARK: Internal
 
@@ -31,12 +34,17 @@ final class PlayerViewModel: ObservableObject {
     private var reconnectSubscription: AnyCancellable?
     private var cancellables = Set<AnyCancellable>()
     private var isClosed = false
+    /// Token returned by `addPeriodicTimeObserver` — must be removed on close.
+    private var subtitleTimeObserver: Any?
 
     // MARK: - Init
 
-    init(streamDescriptor: StreamDescriptorDTO, engineClient: EngineClient) {
+    init(streamDescriptor: StreamDescriptorDTO,
+         engineClient: EngineClient,
+         preferenceStore: SubtitlePreferenceStore = SubtitlePreferenceStore()) {
         self.streamDescriptor = streamDescriptor
         self.engineClient = engineClient
+        self.subtitleController = SubtitleController(preferenceStore: preferenceStore)
 
         guard let url = URL(string: streamDescriptor.loopbackURL as String) else {
             self.error = "Invalid stream URL: \(streamDescriptor.loopbackURL)"
@@ -52,6 +60,29 @@ final class PlayerViewModel: ObservableObject {
         // from the byte ratio once the asset duration is known.
         if streamDescriptor.resumeByteOffset > 0 {
             scheduleResumeSeek(player: avPlayer, item: item)
+        }
+
+        // When the item is ready, refresh embedded subtitle tracks.
+        item.publisher(for: \.status)
+            .filter { $0 == .readyToPlay }
+            .first()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self, weak item] _ in
+                self?.subtitleController.refreshEmbeddedTracks(from: item)
+            }
+            .store(in: &cancellables)
+
+        // Wire 4 Hz time observer so the subtitle overlay stays in sync.
+        // The block fires on the main queue (queue: .main); we use
+        // MainActor.assumeIsolated to satisfy the Swift 6 concurrency checker.
+        let tickInterval = CMTime(value: 1, timescale: 4)
+        subtitleTimeObserver = avPlayer.addPeriodicTimeObserver(
+            forInterval: tickInterval,
+            queue: .main
+        ) { [weak self] time in
+            MainActor.assumeIsolated {
+                self?.subtitleController.tick(currentTime: time)
+            }
         }
 
         // Re-bind to the active events stream whenever EngineClient reconnects.
@@ -88,6 +119,10 @@ final class PlayerViewModel: ObservableObject {
         healthSubscription = nil
         reconnectSubscription = nil
         cancellables.removeAll()
+        if let observer = subtitleTimeObserver {
+            player?.removeTimeObserver(observer)
+            subtitleTimeObserver = nil
+        }
         player?.pause()
         player = nil
         let streamID = streamDescriptor.streamID as String
