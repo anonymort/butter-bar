@@ -53,7 +53,9 @@ struct LibraryView: View {
         .sheet(item: $activeStream) { stream in
             PlayerView(
                 streamDescriptor: stream.descriptor,
-                engineClient: viewModel.engineClient
+                engineClient: viewModel.engineClient,
+                torrentID: stream.torrentID,
+                fileIndex: stream.fileIndex
             )
             .frame(minWidth: 640, minHeight: 360)
             .onDisappear {
@@ -246,7 +248,9 @@ struct LibraryView: View {
                     torrentID as NSString,
                     fileIndex: NSNumber(value: fileIndex)
                 )
-                activeStream = ActiveStream(descriptor: descriptor)
+                activeStream = ActiveStream(descriptor: descriptor,
+                                            torrentID: torrentID,
+                                            fileIndex: fileIndex)
             } catch {
                 viewModel.loadError = "Could not open stream: \(error.localizedDescription)"
             }
@@ -258,9 +262,15 @@ struct LibraryView: View {
 
 /// Stable `Identifiable` wrapper for `StreamDescriptorDTO` — required for
 /// `.sheet(item:)` which needs `Identifiable` conformance.
+///
+/// Carries the originating `(torrentID, fileIndex)` alongside the descriptor
+/// so the player view can plumb identity into `PlayerViewModel` for the
+/// resume-prompt seam (#19).
 struct ActiveStream: Identifiable {
     let id = UUID()
     let descriptor: StreamDescriptorDTO
+    let torrentID: String
+    let fileIndex: Int32
 }
 
 // MARK: - FileSheetState

@@ -31,10 +31,14 @@ struct PlayerView: View {
 
     init(streamDescriptor: StreamDescriptorDTO,
          engineClient: EngineClient,
+         torrentID: String? = nil,
+         fileIndex: Int32? = nil,
          autoHideDelay: Duration = .seconds(3)) {
         _viewModel = StateObject(wrappedValue: PlayerViewModel(
             streamDescriptor: streamDescriptor,
-            engineClient: engineClient
+            engineClient: engineClient,
+            torrentID: torrentID,
+            fileIndex: fileIndex
         ))
         self.autoHideDelay = autoHideDelay
     }
@@ -74,7 +78,22 @@ struct PlayerView: View {
             if case .error(let err) = viewModel.state {
                 errorOverlay(displayMessage(for: err))
             }
+
+            // Resume prompt overlay (#19). Renders only while the VM has
+            // an active offer; user choice / dismiss clears it through the
+            // VM's resolve methods. Sits above the chrome overlay so the
+            // user's first decision is visually unambiguous.
+            if let offer = viewModel.resumePromptOffer {
+                ResumePromptView(
+                    offer: offer,
+                    onContinue: { viewModel.resolveResumeContinue() },
+                    onStartOver: { viewModel.resolveResumeStartOver() },
+                    onDismiss: { viewModel.dismissResumePrompt() }
+                )
+                .transition(.opacity)
+            }
         }
+        .animation(.easeInOut(duration: 0.25), value: viewModel.resumePromptOffer)
         // Dark colour scheme enforced regardless of system appearance.
         .preferredColorScheme(.dark)
         // Track mouse movement to reset the auto-hide timer.
@@ -87,7 +106,11 @@ struct PlayerView: View {
             }
         }
         .onAppear {
-            viewModel.play()
+            // Defer playback start to the VM so the resume-prompt seam (#19)
+            // can fire first. The VM auto-plays once the resume decision
+            // settles with no prompt; if a prompt is shown the user's choice
+            // routes through resolveResumeContinue / resolveResumeStartOver.
+            viewModel.requestAutoPlayWhenReady()
             scheduleHide(for: viewModel.state)
         }
         .onChange(of: viewModel.state) { _, newState in

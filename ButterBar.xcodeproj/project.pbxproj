@@ -27,6 +27,11 @@
 		A1000008000000000000AA08 /* PlayerScrubBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000008000000000000BB08 /* PlayerScrubBar.swift */; };
 		A1000009000000000000AA09 /* PlayerOverlayPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000009000000000000BB09 /* PlayerOverlayPolicyTests.swift */; };
 		A100000A000000000000AA0A /* PlayerOverlaySnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000A000000000000BB0A /* PlayerOverlaySnapshotTests.swift */; };
+		RP1000001000000000AA01 /* ResumePromptDecision.swift in Sources */ = {isa = PBXBuildFile; fileRef = RP1000001000000000BB01 /* ResumePromptDecision.swift */; };
+		RP1000002000000000AA02 /* ResumePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RP1000002000000000BB02 /* ResumePromptView.swift */; };
+		RP1000003000000000AA03 /* ResumePromptDecisionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = RP1000003000000000BB03 /* ResumePromptDecisionTests.swift */; };
+		RP1000004000000000AA04 /* PlayerViewModelResumePromptTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = RP1000004000000000BB04 /* PlayerViewModelResumePromptTests.swift */; };
+		RP1000005000000000AA05 /* ResumePromptSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = RP1000005000000000BB05 /* ResumePromptSnapshotTests.swift */; };
 		A1B2C3D4E5F6A1B2C3D4E5F6 /* EngineXPCServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A6B1C2D3E4F5A6 /* EngineXPCServer.swift */; };
 		A1F000000000000000000002 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1F000000000000000000001 /* AppIntents.framework */; };
 		A1F000000000000000000003 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1F000000000000000000001 /* AppIntents.framework */; };
@@ -150,6 +155,11 @@
 		B1000008000000000000BB08 /* PlayerScrubBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerScrubBar.swift; sourceTree = "<group>"; };
 		B1000009000000000000BB09 /* PlayerOverlayPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerOverlayPolicyTests.swift; sourceTree = "<group>"; };
 		B100000A000000000000BB0A /* PlayerOverlaySnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerOverlaySnapshotTests.swift; sourceTree = "<group>"; };
+		RP1000001000000000BB01 /* ResumePromptDecision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumePromptDecision.swift; sourceTree = "<group>"; };
+		RP1000002000000000BB02 /* ResumePromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumePromptView.swift; sourceTree = "<group>"; };
+		RP1000003000000000BB03 /* ResumePromptDecisionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumePromptDecisionTests.swift; sourceTree = "<group>"; };
+		RP1000004000000000BB04 /* PlayerViewModelResumePromptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerViewModelResumePromptTests.swift; sourceTree = "<group>"; };
+		RP1000005000000000BB05 /* ResumePromptSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumePromptSnapshotTests.swift; sourceTree = "<group>"; };
 		B1C2D3E4F5A6B1C2D3E4F5A6 /* EngineXPCServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineXPCServer.swift; sourceTree = "<group>"; };
 		B2F3A4C5D6E7B2F3A4C5D6E7 /* StreamRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamRegistry.swift; sourceTree = "<group>"; };
 		B3C4D5E6F7A8B3C4D5E6F7A8 /* TorrentAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TorrentAlert.swift; sourceTree = "<group>"; };
@@ -280,6 +290,9 @@
 				FACE000EAAAA0000BBBB000E /* LibraryViewModelFavouritesTests.swift */,
 				TA000001000000000000BB01 /* TorrentAlertTests.swift */,
 				PBM00005000000000000BB01 /* PieceByteMappingTests.swift */,
+				RP1000003000000000BB03 /* ResumePromptDecisionTests.swift */,
+				RP1000004000000000BB04 /* PlayerViewModelResumePromptTests.swift */,
+				RP1000005000000000BB05 /* ResumePromptSnapshotTests.swift */,
 			);
 			path = ButterBarTests;
 			sourceTree = "<group>";
@@ -397,6 +410,8 @@
 				B1000006000000000000BB06 /* PlayerOverlayPolicy.swift */,
 				B1000007000000000000BB07 /* PlayerOverlay.swift */,
 				B1000008000000000000BB08 /* PlayerScrubBar.swift */,
+				RP1000001000000000BB01 /* ResumePromptDecision.swift */,
+				RP1000002000000000BB02 /* ResumePromptView.swift */,
 			);
 			path = Player;
 			sourceTree = "<group>";
@@ -614,6 +629,9 @@
 				TA000003000000000000AA01 /* TorrentAlert.swift in Sources */,
 				PBM00003000000000000AA01 /* PieceByteMapping.swift in Sources */,
 				PBM00004000000000000AA01 /* PieceByteMappingTests.swift in Sources */,
+				RP1000003000000000AA03 /* ResumePromptDecisionTests.swift in Sources */,
+				RP1000004000000000AA04 /* PlayerViewModelResumePromptTests.swift in Sources */,
+				RP1000005000000000AA05 /* ResumePromptSnapshotTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -678,6 +696,8 @@
 				A1000006000000000000AA06 /* PlayerOverlayPolicy.swift in Sources */,
 				A1000007000000000000AA07 /* PlayerOverlay.swift in Sources */,
 				A1000008000000000000AA08 /* PlayerScrubBar.swift in Sources */,
+				RP1000001000000000AA01 /* ResumePromptDecision.swift in Sources */,
+				RP1000002000000000AA02 /* ResumePromptView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

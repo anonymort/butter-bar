@@ -2,6 +2,7 @@ import AVFoundation
 import Combine
 import EngineInterface
 import Foundation
+import LibraryDomain
 import PlayerDomain
 
 // MARK: - PlayerViewModel
@@ -39,6 +40,13 @@ final class PlayerViewModel: ObservableObject {
     /// `0` until the asset reports a finite duration.
     @Published private(set) var durationSeconds: Double = 0
 
+    /// Resume-prompt offer (#19). Non-nil iff the resume prompt should be
+    /// shown to the user. Cleared by the user's choice (continue / start over)
+    /// or by an explicit dismiss. Fired at most once per VM lifetime per
+    /// design `docs/design/player-state-foundation.md § Risks` — the
+    /// `hasOfferedResume` flag below gates re-entry.
+    @Published private(set) var resumePromptOffer: ResumePromptOffer?
+
     // MARK: Internal
 
     /// Strong reference — released in `close()`.
@@ -48,7 +56,17 @@ final class PlayerViewModel: ObservableObject {
 
     private let streamDescriptor: StreamDescriptorDTO
     private let engineClient: EngineClient
+    /// Async closure that returns the current playback-history snapshot.
+    /// Defaults to `engineClient.listPlaybackHistory()` in production; tests
+    /// inject a fake to drive the resume-prompt seam without standing up
+    /// a real XPC connection.
+    private let historyProvider: () async throws -> [PlaybackHistoryDTO]
     private let now: () -> Date
+    /// Identity of the file behind this stream. Optional because preview /
+    /// snapshot tests construct a VM without an underlying torrent. When
+    /// `nil`, the resume-prompt lookup is skipped (no history to query).
+    private let torrentID: String?
+    private let fileIndex: Int32?
     private var healthSubscription: AnyCancellable?
     private var reconnectSubscription: AnyCancellable?
     private var avPlayerObservers = Set<AnyCancellable>()
@@ -56,14 +74,26 @@ final class PlayerViewModel: ObservableObject {
     private var periodicTimeObserver: Any?
     private var isClosed = false
     private var hasPriorEvents = false   // edge detection for disconnect/reconnect
+    /// Gate so the resume prompt fires at most once per VM lifetime, even if
+    /// the state machine briefly re-enters `.open` (design § Risks).
+    private var hasOfferedResume = false
+    /// AVPlayerItem the resume seek (if any) was scheduled against. Held so
+    /// "Start over" can override the prepared seek by replacing it with `.zero`.
+    private weak var primaryItem: AVPlayerItem?
 
     // MARK: - Init
 
     init(streamDescriptor: StreamDescriptorDTO,
          engineClient: EngineClient,
+         torrentID: String? = nil,
+         fileIndex: Int32? = nil,
+         historyProvider: (() async throws -> [PlaybackHistoryDTO])? = nil,
          now: @escaping () -> Date = Date.init) {
         self.streamDescriptor = streamDescriptor
         self.engineClient = engineClient
+        self.torrentID = torrentID
+        self.fileIndex = fileIndex
+        self.historyProvider = historyProvider ?? { try await engineClient.listPlaybackHistory() }
         self.now = now
 
         // Project the (already-completed) open through the state machine so
@@ -79,6 +109,7 @@ final class PlayerViewModel: ObservableObject {
         let item = AVPlayerItem(url: url)
         let avPlayer = AVPlayer(playerItem: item)
         self.player = avPlayer
+        self.primaryItem = item
 
         handle(.engineReturnedDescriptor)
 
@@ -88,6 +119,12 @@ final class PlayerViewModel: ObservableObject {
         }
 
         bindAVPlayerObservers(player: avPlayer, item: item)
+
+        // Evaluate the resume-prompt seam (#19). Fires at most once per VM
+        // lifetime; the lookup is async because it traverses XPC. Triggered
+        // here rather than on every `.open` re-entry so brief stalls do not
+        // re-flash the prompt.
+        Task { await self.evaluateResumePromptOffer() }
 
         // Re-bind to the active events stream whenever EngineClient reconnects.
         reconnectSubscription = NotificationCenter.default.publisher(
@@ -132,6 +169,37 @@ final class PlayerViewModel: ObservableObject {
         player.seek(to: target,
                     toleranceBefore: .zero,
                     toleranceAfter: CMTime(seconds: 1, preferredTimescale: 600))
+    }
+
+    // MARK: - Resume prompt (#19)
+
+    /// User chose "Continue from where you stopped". The existing
+    /// `scheduleResumeSeek` path is already armed for `streamDescriptor.resumeByteOffset > 0`;
+    /// just clear the prompt and project the play tap.
+    func resolveResumeContinue() {
+        resumePromptOffer = nil
+        play()
+    }
+
+    /// User chose "Start from the beginning". Seek the AVPlayer to `.zero`
+    /// to override the prepared resume seek, then project the play tap.
+    func resolveResumeStartOver() {
+        resumePromptOffer = nil
+        // Cancel the pending resume seek subscription so it cannot land
+        // after the user-driven .zero seek (would otherwise race).
+        cancellables.removeAll()
+        if let item = primaryItem {
+            item.seek(to: .zero, completionHandler: nil)
+        } else {
+            player?.seek(to: .zero)
+        }
+        play()
+    }
+
+    /// User dismissed the prompt (Esc, click-outside, or explicit dismiss).
+    /// No event projected — the player stays in `.open` for the user to act.
+    func dismissResumePrompt() {
+        resumePromptOffer = nil
     }
 
     // MARK: - Event handling
@@ -314,6 +382,106 @@ final class PlayerViewModel: ObservableObject {
     }
 
     // MARK: - Private helpers
+
+    /// Evaluate the resume prompt seam (#19). Looks up the playback history
+    /// row for `(torrentID, fileIndex)`, derives `WatchStatus`, and asks
+    /// `ResumePromptDecision` whether to offer. Fires the prompt at most
+    /// once per VM lifetime.
+    private func evaluateResumePromptOffer() async {
+        guard !hasOfferedResume else { return }
+        // Mark the gate now so concurrent re-entries (e.g. retry) cannot
+        // double-fire even if the await below suspends.
+        hasOfferedResume = true
+
+        guard let torrentID, let fileIndex else { return }
+
+        let history: [PlaybackHistoryDTO]
+        do {
+            history = try await historyProvider()
+        } catch {
+            // Defensive: if history can't be loaded the user just starts
+            // afresh. No prompt — log and return.
+            NSLog("[PlayerViewModel] resume prompt: listPlaybackHistory failed: %@",
+                  error.localizedDescription)
+            return
+        }
+
+        let row = history.first { dto in
+            (dto.torrentID as String) == torrentID && dto.fileIndex == fileIndex
+        }
+        let totalBytes = streamDescriptor.contentLength
+        let status = WatchStatus.from(history: row, totalBytes: totalBytes)
+
+        guard ResumePromptDecision.shouldOffer(watchStatus: status,
+                                               descriptor: streamDescriptor) else {
+            // No prompt warranted — autoplay if the caller is waiting on
+            // the decision before starting playback.
+            startPlaybackIfPending()
+            return
+        }
+
+        let label = displayableResumeLabel()
+        resumePromptOffer = ResumePromptOffer(resumeTimeLabel: label)
+    }
+
+    /// Set to `true` by `requestAutoPlayWhenReady()` to indicate the view
+    /// would like the VM to start playback as soon as the resume-prompt
+    /// decision has settled. The VM uses this flag instead of letting the
+    /// view race the prompt evaluation.
+    private var pendingAutoPlay = false
+
+    /// Called by the view on appear to express "play once the resume
+    /// decision is made". If the decision has already settled with no
+    /// prompt to show, plays immediately.
+    func requestAutoPlayWhenReady() {
+        if hasOfferedResume && resumePromptOffer == nil {
+            // Decision already made and nothing to ask the user — play.
+            play()
+        } else {
+            pendingAutoPlay = true
+        }
+    }
+
+    private func startPlaybackIfPending() {
+        guard pendingAutoPlay else { return }
+        pendingAutoPlay = false
+        play()
+    }
+
+    /// Best-effort displayable resume label derived from
+    /// `resumeByteOffset / contentLength × duration` — same math the resume
+    /// seek uses (see `scheduleResumeSeek`). Returns `nil` if duration is
+    /// not yet known so the prompt renders "Continue" rather than blocking.
+    private func displayableResumeLabel() -> String? {
+        guard streamDescriptor.contentLength > 0 else { return nil }
+        guard let item = primaryItem,
+              item.duration.isNumeric,
+              item.duration.seconds > 0 else { return nil }
+        let ratio = Double(streamDescriptor.resumeByteOffset)
+            / Double(streamDescriptor.contentLength)
+        let seconds = item.duration.seconds * ratio
+        return Self.formatResumeSeconds(seconds)
+    }
+
+    /// Format seconds as a calm, monospaced-friendly label per
+    /// `06-brand.md § Voice` ("12 seconds buffered" register — concrete,
+    /// short). Examples: `0s`, `45s`, `12m`, `1h 23m`.
+    static func formatResumeSeconds(_ seconds: Double) -> String {
+        let total = Int(seconds.rounded(.down))
+        if total < 60 {
+            return "\(total)s"
+        }
+        let minutes = total / 60
+        if minutes < 60 {
+            return "\(minutes)m"
+        }
+        let hours = minutes / 60
+        let remMin = minutes % 60
+        if remMin == 0 {
+            return "\(hours)h"
+        }
+        return "\(hours)h \(remMin)m"
+    }
 
     /// Once the asset duration is available, seeks to the byte-ratio–derived time.
     /// This is a best-effort approximation; the planner and gateway handle actual
