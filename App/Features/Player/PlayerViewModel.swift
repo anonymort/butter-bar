@@ -123,8 +123,16 @@ final class PlayerViewModel: ObservableObject {
         // Evaluate the resume-prompt seam (#19). Fires at most once per VM
         // lifetime; the lookup is async because it traverses XPC. Triggered
         // here rather than on every `.open` re-entry so brief stalls do not
-        // re-flash the prompt.
-        Task { await self.evaluateResumePromptOffer() }
+        // re-flash the prompt. Skipped when no identity was supplied
+        // (preview / snapshot / legacy call sites) so the VM does not even
+        // queue the Task.
+        if torrentID != nil, fileIndex != nil {
+            Task { await self.evaluateResumePromptOffer() }
+        } else {
+            // No identity → no prompt is possible. Mark the gate so any
+            // later `requestAutoPlayWhenReady()` call plays immediately.
+            hasOfferedResume = true
+        }
 
         // Re-bind to the active events stream whenever EngineClient reconnects.
         reconnectSubscription = NotificationCenter.default.publisher(
