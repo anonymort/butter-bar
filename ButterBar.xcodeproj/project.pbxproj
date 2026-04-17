@@ -47,6 +47,10 @@
 		EOE0000500000000000000A5 /* MetadataDomain in Frameworks */ = {isa = PBXBuildFile; productRef = EOE0000600000000000000A6 /* MetadataDomain */; };
 		EOE0000700000000000000A7 /* EndOfEpisodeDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = EOE0000800000000000000A8 /* EndOfEpisodeDetector.swift */; };
 		EOE0000900000000000000A9 /* EndOfEpisodeDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EOE0000A00000000000000AA /* EndOfEpisodeDetectorTests.swift */; };
+		NEP0000100000000000000A1 /* NextEpisodeCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = NEP0000200000000000000A2 /* NextEpisodeCoordinator.swift */; };
+		NEP0000300000000000000A3 /* UpNextOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = NEP0000400000000000000A4 /* UpNextOverlay.swift */; };
+		NEP0000500000000000000A5 /* NextEpisodeCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = NEP0000600000000000000A6 /* NextEpisodeCoordinatorTests.swift */; };
+		NEP0000700000000000000A7 /* UpNextOverlaySnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = NEP0000800000000000000A8 /* UpNextOverlaySnapshotTests.swift */; };
 		AA33BB55CC77DD99EE11FF33 /* ResumeTrackerSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF6600889900AABB11CC2233 /* ResumeTrackerSelfTest.swift */; };
 		AA77889900BBCCDD11AA7788 /* HTTPSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8899AA00CCDDEE22BB8899 /* HTTPSelfTest.swift */; };
 		B5C7D9E1F3A2048A67B9C0D1 /* TorrentBridgeSmokeTest.mm in Sources */ = {isa = PBXBuildFile; fileRef = F8C1D5A3B2E497640F3A5B02 /* TorrentBridgeSmokeTest.mm */; };
@@ -191,6 +195,10 @@
 		EOE0000200000000000000A2 /* MetadataDomain */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MetadataDomain; path = Packages/MetadataDomain; sourceTree = "<group>"; };
 		EOE0000800000000000000A8 /* EndOfEpisodeDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndOfEpisodeDetector.swift; sourceTree = "<group>"; };
 		EOE0000A00000000000000AA /* EndOfEpisodeDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndOfEpisodeDetectorTests.swift; sourceTree = "<group>"; };
+		NEP0000200000000000000A2 /* NextEpisodeCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextEpisodeCoordinator.swift; sourceTree = "<group>"; };
+		NEP0000400000000000000A4 /* UpNextOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpNextOverlay.swift; sourceTree = "<group>"; };
+		NEP0000600000000000000A6 /* NextEpisodeCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextEpisodeCoordinatorTests.swift; sourceTree = "<group>"; };
+		NEP0000800000000000000A8 /* UpNextOverlaySnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpNextOverlaySnapshotTests.swift; sourceTree = "<group>"; };
 		E1000002000000000000EE02 /* CacheEvictionProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheEvictionProbe.swift; sourceTree = "<group>"; };
 		E1F2A3B4C5D6E1F2A3B4C5D6 /* ByteReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ByteReader.swift; sourceTree = "<group>"; };
 		E2000002000000000000EE02 /* CacheEviction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheEviction.swift; sourceTree = "<group>"; };
@@ -303,6 +311,8 @@
 				RP1000004000000000BB04 /* PlayerViewModelResumePromptTests.swift */,
 				RP1000005000000000BB05 /* ResumePromptSnapshotTests.swift */,
 				EOE0000A00000000000000AA /* EndOfEpisodeDetectorTests.swift */,
+				NEP0000600000000000000A6 /* NextEpisodeCoordinatorTests.swift */,
+				NEP0000800000000000000A8 /* UpNextOverlaySnapshotTests.swift */,
 			);
 			path = ButterBarTests;
 			sourceTree = "<group>";
@@ -423,6 +433,8 @@
 				RP1000001000000000BB01 /* ResumePromptDecision.swift */,
 				RP1000002000000000BB02 /* ResumePromptView.swift */,
 				EOE0000800000000000000A8 /* EndOfEpisodeDetector.swift */,
+				NEP0000200000000000000A2 /* NextEpisodeCoordinator.swift */,
+				NEP0000400000000000000A4 /* UpNextOverlay.swift */,
 			);
 			path = Player;
 			sourceTree = "<group>";
@@ -648,6 +660,8 @@
 				RP1000004000000000AA04 /* PlayerViewModelResumePromptTests.swift in Sources */,
 				RP1000005000000000AA05 /* ResumePromptSnapshotTests.swift in Sources */,
 				EOE0000900000000000000A9 /* EndOfEpisodeDetectorTests.swift in Sources */,
+				NEP0000500000000000000A5 /* NextEpisodeCoordinatorTests.swift in Sources */,
+				NEP0000700000000000000A7 /* UpNextOverlaySnapshotTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -715,6 +729,8 @@
 				RP1000001000000000AA01 /* ResumePromptDecision.swift in Sources */,
 				RP1000002000000000AA02 /* ResumePromptView.swift in Sources */,
 				EOE0000700000000000000A7 /* EndOfEpisodeDetector.swift in Sources */,
+				NEP0000100000000000000A1 /* NextEpisodeCoordinator.swift in Sources */,
+				NEP0000300000000000000A3 /* UpNextOverlay.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
