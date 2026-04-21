@@ -73,10 +73,14 @@ struct ButterBarCommands: Commands {
 
             Divider()
 
-            Button("Toggle Full Screen") {
+            // Cmd+F is reserved for Find (system). Ctrl+Cmd+F is the standard
+            // macOS fullscreen toggle — SwiftUI / AppKit provide it automatically
+            // via the View menu. PlayerView.onKeyPress("f") handles the bare-F
+            // shortcut when the player has keyboard focus.
+            Button("Enter Full Screen") {
                 NotificationCenter.default.post(name: Self.toggleFullscreenNotification, object: nil)
             }
-            .keyboardShortcut("f", modifiers: .command)
+            .keyboardShortcut("f", modifiers: [.command, .control])
         }
     }
 

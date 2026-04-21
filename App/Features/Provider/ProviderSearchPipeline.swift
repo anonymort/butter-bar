@@ -77,11 +77,10 @@ final class ProviderSearchPipeline: ObservableObject {
             // presenting results from a newer search.
             guard !Task.isCancelled else { return }
 
-            await MainActor.run {
-                self.candidates = sorted
-                self.errors = providerErrors
-                self.isSearching = false
-            }
+            // Already on @MainActor — direct assignment.
+            self.candidates = sorted
+            self.errors = providerErrors
+            self.isSearching = false
         }
 
         await searchTask?.value
@@ -133,7 +132,7 @@ final class ProviderSearchPipeline: ObservableObject {
 
 private enum ProviderResult: Sendable {
     case success([SourceCandidate])
-    case failure(providerName: String, error: Error)
+    case failure(providerName: String, error: any Error & Sendable)
 }
 
 // MARK: - Timeout error

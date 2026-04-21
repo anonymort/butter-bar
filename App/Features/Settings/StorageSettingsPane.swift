@@ -101,22 +101,28 @@ struct StorageSettingsPane: View {
     // MARK: - Disk info
 
     private func loadDiskInfo() async {
-        let fm = FileManager.default
-        if let cacheURL = fm.urls(for: .cachesDirectory, in: .userDomainMask).first {
-            cacheSize = directorySize(at: cacheURL)
-        }
-        if let attrs = try? fm.attributesOfFileSystem(
-            forPath: NSHomeDirectory()
-        ) {
-            let total = (attrs[.systemSize] as? Int64) ?? 0
-            let free  = (attrs[.systemFreeSize] as? Int64) ?? 0
-            diskInfo = DiskInfo(totalBytes: total, availableBytes: free)
-        }
+        // File I/O off the main actor — avoid blocking the UI thread on large trees.
+        let (size, info) = await Task.detached(priority: .utility) {
+            let fm = FileManager.default
+            var size: Int64 = 0
+            if let cacheURL = fm.urls(for: .cachesDirectory, in: .userDomainMask).first {
+                size = StorageSettingsPane.directorySize(at: cacheURL)
+            }
+            var info = DiskInfo.empty
+            if let attrs = try? fm.attributesOfFileSystem(forPath: NSHomeDirectory()) {
+                let total = (attrs[.systemSize] as? Int64) ?? 0
+                let free  = (attrs[.systemFreeSize] as? Int64) ?? 0
+                info = DiskInfo(totalBytes: total, availableBytes: free)
+            }
+            return (size, info)
+        }.value
+        cacheSize = size
+        diskInfo = info
     }
 
     /// Recursive byte count for a directory tree.
-    /// File-granular; may be slow for large trees, but acceptable on a background task.
-    private func directorySize(at url: URL) -> Int64 {
+    /// Called from a detached task — must be `static` (no actor isolation).
+    private static func directorySize(at url: URL) -> Int64 {
         guard let enumerator = FileManager.default.enumerator(
             at: url,
             includingPropertiesForKeys: [.fileSizeKey],

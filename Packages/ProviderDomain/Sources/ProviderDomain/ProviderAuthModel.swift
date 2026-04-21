@@ -7,6 +7,11 @@ public enum ProviderAuthModel: Sendable, Codable, Equatable {
     /// Public API — no credentials required.
     case none
     /// Static API key injected at provider initialisation time.
+    ///
+    /// WARNING: `ProviderAuthModel` is `Codable`. Do NOT persist a value of
+    /// this case to disk (UserDefaults, JSON config, etc.) — the key would be
+    /// written in cleartext. Store API keys in the Keychain and reconstruct
+    /// this value in-memory at provider init time.
     case apiKey(key: String)
     /// OAuth 2 flow — v1.5+ only. `clientID` is embedded; token exchange is not implemented.
     case oauth(clientID: String)

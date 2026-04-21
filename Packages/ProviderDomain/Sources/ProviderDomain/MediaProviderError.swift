@@ -5,7 +5,7 @@ import Foundation
 /// Callers should treat `.rateLimited` as recoverable (back off and retry)
 /// and `.authRequired` as fatal for the current session (trigger re-auth).
 public enum MediaProviderError: Error, LocalizedError, Sendable {
-    case networkError(underlying: Error)
+    case networkError(underlying: any Error & Sendable)
     case rateLimited
     case notFound
     case authRequired
