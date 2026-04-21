@@ -5,6 +5,9 @@ struct ContentView: View {
     @StateObject private var libraryViewModel: LibraryViewModel
     @StateObject private var homeViewModel: HomeViewModel
     @StateObject private var searchViewModel: SearchViewModel
+    @StateObject private var providerPipeline = ProviderSearchPipeline(
+        providers: DefaultProviderRegistry.makeProviders()
+    )
     @State private var selection: DiscoveryDestination = .home
     @State private var selectedItem: MediaItem?
 

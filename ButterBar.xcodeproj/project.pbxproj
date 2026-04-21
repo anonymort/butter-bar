@@ -149,6 +149,13 @@
 		BBCM0001000000000000AA01 /* ButterBarCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCM0001000000000000BB01 /* ButterBarCommands.swift */; };
 		PVSP0001000000000000AA01 /* ProviderSearchPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = PVSP0001000000000000BB01 /* ProviderSearchPipeline.swift */; };
 		PVSP0002000000000000AA01 /* ProviderDomain in Frameworks */ = {isa = PBXBuildFile; productRef = PVSP0003000000000000BB01 /* ProviderDomain */; };
+		PVSP0007000000000000AA01 /* ProviderDomain in Frameworks */ = {isa = PBXBuildFile; productRef = PVSP0006000000000000BB01 /* ProviderDomain */; };
+		YTSP0001000000000000AA01 /* YTSProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = YTSP0001000000000000BB01 /* YTSProvider.swift */; };
+		EZTV0001000000000000AA01 /* EZTVProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = EZTV0001000000000000BB01 /* EZTVProvider.swift */; };
+		DREG0001000000000000AA01 /* DefaultProviderRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = DREG0001000000000000BB01 /* DefaultProviderRegistry.swift */; };
+		YTST0001000000000000AA01 /* YTSProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = YTST0001000000000000BB01 /* YTSProviderTests.swift */; };
+		EZTV0002000000000000AA01 /* EZTVProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EZTV0002000000000000BB01 /* EZTVProviderTests.swift */; };
+		MOCK0001000000000000AA01 /* MockURLSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = MOCK0001000000000000BB01 /* MockURLSession.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -327,6 +334,12 @@
 		BBCM0001000000000000BB01 /* ButterBarCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButterBarCommands.swift; sourceTree = "<group>"; };
 		PVSP0001000000000000BB01 /* ProviderSearchPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderSearchPipeline.swift; sourceTree = "<group>"; };
 		PVSP0004000000000000BB01 /* ProviderDomain */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ProviderDomain; path = Packages/ProviderDomain; sourceTree = "<group>"; };
+		YTSP0001000000000000BB01 /* YTSProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YTSProvider.swift; sourceTree = "<group>"; };
+		EZTV0001000000000000BB01 /* EZTVProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EZTVProvider.swift; sourceTree = "<group>"; };
+		DREG0001000000000000BB01 /* DefaultProviderRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultProviderRegistry.swift; sourceTree = "<group>"; };
+		YTST0001000000000000BB01 /* YTSProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YTSProviderTests.swift; sourceTree = "<group>"; };
+		EZTV0002000000000000BB01 /* EZTVProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EZTVProviderTests.swift; sourceTree = "<group>"; };
+		MOCK0001000000000000BB01 /* MockURLSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockURLSession.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -363,6 +376,7 @@
 				8E4F6EAC342FC231B7B08716 /* SnapshotTesting in Frameworks */,
 				EOE0000500000000000000A5 /* MetadataDomain in Frameworks */,
 				SD000013000000000000AA01 /* SubtitleDomain in Frameworks */,
+				PVSP0007000000000000AA01 /* ProviderDomain in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -446,8 +460,19 @@
 				SD000010000000000000BB01 /* SubtitlePreferenceStoreTests.swift */,
 				SD000011000000000000BB01 /* SubtitleSelectionMenuSnapshotTests.swift */,
 				SD000012000000000000BB01 /* SubtitleErrorBannerSnapshotTests.swift */,
+				YTST0001000000000000BB01 /* YTSProviderTests.swift */,
+				EZTV0002000000000000BB01 /* EZTVProviderTests.swift */,
+				SUPP0001000000000000GG01 /* Support */,
 			);
 			path = ButterBarTests;
+			sourceTree = "<group>";
+		};
+		SUPP0001000000000000GG01 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				MOCK0001000000000000BB01 /* MockURLSession.swift */,
+			);
+			path = Support;
 			sourceTree = "<group>";
 		};
 		2E8A3935F76DD63B81D5BCD8 /* Features */ = {
@@ -476,8 +501,19 @@
 			isa = PBXGroup;
 			children = (
 				PVSP0001000000000000BB01 /* ProviderSearchPipeline.swift */,
+				DREG0001000000000000BB01 /* DefaultProviderRegistry.swift */,
+				PVGR0001000000000000GG01 /* Providers */,
 			);
 			path = Provider;
+			sourceTree = "<group>";
+		};
+		PVGR0001000000000000GG01 /* Providers */ = {
+			isa = PBXGroup;
+			children = (
+				YTSP0001000000000000BB01 /* YTSProvider.swift */,
+				EZTV0001000000000000BB01 /* EZTVProvider.swift */,
+			);
+			path = Providers;
 			sourceTree = "<group>";
 		};
 		D13D0040000000000000DD40 /* Discovery */ = {
@@ -743,6 +779,7 @@
 				6F770D65D670E58E0351D8AE /* SnapshotTesting */,
 				EOE0000600000000000000A6 /* MetadataDomain */,
 				SD000013000000000000BB01 /* SubtitleDomain */,
+				PVSP0006000000000000BB01 /* ProviderDomain */,
 			);
 			productName = ButterBarTests;
 			productReference = 3A4B5C6D7E8F3A4B5C6D7E8F /* ButterBarTests.xctest */;
@@ -886,6 +923,9 @@
 				SD000010000000000000AA01 /* SubtitlePreferenceStoreTests.swift in Sources */,
 				SD000011000000000000AA01 /* SubtitleSelectionMenuSnapshotTests.swift in Sources */,
 				SD000012000000000000AA01 /* SubtitleErrorBannerSnapshotTests.swift in Sources */,
+				YTST0001000000000000AA01 /* YTSProviderTests.swift in Sources */,
+				EZTV0002000000000000AA01 /* EZTVProviderTests.swift in Sources */,
+				MOCK0001000000000000AA01 /* MockURLSession.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -986,6 +1026,9 @@
 				SETV0002000000000000AA01 /* StorageSettingsPane.swift in Sources */,
 				BBCM0001000000000000AA01 /* ButterBarCommands.swift in Sources */,
 				PVSP0001000000000000AA01 /* ProviderSearchPipeline.swift in Sources */,
+				DREG0001000000000000AA01 /* DefaultProviderRegistry.swift in Sources */,
+				YTSP0001000000000000AA01 /* YTSProvider.swift in Sources */,
+				EZTV0001000000000000AA01 /* EZTVProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1757,6 +1800,11 @@
 			productName = SubtitleDomain;
 		};
 		PVSP0003000000000000BB01 /* ProviderDomain */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = PVSP0005000000000000HH01 /* XCLocalSwiftPackageReference "Packages/ProviderDomain" */;
+			productName = ProviderDomain;
+		};
+		PVSP0006000000000000BB01 /* ProviderDomain */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = PVSP0005000000000000HH01 /* XCLocalSwiftPackageReference "Packages/ProviderDomain" */;
 			productName = ProviderDomain;
