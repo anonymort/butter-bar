@@ -93,9 +93,19 @@ jobs:
         run: |
           xcodebuild test \
             -scheme ButterBar \
+            -only-testing:ButterBarTests/AudioPickerSnapshotTests \
+            -only-testing:ButterBarTests/ContinueWatchingRowSnapshotTests \
+            -only-testing:ButterBarTests/HomeSnapshotTests \
             -only-testing:ButterBarTests/LibrarySnapshotTests \
             -only-testing:ButterBarTests/PlayerHUDSnapshotTests \
             -only-testing:ButterBarTests/PlayerOverlaySnapshotTests \
+            -only-testing:ButterBarTests/ResumePromptSnapshotTests \
+            -only-testing:ButterBarTests/SearchSnapshotTests \
+            -only-testing:ButterBarTests/SeasonEpisodeSelectorSnapshotTests \
+            -only-testing:ButterBarTests/SubtitleErrorBannerSnapshotTests \
+            -only-testing:ButterBarTests/SubtitleSelectionMenuSnapshotTests \
+            -only-testing:ButterBarTests/TitleDetailSnapshotTests \
+            -only-testing:ButterBarTests/UpNextOverlaySnapshotTests \
             -destination 'platform=macOS' \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
