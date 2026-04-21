@@ -15,6 +15,12 @@ public struct Movie: Equatable, Sendable, Hashable, Codable {
     public let voteAverage: Double?
     public let popularity: Double?
     public let cast: [CastMember]
+    /// IMDb identifier in canonical `tt0133093` form. Populated by the
+    /// metadata provider when detail is fetched; `nil` for browse-row
+    /// projections that only carry TMDb summary data. Consumed by external
+    /// provider integrations (e.g. Jackett/Torznab) that support
+    /// `imdbid` lookups in addition to `tmdbid`.
+    public let imdbID: String?
 
     public init(id: MediaID,
                 title: String,
@@ -27,7 +33,8 @@ public struct Movie: Equatable, Sendable, Hashable, Codable {
                 backdropPath: String?,
                 voteAverage: Double?,
                 popularity: Double?,
-                cast: [CastMember] = []) {
+                cast: [CastMember] = [],
+                imdbID: String? = nil) {
         self.id = id
         self.title = title
         self.originalTitle = originalTitle
@@ -40,11 +47,12 @@ public struct Movie: Equatable, Sendable, Hashable, Codable {
         self.voteAverage = voteAverage
         self.popularity = popularity
         self.cast = cast
+        self.imdbID = imdbID
     }
 
     private enum CodingKeys: String, CodingKey {
         case id, title, originalTitle, releaseYear, runtimeMinutes, overview
-        case genres, posterPath, backdropPath, voteAverage, popularity, cast
+        case genres, posterPath, backdropPath, voteAverage, popularity, cast, imdbID
     }
 
     public init(from decoder: Decoder) throws {
@@ -61,5 +69,6 @@ public struct Movie: Equatable, Sendable, Hashable, Codable {
         voteAverage = try container.decodeIfPresent(Double.self, forKey: .voteAverage)
         popularity = try container.decodeIfPresent(Double.self, forKey: .popularity)
         cast = try container.decodeIfPresent([CastMember].self, forKey: .cast) ?? []
+        imdbID = try container.decodeIfPresent(String.self, forKey: .imdbID)
     }
 }
