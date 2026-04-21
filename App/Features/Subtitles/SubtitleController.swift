@@ -188,6 +188,10 @@ final class SubtitleController: ObservableObject {
                     }
                     return
                 }
+                // Staleness guard: if the player item was replaced during the
+                // async await (e.g. by retry or next-episode), discard this
+                // activation — it targets the old stream.
+                guard item === playerItem else { return }
                 item.select(option, in: group)
                 let selected = item.currentMediaSelection.selectedMediaOption(in: group)
                 applyEmbeddedSelectionResult(

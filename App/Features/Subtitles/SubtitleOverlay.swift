@@ -23,11 +23,15 @@ struct SubtitleOverlay: View {
                     // Position in the lower third.
                     Text(cue.text)
                         .brandBodyRegular()
+                        // Pure white is intentional here: subtitle text must be
+                        // legible against arbitrary video content regardless of
+                        // the brand palette. This is a deliberate deviation from
+                        // BrandColors per design review (§ subtitle rendering).
                         .foregroundStyle(Color.white)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 24)
                         .padding(.vertical, 8)
-                        .shadow(color: .black.opacity(0.8), radius: 3, x: 0, y: 1)
+                        .shadow(color: BrandColors.videoLetterbox.opacity(0.8), radius: 3, x: 0, y: 1)
                         .frame(maxWidth: proxy.size.width * 0.85)
                     Spacer()
                         .frame(height: proxy.size.height * 0.12)

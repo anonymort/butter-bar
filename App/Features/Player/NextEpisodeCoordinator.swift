@@ -71,15 +71,16 @@ final class TestClock: CountdownClock, @unchecked Sendable {
     }
 
     /// Advance virtual time. Any pending fire whose deadline is now in the
-    /// past dispatches synchronously to the main actor.
+    /// past fires synchronously on the main actor. Callers must be on the
+    /// main actor (test methods are @MainActor), so the direct call is safe
+    /// and avoids the async Task hop that would make assertions race.
+    @MainActor
     func advance(by seconds: TimeInterval) {
         now += seconds
         let due = pendings.filter { !$0.value.cancelled && $0.value.deadline <= now }
         for (id, p) in due {
             pendings.removeValue(forKey: id)
-            // Hop to main actor so the coordinator's @Published mutations
-            // happen where the runtime expects.
-            Task { @MainActor in p.fire() }
+            p.fire()
         }
     }
 }
@@ -192,9 +193,8 @@ final class NextEpisodeCoordinator: ObservableObject {
             guard let self else { return }
             let next = await self.lookupNextEpisode(after: finished)
             guard let next else { return }
-            await MainActor.run {
-                self.present(next: next)
-            }
+            // Already on @MainActor (Task inherits coordinator's isolation).
+            self.present(next: next)
         }
     }
 

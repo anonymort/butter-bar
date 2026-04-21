@@ -60,18 +60,18 @@ final class SearchViewModel: ObservableObject {
             do {
                 try await sleeper.sleep(for: debounce)
                 try Task.checkCancellation()
-                await MainActor.run {
-                    self.page = 1
-                    self.canLoadMore = false
-                    self.state = .loading(query: trimmed)
+                await MainActor.run { [weak self] in
+                    self?.page = 1
+                    self?.canLoadMore = false
+                    self?.state = .loading(query: trimmed)
                 }
                 let results = try await provider.searchMulti(query: trimmed)
                 try Task.checkCancellation()
-                await MainActor.run {
+                await MainActor.run { [weak self] in
                     if results.isEmpty {
-                        self.state = .noResults(query: trimmed)
+                        self?.state = .noResults(query: trimmed)
                     } else {
-                        self.state = .loaded(query: trimmed, results: results)
+                        self?.state = .loaded(query: trimmed, results: results)
                     }
                 }
             } catch is CancellationError {
@@ -79,10 +79,10 @@ final class SearchViewModel: ObservableObject {
             } catch MetadataProviderError.cancelled {
                 return
             } catch {
-                await MainActor.run {
-                    self.page = 1
-                    self.canLoadMore = false
-                    self.state = .error(query: trimmed)
+                await MainActor.run { [weak self] in
+                    self?.page = 1
+                    self?.canLoadMore = false
+                    self?.state = .error(query: trimmed)
                 }
             }
         }

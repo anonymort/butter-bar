@@ -431,6 +431,12 @@ final class PlayerViewModel: ObservableObject {
             player?.removeTimeObserver(token)
             periodicTimeObserver = nil
         }
+        // Also tear down the subtitle time observer; it will be re-wired on the
+        // new player below. Without this, the observer points at the dead player.
+        if let token = subtitleTimeObserver {
+            player?.removeTimeObserver(token)
+            subtitleTimeObserver = nil
+        }
 
         guard let url = URL(string: dto.loopbackURL as String) else {
             handle(.engineReturnedOpenError(.streamOpenFailed))
@@ -443,6 +449,27 @@ final class PlayerViewModel: ObservableObject {
 
         handle(.engineReturnedDescriptor)
         bindAVPlayerObservers(player: avPlayer, item: item)
+
+        // Re-wire readyToPlay → refreshEmbeddedTracks (removed with avPlayerObservers above).
+        item.publisher(for: \.status)
+            .filter { $0 == .readyToPlay }
+            .first()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self, weak item] _ in
+                self?.subtitleController.refreshEmbeddedTracks(from: item)
+            }
+            .store(in: &avPlayerObservers)
+
+        // Re-wire the 4 Hz subtitle tick observer for the new player.
+        let tickInterval = CMTime(value: 1, timescale: 4)
+        subtitleTimeObserver = avPlayer.addPeriodicTimeObserver(
+            forInterval: tickInterval,
+            queue: .main
+        ) { [weak self] time in
+            MainActor.assumeIsolated {
+                self?.subtitleController.tick(currentTime: time)
+            }
+        }
     }
 
     private func applyNextEpisodeDescriptor(_ dto: StreamDescriptorDTO,
@@ -485,6 +512,13 @@ final class PlayerViewModel: ObservableObject {
         self.primaryItem = item
 
         state = .closed
+        // Reset stale buffering indicators so they do not bleed into the
+        // new episode. This direct assignment bypasses the state machine
+        // transition that normally resets these via updateLongBufferingTracking.
+        showLongBufferingSecondary = false
+        engineStarvingStartedAt = nil
+        longBufferingTask?.cancel()
+        longBufferingTask = nil
         handle(.userRequestedOpen)
         handle(.engineReturnedDescriptor)
         bindAVPlayerObservers(player: avPlayer, item: item)
