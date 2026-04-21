@@ -6,5 +6,13 @@ struct ButterBarApp: App {
         WindowGroup {
             ContentView()
         }
+        .commands {
+            ButterBarCommands()
+        }
+
+        // Settings window — opens via ⌘, or the application menu automatically.
+        Settings {
+            SettingsView()
+        }
     }
 }
