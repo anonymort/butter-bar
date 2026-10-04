@@ -107,8 +107,10 @@ public actor TMDBProvider: MetadataProvider {
 
     public func showDetail(id: MediaID) async throws -> Show {
         precondition(id.provider == .tmdb)
+        // external_ids is appended so `imdb_id` is available downstream for
+        // Jackett/Torznab integrations that search by IMDb ID.
         let url = appendingQueryItem(
-            URLQueryItem(name: "append_to_response", value: "credits"),
+            URLQueryItem(name: "append_to_response", value: "credits,external_ids"),
             to: endpoint("/tv/\(id.id)")
         )
         let dto: ShowDetailDTO = try await fetch(url: url, ttl: MetadataCacheTTL.showDetail)
@@ -436,6 +438,8 @@ struct MovieDetailDTO: Decodable {
     let popularity: Double?
     let genres: [GenreDTO]?
     let credits: CreditsDTO?
+    /// TMDb movie detail exposes `imdb_id` as a top-level field.
+    let imdbID: String?
 
     private enum CodingKeys: String, CodingKey {
         case id, title, runtime, overview, popularity, genres, credits
@@ -444,12 +448,18 @@ struct MovieDetailDTO: Decodable {
         case posterPath = "poster_path"
         case backdropPath = "backdrop_path"
         case voteAverage = "vote_average"
+        case imdbID = "imdb_id"
     }
 
     func toMovie() -> Movie {
         let year: Int? = {
             guard let r = releaseDate, r.count >= 4 else { return nil }
             return Int(r.prefix(4))
+        }()
+        let cleanedIMDb: String? = {
+            guard let raw = imdbID else { return nil }
+            let trimmed = raw.trimmingCharacters(in: .whitespaces)
+            return trimmed.isEmpty ? nil : trimmed
         }()
         return Movie(
             id: MediaID(provider: .tmdb, id: id),
@@ -463,7 +473,8 @@ struct MovieDetailDTO: Decodable {
             backdropPath: backdropPath,
             voteAverage: voteAverage,
             popularity: popularity,
-            cast: (credits?.cast ?? []).map { $0.toCastMember() }
+            cast: (credits?.cast ?? []).map { $0.toCastMember() },
+            imdbID: cleanedIMDb
         )
     }
 }
@@ -484,6 +495,7 @@ struct ShowDetailDTO: Decodable {
     let genres: [GenreDTO]?
     let seasons: [SeasonSummaryDTO]?
     let credits: CreditsDTO?
+    let externalIDs: ExternalIDsDTO?
 
     private enum CodingKeys: String, CodingKey {
         case id, name, status, overview, popularity, genres, seasons, credits
@@ -494,6 +506,7 @@ struct ShowDetailDTO: Decodable {
         case posterPath = "poster_path"
         case backdropPath = "backdrop_path"
         case voteAverage = "vote_average"
+        case externalIDs = "external_ids"
     }
 
     func toShow() -> Show {
@@ -525,6 +538,11 @@ struct ShowDetailDTO: Decodable {
                    airDate: nil,
                    episodes: [])
         }
+        let cleanedIMDb: String? = {
+            guard let raw = externalIDs?.imdbID else { return nil }
+            let trimmed = raw.trimmingCharacters(in: .whitespaces)
+            return trimmed.isEmpty ? nil : trimmed
+        }()
         return Show(
             id: showID,
             name: name,
@@ -539,8 +557,19 @@ struct ShowDetailDTO: Decodable {
             voteAverage: voteAverage,
             popularity: popularity,
             seasons: mappedSeasons,
-            cast: (credits?.cast ?? []).map { $0.toCastMember() }
+            cast: (credits?.cast ?? []).map { $0.toCastMember() },
+            imdbID: cleanedIMDb
         )
+    }
+}
+
+/// Subset of TMDb `external_ids` append response. Only `imdb_id` is consumed
+/// today; other IDs (tvdb, freebase) are ignored.
+struct ExternalIDsDTO: Decodable {
+    let imdbID: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case imdbID = "imdb_id"
     }
 }
 

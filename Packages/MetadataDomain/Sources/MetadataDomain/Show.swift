@@ -16,6 +16,11 @@ public struct Show: Equatable, Sendable, Hashable, Codable {
     /// Hydrated lazily by the detail fetch; can be empty for browse-row results.
     public let seasons: [Season]
     public let cast: [CastMember]
+    /// IMDb identifier in canonical `tt0903747` form. Populated from TMDb
+    /// external IDs when detail is fetched; `nil` for browse-row projections.
+    /// Consumed by external provider integrations (e.g. Jackett/Torznab) that
+    /// support `imdbid` lookups in addition to `tmdbid`.
+    public let imdbID: String?
 
     public init(id: MediaID,
                 name: String,
@@ -30,7 +35,8 @@ public struct Show: Equatable, Sendable, Hashable, Codable {
                 voteAverage: Double?,
                 popularity: Double?,
                 seasons: [Season],
-                cast: [CastMember] = []) {
+                cast: [CastMember] = [],
+                imdbID: String? = nil) {
         self.id = id
         self.name = name
         self.originalName = originalName
@@ -45,12 +51,13 @@ public struct Show: Equatable, Sendable, Hashable, Codable {
         self.popularity = popularity
         self.seasons = seasons
         self.cast = cast
+        self.imdbID = imdbID
     }
 
     private enum CodingKeys: String, CodingKey {
         case id, name, originalName, firstAirYear, lastAirYear, status
         case overview, genres, posterPath, backdropPath, voteAverage
-        case popularity, seasons, cast
+        case popularity, seasons, cast, imdbID
     }
 
     public init(from decoder: Decoder) throws {
@@ -69,5 +76,6 @@ public struct Show: Equatable, Sendable, Hashable, Codable {
         popularity = try container.decodeIfPresent(Double.self, forKey: .popularity)
         seasons = try container.decode([Season].self, forKey: .seasons)
         cast = try container.decodeIfPresent([CastMember].self, forKey: .cast) ?? []
+        imdbID = try container.decodeIfPresent(String.self, forKey: .imdbID)
     }
 }

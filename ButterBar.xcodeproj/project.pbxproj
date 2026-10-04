@@ -156,6 +156,13 @@
 		YTST0001000000000000AA01 /* YTSProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = YTST0001000000000000BB01 /* YTSProviderTests.swift */; };
 		EZTV0002000000000000AA01 /* EZTVProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EZTV0002000000000000BB01 /* EZTVProviderTests.swift */; };
 		MOCK0001000000000000AA01 /* MockURLSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = MOCK0001000000000000BB01 /* MockURLSession.swift */; };
+		JCKT0001000000000000AA01 /* JackettProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = JCKT0001000000000000BB01 /* JackettProvider.swift */; };
+		JCKT0002000000000000AA01 /* JackettSettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = JCKT0002000000000000BB01 /* JackettSettingsStore.swift */; };
+		JCKT0003000000000000AA01 /* ProvidersSettingsPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = JCKT0003000000000000BB01 /* ProvidersSettingsPane.swift */; };
+		JCKT0004000000000000AA01 /* ProvidersSettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = JCKT0004000000000000BB01 /* ProvidersSettingsViewModel.swift */; };
+		JCKT0005000000000000AA01 /* JackettProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = JCKT0005000000000000BB01 /* JackettProviderTests.swift */; };
+		JCKT0006000000000000AA01 /* JackettSettingsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = JCKT0006000000000000BB01 /* JackettSettingsStoreTests.swift */; };
+		JCKT0007000000000000AA01 /* DefaultProviderRegistryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = JCKT0007000000000000BB01 /* DefaultProviderRegistryTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -340,6 +347,13 @@
 		YTST0001000000000000BB01 /* YTSProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YTSProviderTests.swift; sourceTree = "<group>"; };
 		EZTV0002000000000000BB01 /* EZTVProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EZTVProviderTests.swift; sourceTree = "<group>"; };
 		MOCK0001000000000000BB01 /* MockURLSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockURLSession.swift; sourceTree = "<group>"; };
+		JCKT0001000000000000BB01 /* JackettProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JackettProvider.swift; sourceTree = "<group>"; };
+		JCKT0002000000000000BB01 /* JackettSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JackettSettingsStore.swift; sourceTree = "<group>"; };
+		JCKT0003000000000000BB01 /* ProvidersSettingsPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvidersSettingsPane.swift; sourceTree = "<group>"; };
+		JCKT0004000000000000BB01 /* ProvidersSettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvidersSettingsViewModel.swift; sourceTree = "<group>"; };
+		JCKT0005000000000000BB01 /* JackettProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JackettProviderTests.swift; sourceTree = "<group>"; };
+		JCKT0006000000000000BB01 /* JackettSettingsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JackettSettingsStoreTests.swift; sourceTree = "<group>"; };
+		JCKT0007000000000000BB01 /* DefaultProviderRegistryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultProviderRegistryTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -462,6 +476,9 @@
 				SD000012000000000000BB01 /* SubtitleErrorBannerSnapshotTests.swift */,
 				YTST0001000000000000BB01 /* YTSProviderTests.swift */,
 				EZTV0002000000000000BB01 /* EZTVProviderTests.swift */,
+				JCKT0005000000000000BB01 /* JackettProviderTests.swift */,
+				JCKT0006000000000000BB01 /* JackettSettingsStoreTests.swift */,
+				JCKT0007000000000000BB01 /* DefaultProviderRegistryTests.swift */,
 				SUPP0001000000000000GG01 /* Support */,
 			);
 			path = ButterBarTests;
@@ -493,6 +510,8 @@
 			children = (
 				SETV0001000000000000BB01 /* SettingsView.swift */,
 				SETV0002000000000000BB01 /* StorageSettingsPane.swift */,
+				JCKT0003000000000000BB01 /* ProvidersSettingsPane.swift */,
+				JCKT0004000000000000BB01 /* ProvidersSettingsViewModel.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -512,6 +531,8 @@
 			children = (
 				YTSP0001000000000000BB01 /* YTSProvider.swift */,
 				EZTV0001000000000000BB01 /* EZTVProvider.swift */,
+				JCKT0001000000000000BB01 /* JackettProvider.swift */,
+				JCKT0002000000000000BB01 /* JackettSettingsStore.swift */,
 			);
 			path = Providers;
 			sourceTree = "<group>";
@@ -925,6 +946,9 @@
 				SD000012000000000000AA01 /* SubtitleErrorBannerSnapshotTests.swift in Sources */,
 				YTST0001000000000000AA01 /* YTSProviderTests.swift in Sources */,
 				EZTV0002000000000000AA01 /* EZTVProviderTests.swift in Sources */,
+				JCKT0005000000000000AA01 /* JackettProviderTests.swift in Sources */,
+				JCKT0006000000000000AA01 /* JackettSettingsStoreTests.swift in Sources */,
+				JCKT0007000000000000AA01 /* DefaultProviderRegistryTests.swift in Sources */,
 				MOCK0001000000000000AA01 /* MockURLSession.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1029,6 +1053,10 @@
 				DREG0001000000000000AA01 /* DefaultProviderRegistry.swift in Sources */,
 				YTSP0001000000000000AA01 /* YTSProvider.swift in Sources */,
 				EZTV0001000000000000AA01 /* EZTVProvider.swift in Sources */,
+				JCKT0001000000000000AA01 /* JackettProvider.swift in Sources */,
+				JCKT0002000000000000AA01 /* JackettSettingsStore.swift in Sources */,
+				JCKT0003000000000000AA01 /* ProvidersSettingsPane.swift in Sources */,
+				JCKT0004000000000000AA01 /* ProvidersSettingsViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

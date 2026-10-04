@@ -66,16 +66,6 @@ private struct AccountSettingsPane: View {
     }
 }
 
-private struct ProvidersSettingsPane: View {
-    var body: some View {
-        SettingsPlaceholder(
-            icon: "server.rack",
-            title: "Providers",
-            subtitle: "Configure and prioritise torrent providers here."
-        )
-    }
-}
-
 private struct PlaybackSettingsPane: View {
     var body: some View {
         SettingsPlaceholder(
